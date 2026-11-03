@@ -415,7 +415,6 @@
                         reason: 'Markup synchronized: Text content matches existing attributes.'
                     };
                 } catch (candidateErr) {
-                    console.log(candidateErr)
                     return {
                         ...base,
                         reason: 'Candidate block could not be created with existing attributes.',
