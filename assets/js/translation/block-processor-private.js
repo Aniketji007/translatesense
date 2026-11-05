@@ -747,7 +747,7 @@
                 }
                 blockEditorDispatch.replaceBlock(rootId, replacement || updatedRoot);
             } catch (err) {
-                console.error('[TranslateSense Processor] Error replacing root parent block:', err);
+                console.error('[TranslateSense]', err);
             }
         }
 
