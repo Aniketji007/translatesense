@@ -1,5 +1,5 @@
 /**
- * TranslateSense - Gutenberg Block Processor System (block-processor.js)
+ * TranslateSense - Gutenberg Block Processor System (block-editor.js)
  * 
  * Production-ready, conservative, reliable Gutenberg block detection,
  * conservative default attribute processor, and editor integration.
