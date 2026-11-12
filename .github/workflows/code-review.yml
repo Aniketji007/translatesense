@@ -1,0 +1,89 @@
+name: AI WordPress Code Review
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+concurrency:
+  group: ai-code-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ai-code-review:
+    name: AI Security & Code Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Skip draft and fork PRs.
+    if: >
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      # Checkout trusted code from the base commit.
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Setup Python.
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Fetch PR commit without checking out PR code.
+      - name: Fetch pull request commit
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git fetch origin \
+            "refs/pull/${PR_NUMBER}/head:refs/remotes/pull/${PR_NUMBER}/head" \
+            --no-tags \
+            --depth=1
+
+      # Validate required secrets.
+      - name: Validate configuration
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AI_REVIEW_MODEL: ${{ secrets.AI_REVIEW_MODEL }}
+        run: |
+          if [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "::error::OPENROUTER_API_KEY secret is missing."
+            exit 1
+          fi
+
+          if [ -z "$AI_REVIEW_MODEL" ]; then
+            echo "::error::AI_REVIEW_MODEL secret is missing."
+            exit 1
+          fi
+
+      # Run AI code review.
+      - name: Run AI code review
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AI_REVIEW_MODEL: ${{ secrets.AI_REVIEW_MODEL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+        run: |
+          python .github/scripts/ai-review.py
+
+      - name: Review completion
+        if: success()
+        run: |
+          echo "AI code review completed successfully."
