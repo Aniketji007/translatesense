@@ -28,12 +28,12 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
-      # Checkout trusted code from the base commit.
+      # Checkout trusted base branch.
       - name: Checkout base branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
 
       # Setup Python.
@@ -42,15 +42,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Fetch PR commit without checking out PR code.
-      - name: Fetch pull request commit
+      # Download PR source archive without Git authentication.
+      - name: Download pull request source
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          git fetch origin \
-            "refs/pull/${PR_NUMBER}/head:refs/remotes/pull/${PR_NUMBER}/head" \
-            --no-tags \
-            --depth=1
+          mkdir -p "$RUNNER_TEMP/pr-source"
+
+          curl --fail --silent --show-error --location \
+            "https://github.com/${GITHUB_REPOSITORY}/archive/refs/pull/${PR_NUMBER}/head.tar.gz" \
+            -o "$RUNNER_TEMP/pr-source/pr.tar.gz"
+
+          tar -xzf "$RUNNER_TEMP/pr-source/pr.tar.gz" \
+            -C "$RUNNER_TEMP/pr-source"
 
       # Validate required secrets.
       - name: Validate configuration
@@ -73,16 +77,17 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           AI_REVIEW_MODEL: ${{ secrets.AI_REVIEW_MODEL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
+          PR_SOURCE_DIR: ${{ runner.temp }}/pr-source
         run: |
           python .github/scripts/ai-review.py
 
+      # Review completion.
       - name: Review completion
         if: success()
         run: |
