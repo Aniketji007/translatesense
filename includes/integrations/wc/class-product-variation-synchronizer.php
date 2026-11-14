@@ -109,6 +109,7 @@ class Product_Variation_Synchronizer {
 	 */
 	public static function process_variations( WC_Product $source_product, WC_Product $target_product, string $source_lang, string $target_lang, string $provider = '', array $in_memory_translations = array() ): void {
 		$source_variation_ids = $source_product->get_children();
+
 		if ( empty( $source_variation_ids ) || ! is_array( $source_variation_ids ) ) {
 			return;
 		}
@@ -137,6 +138,7 @@ class Product_Variation_Synchronizer {
 				continue;
 			}
 			$src_id = absint( get_post_meta( $existing_target_var_id, '_translatesense_source_id', true ) );
+
 			if ( $src_id > 0 ) {
 				$existing_by_source_id[ $src_id ] = $existing_target_var_id;
 			}
@@ -153,6 +155,7 @@ class Product_Variation_Synchronizer {
 			}
 
 			$source_var = wc_get_product( $source_var_id );
+
 			if ( ! $source_var instanceof WC_Product_Variation ) {
 				continue;
 			}
@@ -179,6 +182,20 @@ class Product_Variation_Synchronizer {
 		// Temporarily allow translated variations to share source SKU across translations
 		add_filter( 'wc_product_pre_has_unique_sku', '__return_true' );
 		add_filter( 'wc_product_has_unique_sku', '__return_false' );
+
+		add_filter(
+			'woocommerce_delete_variations_on_product_type_change',
+			function ( $delete, $product, $from, $to ) use ( $target_post_id ) {
+
+				if ( $product instanceof WC_Product && $product->get_id() === $target_post_id ) {
+					return false;
+				}
+
+				return $delete;
+			},
+			10,
+			4
+		);
 
 		try {
 			// Process each source variation in order, preserving variation ordering
@@ -311,9 +328,11 @@ class Product_Variation_Synchronizer {
 				// Translated description:
 				$source_desc = trim( (string) $source_var->get_description() );
 				$target_var->set_description( $translated_descriptions[ (string) $source_var_id ] ?? $source_desc );
+				$target_var->set_id( 0 );
 
 				// Save variation via WooCommerce CRUD
 				$saved_target_var_id = $target_var->save();
+
 				if ( $saved_target_var_id > 0 ) {
 					update_post_meta( $saved_target_var_id, '_translatesense_source_id', $source_var_id );
 
@@ -371,6 +390,7 @@ class Product_Variation_Synchronizer {
 
 		// Update translated parent product
 		$target_product->save();
+
 		if ( class_exists( WC_Product_Variable::class ) ) {
 			WC_Product_Variable::sync( $target_post_id );
 		}
