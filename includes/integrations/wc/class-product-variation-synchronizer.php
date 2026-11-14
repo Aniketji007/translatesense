@@ -85,13 +85,11 @@ class Product_Variation_Synchronizer {
 			$context = Product_Attribute_Translator::get_current_context();
 		}
 
-		$provider               = sanitize_key( (string) ( $context['provider'] ?? '' ) );
-		$in_memory_translations = is_array( $context['in_memory_translations'] ?? null ) ? $context['in_memory_translations'] : array();
-
+		$context             = is_array( $context ?? null ) ? $context : array();
 		self::$synchronizing = true;
 
 		try {
-			self::process_variations( $source_product, $target_product, $source_lang, $target_lang, $provider, $in_memory_translations );
+			self::process_variations( $source_product, $target_product, $source_lang, $target_lang, $context );
 		} finally {
 			self::$synchronizing = false;
 		}
@@ -104,10 +102,9 @@ class Product_Variation_Synchronizer {
 	 * @param WC_Product $target_product         Target WooCommerce product.
 	 * @param string     $source_lang            Source language slug.
 	 * @param string     $target_lang            Target language slug.
-	 * @param string     $provider               Provider slug.
-	 * @param array      $in_memory_translations In-memory translations map.
+	 * @param array      $context                Context.
 	 */
-	public static function process_variations( WC_Product $source_product, WC_Product $target_product, string $source_lang, string $target_lang, string $provider = '', array $in_memory_translations = array() ): void {
+	public static function process_variations( WC_Product $source_product, WC_Product $target_product, string $source_lang, string $target_lang, array $context = array() ): void {
 		$source_variation_ids = $source_product->get_children();
 
 		if ( empty( $source_variation_ids ) || ! is_array( $source_variation_ids ) ) {
@@ -173,8 +170,7 @@ class Product_Variation_Synchronizer {
 				$descriptions_to_translate,
 				$source_lang,
 				$target_lang,
-				$provider,
-				$in_memory_translations,
+				$context,
 				'wc_var_desc_'
 			)
 			: array();
@@ -336,22 +332,13 @@ class Product_Variation_Synchronizer {
 				if ( $saved_target_var_id > 0 ) {
 					update_post_meta( $saved_target_var_id, '_translatesense_source_id', $source_var_id );
 
-					// Apply configured metadata and custom field rules using supplied translation context
-					$var_custom_opts = array();
-					if ( ! empty( $provider ) ) {
-						$var_custom_opts['provider'] = $provider;
-					}
-					if ( ! empty( $in_memory_translations ) ) {
-						$var_custom_opts['in_memory_translations'] = $in_memory_translations;
-					}
-
 					Custom_Field_Translator::apply_target_metadata(
 						$source_var_id,
 						$saved_target_var_id,
 						$source_lang,
 						$target_lang,
 						$is_existing,
-						$var_custom_opts
+						$context
 					);
 				}
 			}

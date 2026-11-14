@@ -8,6 +8,8 @@ use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
+use TranslateSense\Includes\Translation\Translate;
+
 use WC_Product;
 use WC_Product_Attribute;
 use WP_Term;
@@ -353,13 +355,12 @@ class Product_Attribute_Translator {
 			$context = self::get_current_context();
 		}
 
-		$provider               = sanitize_key( (string) ( $context['provider'] ?? '' ) );
-		$in_memory_translations = is_array( $context['in_memory_translations'] ?? null ) ? $context['in_memory_translations'] : array();
+		$context = is_array( $context ?? null ) ? $context : array();
 
 		self::$translating = true;
 
 		try {
-			self::process_product_attributes( $source_product, $target_product, $source_lang, $target_lang, $provider, $in_memory_translations );
+			self::process_product_attributes( $source_product, $target_product, $source_lang, $target_lang, $context );
 		} finally {
 			self::$translating = false;
 		}
@@ -372,8 +373,7 @@ class Product_Attribute_Translator {
 	 * @param array<string, string> $strings                Associative array of key => string.
 	 * @param string                $source_lang            Source language slug.
 	 * @param string                $target_lang            Target language slug.
-	 * @param string                $provider               Provider slug (e.g. 'chrome_ai', 'gemini').
-	 * @param array                 $in_memory_translations In-memory translations map.
+	 * @param array                 $context In-memory translations map.
 	 * @param string                $prefix                 Optional prefix used in package keys.
 	 * @return array<string, string> Translated strings keyed by same keys.
 	 */
@@ -381,8 +381,7 @@ class Product_Attribute_Translator {
 		array $strings,
 		string $source_lang,
 		string $target_lang,
-		string $provider = '',
-		array $in_memory_translations = array(),
+		array $context = array(),
 		string $prefix = ''
 	): array {
 		if ( empty( $strings ) || $source_lang === $target_lang ) {
@@ -403,30 +402,20 @@ class Product_Attribute_Translator {
 
 			// Check in-memory translations first
 			$matched = null;
-			if ( ! empty( $in_memory_translations ) ) {
-				if ( isset( $in_memory_translations[ $str ] ) && '' !== trim( (string) $in_memory_translations[ $str ] ) ) {
-					$matched = (string) $in_memory_translations[ $str ];
-				} elseif ( isset( $in_memory_translations[ md5( $str ) ] ) && '' !== trim( (string) $in_memory_translations[ md5( $str ) ] ) ) {
-					$matched = (string) $in_memory_translations[ md5( $str ) ];
-				} elseif ( '' !== $prefix && isset( $in_memory_translations[ $prefix . $key_str ] ) && '' !== trim( (string) $in_memory_translations[ $prefix . $key_str ] ) ) {
-					$matched = (string) $in_memory_translations[ $prefix . $key_str ];
-				} elseif ( isset( $in_memory_translations[ $key_str ] ) && '' !== trim( (string) $in_memory_translations[ $key_str ] ) ) {
-					$matched = (string) $in_memory_translations[ $key_str ];
-				} else {
-					// Check by generated package hashes
-					$candidate_keys = array( $key_str );
-					if ( '' !== $prefix ) {
-						$candidate_keys[] = $prefix . $key_str;
-					}
-					if ( 0 === strpos( $key_str, 'label_' ) || 0 === strpos( $key_str, 'opt_' ) ) {
-						$candidate_keys[] = 'wc_attr_' . $key_str;
-					}
-					foreach ( $candidate_keys as $c_key ) {
-						$c_hash = Hashing_Db::generate_hash( $c_key, $str );
-						if ( isset( $in_memory_translations[ $c_hash ] ) && '' !== trim( (string) $in_memory_translations[ $c_hash ] ) ) {
-							$matched = (string) $in_memory_translations[ $c_hash ];
-							break;
-						}
+			if ( ! empty( $context ) ) {
+				// Check by generated package hashes
+				$candidate_keys = array( $key_str );
+				if ( '' !== $prefix ) {
+					$candidate_keys[] = $prefix . $key_str;
+				}
+				if ( 0 === strpos( $key_str, 'label_' ) || 0 === strpos( $key_str, 'opt_' ) ) {
+					$candidate_keys[] = 'wc_attr_' . $key_str;
+				}
+				foreach ( $candidate_keys as $c_key ) {
+					$res = Translate::translate_string( $str, $source_lang, $target_lang, $c_key, $context );
+					if ( isset( $res['translated'] ) && ! empty( $res['translated'] ) && $str !== $res['translated'] ) {
+						$matched = (string) $res['translated'];
+						break;
 					}
 				}
 			}
@@ -466,10 +455,9 @@ class Product_Attribute_Translator {
 	 * @param WC_Product $target_product         Target WooCommerce product.
 	 * @param string     $source_lang            Source language slug.
 	 * @param string     $target_lang            Target language slug.
-	 * @param string     $provider               Provider slug.
-	 * @param array      $in_memory_translations In-memory translations map.
+	 * @param array      $context                Context.
 	 */
-	public static function process_product_attributes( WC_Product $source_product, WC_Product $target_product, string $source_lang, string $target_lang, string $provider = '', array $in_memory_translations = array() ): void {
+	public static function process_product_attributes( WC_Product $source_product, WC_Product $target_product, string $source_lang, string $target_lang, array $context = array() ): void {
 		$source_attributes = $source_product->get_attributes();
 		if ( empty( $source_attributes ) ) {
 			return;
@@ -501,7 +489,7 @@ class Product_Attribute_Translator {
 		}
 
 		$translated_custom = ! empty( $custom_strings )
-			? self::translate_strings( $custom_strings, $source_lang, $target_lang, $provider, $in_memory_translations, 'wc_attr_' )
+			? self::translate_strings( $custom_strings, $source_lang, $target_lang, $context, 'wc_attr_' )
 			: array();
 
 		// 2. Build target product attributes
