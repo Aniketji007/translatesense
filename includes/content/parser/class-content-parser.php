@@ -11,6 +11,7 @@ use TranslateSense\Includes\Content\Parser\Builders\Classic_Builder;
 use TranslateSense\Includes\Admin\Editor_Integration;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Database\Hashing_Db;
+use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -270,6 +271,14 @@ class Content_Parser {
 							'value'       => $excerpt,
 							'string_hash' => $string_hash,
 						);
+					}
+				}
+
+				// 4. WooCommerce product attributes & variation descriptions
+				if ( 'product' === $post_obj->post_type ) {
+					$wc_extracted = Product_Attribute_Translator::extract_translatable_product_strings( $post_id, (string) $lang, (string) $builder );
+					if ( ! empty( $wc_extracted ) ) {
+						$extracted = array_merge( $extracted, $wc_extracted );
 					}
 				}
 			}

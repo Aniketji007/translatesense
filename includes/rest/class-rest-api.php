@@ -21,6 +21,7 @@ use TranslateSense\Includes\Bulk\Bulk_Process;
 use TranslateSense\Includes\Translation\Statics;
 use TranslateSense\Includes\Content\Processor\Block_Processor;
 use TranslateSense\Includes\Core\Detector;
+use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
 use WP_REST_Server;
 use WP_REST_Request;
@@ -3530,6 +3531,14 @@ class Rest_Api {
 			}
 		} else {
 			Custom_Field_Manager::ensure_package_prepared(
+				$post_id,
+				$source_language,
+				$source_editor_type
+			);
+		}
+
+		if ( 'product' === get_post_type( $post_id ) ) {
+			Product_Attribute_Translator::ensure_product_package_prepared(
 				$post_id,
 				$source_language,
 				$source_editor_type

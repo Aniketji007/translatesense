@@ -15,6 +15,7 @@ use TranslateSense\Includes\Admin\Editor_Integration;
 use TranslateSense\Includes\Translation\Statics;
 use TranslateSense\Includes\Content\Processor\Block_Processor;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
 use WP_Error;
 
@@ -1088,6 +1089,11 @@ class Bulk_Process {
 
 			// Synchronize dynamic custom-field packages and refresh package list
 			Custom_Field_Manager::ensure_package_prepared( $post_id, $source_lang, $editor_type );
+
+			if ( 'product' === $source_post->post_type ) {
+				Product_Attribute_Translator::ensure_product_package_prepared( $post_id, $source_lang, $editor_type );
+			}
+
 			$packages = Hashing_Db::get_post_package( $post_id, $source_lang, $editor_type, $package_options );
 
 			if ( ! is_array( $packages ) ) {
