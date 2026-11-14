@@ -11,6 +11,9 @@ use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Synchronizer;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 use TranslateSense\Includes\Admin\Editor_Integration;
+use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
+use TranslateSense\Includes\Integrations\WC\Product_Relationship_Synchronizer;
+use TranslateSense\Includes\Integrations\WC\Product_Variation_Synchronizer;
 
 use WP_Post;
 use WP_Error;
@@ -172,6 +175,13 @@ abstract class Base_Builder {
 			return new WP_Error( 'no_language', __( 'The source post does not have a language assigned in Polylang.', 'translatesense' ), array( 'status' => 400 ) );
 		}
 
+		// Initialize WooCommerce Integration.
+		if ( 'product' === $source_post->post_type ) {
+			Product_Relationship_Synchronizer::init();
+			Product_Attribute_Translator::init();
+			Product_Variation_Synchronizer::init();
+		}
+
 		$source_lang = Polylang_Bridge::get_post_language( $post_id );
 		$custom_opts = array();
 
@@ -227,7 +237,18 @@ abstract class Base_Builder {
 		// Existing translations are updated in place. Slug and status settings
 		// are creation-only and must not overwrite editorial choices on a target.
 		$create_args = array(
-			'post_excerpt' => $translated_excerpt,
+			'post_excerpt'           => $translated_excerpt,
+			'provider'               => $provider,
+			'in_memory_translations' => $in_memory_translations,
+		);
+
+		Product_Attribute_Translator::set_current_context(
+			array(
+				'provider'               => $provider,
+				'in_memory_translations' => $in_memory_translations,
+				'source_lang'            => $source_lang,
+				'target_lang'            => $target_lang,
+			)
 		);
 
 		if ( ! $is_existing ) {
@@ -284,6 +305,8 @@ abstract class Base_Builder {
 			$wp_post_content,
 			$create_args
 		);
+
+		Product_Attribute_Translator::clear_current_context();
 
 		if ( is_wp_error( $created_post_id ) ) {
 			return $created_post_id;

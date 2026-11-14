@@ -455,8 +455,9 @@ class Polylang_Bridge {
 		 * @param string $target_lang    Target language slug.
 		 * @param bool   $is_existing    Whether an existing translation was updated.
 		 * @param array  $sync_result    Synchronization result and warnings.
+		 * @param array  $args           Additional context arguments (provider, in_memory_translations, etc.).
 		 */
-		do_action( 'translatesense_after_save_translation', $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result );
+		do_action( 'translatesense_after_save_translation', $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $args );
 
 		return $target_post_id;
 	}
