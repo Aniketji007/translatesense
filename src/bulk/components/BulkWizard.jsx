@@ -36,7 +36,6 @@ export function BulkWizard({
     isCompleted,
     progressPercent,
     statusText,
-    completedJobsCount,
     totalJobsCount,
     formattedTimer,
     humanReadableTimer,
@@ -260,7 +259,6 @@ export function BulkWizard({
           isCompleted={isCompleted}
           statusText={statusText}
           progressPercent={progressPercent}
-          completedJobsCount={completedJobsCount}
           totalJobsCount={totalJobsCount}
           formattedTimer={formattedTimer}
           humanReadableTimer={humanReadableTimer}

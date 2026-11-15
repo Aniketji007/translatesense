@@ -47,7 +47,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
   const [isCompleted, setIsCompleted] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [statusText, setStatusText] = useState('Initializing...');
-  const [completedJobsCount, setCompletedJobsCount] = useState(0);
   const [totalJobsCount, setTotalJobsCount] = useState(0);
 
   const [statsSummary, setStatsSummary] = useState(null);
@@ -279,11 +278,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             : Math.round(data.progress_percent || 0);
 
         setProgressPercent(pct);
-        const done =
-          (data.completed_jobs || 0) +
-          (data.already_exists_jobs || 0) +
-          (data.skipped_jobs || 0);
-        setCompletedJobsCount(done);
         setTotalJobsCount(data.total_jobs || (data.items ? data.items.length : 1));
         setStatusText(data.current_status || `Translating content in background... (${pct}%)`);
 
@@ -439,11 +433,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
               : Math.round(data.progress_percent || 0);
 
           setProgressPercent(pct);
-          const done =
-            (data.completed_jobs || 0) +
-            (data.already_exists_jobs || 0) +
-            (data.skipped_jobs || 0);
-          setCompletedJobsCount(done);
           setTotalJobsCount(data.total_jobs || (data.items ? data.items.length : 1));
           setStatusText(
             data.current_status || `Translating content in background... (${pct}%)`
@@ -514,7 +503,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
         };
       });
 
-      setCompletedJobsCount(completedCount);
       setTotalJobsCount(totalJobs);
 
       const initialPct = Math.round(getOverallProgress(runningJobs));
@@ -598,6 +586,8 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
         let totalStringsCount = 0;
         let completedStringsCount = 0;
         let totalCharacters = 0;
+        const updatedPostResult = {};
+        const updateBulkJobData = {};
 
         try {
           if (isTaxonomy && !useBrowserAi) {
@@ -817,19 +807,15 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
 
             totalStringsCount = rawStrings.length;
             completedStringsCount = rawStrings.length;
-          }
 
-          if (!isTaxonomy) {
-            await updateBulkJob(jobId, {
-              status: 'completed',
-              progress_status: 'Completed successfully',
-              total_strings: totalStringsCount,
-              completed_strings: completedStringsCount,
-              total_characters: totalCharacters,
-              completed_characters: totalCharacters,
-              time_take: Math.round(performance.now() - jobStartTime),
-              target_post_id: postRes.target_post_id,
-            }, itemType);
+            updateBulkJobData.status = 'completed';
+            updateBulkJobData.progress_status = 'Completed successfully';
+            updateBulkJobData.total_strings = totalStringsCount;
+            updateBulkJobData.completed_strings = completedStringsCount;
+            updateBulkJobData.total_characters = totalCharacters;
+            updateBulkJobData.completed_characters = totalCharacters;
+            updateBulkJobData.time_take = Math.round(performance.now() - jobStartTime);
+            updateBulkJobData.target_post_id = postRes.target_post_id;
           }
 
           runningJobs[i].status = 'completed';
@@ -839,64 +825,56 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
           runningJobs[i].total_characters = totalCharacters;
 
           completedCount++;
-          setCompletedJobsCount(completedCount);
 
-          const postFinishPct = Math.round(getOverallProgress(runningJobs));
-          setProgressPercent(postFinishPct);
+          updatedPostResult.status = 'completed';
+          updatedPostResult.targetPostId = postRes.target_post_id;
+          updatedPostResult.targetTitle = postRes.translated_title || postTitle;
+          updatedPostResult.editUrl = postRes.edit_url;
+          updatedPostResult.viewUrl = postRes.view_url;
+          updatedPostResult.completedStrings = completedStringsCount;
+          updatedPostResult.totalStrings = totalStringsCount;
+          updatedPostResult.completedCharacters = totalCharacters;
+          updatedPostResult.totalCharacters = totalCharacters;
+          updatedPostResult.progressPercent = 100;
+          updatedPostResult.progressStatus = 'Completed successfully';
 
-          setPostResultsMap((prev) => {
-            const updated = { ...prev };
-            if (updated[postId] && updated[postId].translations[targetLang]) {
-              const t = { ...updated[postId].translations[targetLang] };
-              t.status = 'completed';
-              t.targetPostId = postRes.target_post_id;
-              t.targetTitle = postRes.translated_title || postTitle;
-              t.editUrl = postRes.edit_url;
-              t.viewUrl = postRes.view_url;
-              t.completedStrings = completedStringsCount;
-              t.totalStrings = totalStringsCount;
-              t.completedCharacters = totalCharacters;
-              t.totalCharacters = totalCharacters;
-              t.progressPercent = 100;
-              t.progressStatus = 'Completed successfully';
-              updated[postId].translations[targetLang] = t;
-            }
-            return updated;
-          });
         } catch (err) {
           failedCount++;
 
           runningJobs[i].status = 'failed';
-          const postFailPct = Math.round(getOverallProgress(runningJobs));
-          setProgressPercent(postFailPct);
 
+          updateBulkJobData.status = 'failed';
+          updateBulkJobData.progress_status = `Failed: ${err.message}`;
+          updateBulkJobData.error_message = err.message;
+          updateBulkJobData.total_strings = rawStrings.length || 0;
+          updateBulkJobData.time_take = Math.round(performance.now() - jobStartTime);
+
+          updatedPostResult.status = 'failed';
+          updatedPostResult.error = err.message;
+          updatedPostResult.errorObj = err.errorObj || null;
+          updatedPostResult.progressPercent = 100;
+          updatedPostResult.progressStatus = `Failed: ${err.message}`;
+          updatedPostResult.targetTitle = `Failed: ${err.message}`;
+        }
+
+        if (updateBulkJobData && Object.keys(updateBulkJobData).length > 0) {
           try {
-            await updateBulkJob(jobId, {
-              status: 'failed',
-              progress_status: `Failed: ${err.message}`,
-              error_message: err.message,
-              total_strings: rawStrings.length || 0,
-              time_take: Math.round(performance.now() - jobStartTime),
-            }, itemType);
-          } catch {
+            await updateBulkJob(jobId, updateBulkJobData, itemType);
+          } catch (err) {
             // Non-blocking UI progress sync
           }
-
-          setPostResultsMap((prev) => {
-            const updated = { ...prev };
-            if (updated[postId] && updated[postId].translations[targetLang]) {
-              const t = { ...updated[postId].translations[targetLang] };
-              t.status = 'failed';
-              t.error = err.message;
-              t.errorObj = err.errorObj || null;
-              t.progressPercent = 100;
-              t.progressStatus = `Failed: ${err.message}`;
-              t.targetTitle = `Failed: ${err.message}`;
-              updated[postId].translations[targetLang] = t;
-            }
-            return updated;
-          });
         }
+
+        const postFinishPct = Math.round(getOverallProgress(runningJobs));
+        setProgressPercent(postFinishPct);
+
+        setPostResultsMap((prev) => {
+          const updated = { ...prev };
+          if (updated[postId] && updated[postId].translations[targetLang]) {
+            updated[postId].translations[targetLang] = { ...updated[postId].translations[targetLang], ...updatedPostResult };
+          }
+          return updated;
+        });
       }
 
       const hasRunnableJobs = runningJobs.some(
@@ -923,11 +901,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
           if (freshBatch && Array.isArray(freshBatch.items) && freshBatch.items.length > 0) {
             finalItems = freshBatch.items;
             populateMapFromBatch(freshBatch, false);
-            setCompletedJobsCount(
-              (freshBatch.completed_jobs || 0) +
-              (freshBatch.already_exists_jobs || 0) +
-              (freshBatch.skipped_jobs || 0)
-            );
             setTotalJobsCount(freshBatch.total_jobs || freshBatch.items.length);
           }
         } catch {
@@ -988,7 +961,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
 
     setOrderedPostIds(postIds.map(String));
     setTotalJobsCount(postIds.length * selectedLanguages.length);
-    setCompletedJobsCount(0);
 
     try {
       const batchRes = await startBulkTranslation({
@@ -1014,14 +986,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
           true
         );
         setTotalJobsCount(batchRes.jobs.length);
-        setCompletedJobsCount(
-          batchRes.jobs.filter(
-            (j) =>
-              j.status === 'completed' ||
-              j.status === 'already_exists' ||
-              j.status === 'skipped'
-          ).length
-        );
         setProgressPercent(Math.round(getOverallProgress(batchRes.jobs)));
       }
 
@@ -1111,11 +1075,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             : Math.round(res.batch.progress_percent || 0);
 
         setProgressPercent(pct);
-        const done =
-          (res.batch.completed_jobs || 0) +
-          (res.batch.already_exists_jobs || 0) +
-          (res.batch.skipped_jobs || 0);
-        setCompletedJobsCount(done);
         setTotalJobsCount(res.batch.total_jobs || (res.batch.items ? res.batch.items.length : 1));
         setStatusText(`Restarted ${res.retried_count} translation job(s)...`);
       }
@@ -1165,7 +1124,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     isCompleted,
     progressPercent,
     statusText,
-    completedJobsCount,
     totalJobsCount,
     formattedTimer,
     humanReadableTimer: humanReadable,
