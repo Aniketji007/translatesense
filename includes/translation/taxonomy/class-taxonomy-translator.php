@@ -390,41 +390,6 @@ class Taxonomy_Translator {
 	}
 
 	/**
-	 * Ensure every required taxonomy string for a post is available in `$in_memory_translations`
-	 * or translation memory, translating any uncached strings in a single batch call.
-	 *
-	 * @param int                                $source_post_id         Source post ID.
-	 * @param array<string, array<int, WP_Term>> $authorized_tree        Authorized term map.
-	 * @param string                             $source_lang            Source language slug.
-	 * @param string                             $target_lang            Target language slug.
-	 * @param string                             $provider               Provider ID.
-	 * @param array                              $in_memory_translations Map indexed by hash (updated in place).
-	 * @param int|null                           $user_id                Optional user ID.
-	 * @param bool                               $enforce_permissions    Whether capability checks apply.
-	 * @return true|WP_Error
-	 */
-	private static function ensure_translations_available(
-		int $source_post_id,
-		array $authorized_tree,
-		string $source_lang,
-		string $target_lang,
-		string $provider,
-		array &$in_memory_translations,
-		?int $user_id,
-		bool $enforce_permissions
-	) {
-		$items = Taxonomy_Parser::extract_strings( $source_post_id, $target_lang, $user_id, $enforce_permissions );
-		return self::ensure_items_translated(
-			$items,
-			$authorized_tree,
-			$source_lang,
-			$target_lang,
-			$provider,
-			$in_memory_translations
-		);
-	}
-
-	/**
 	 * Inspect whether a term already has a completed translation or needs creation/update.
 	 *
 	 * @param int    $term_id     Source term ID.
@@ -740,20 +705,6 @@ class Taxonomy_Translator {
 
 		if ( ! empty( self::$last_taxonomy_warnings ) ) {
 			update_post_meta( $source_post_id, '_translatesense_taxonomy_warnings', self::$last_taxonomy_warnings );
-		}
-
-		$preloaded = self::ensure_translations_available(
-			$source_post_id,
-			$authorized_tree,
-			$source_lang,
-			$target_lang,
-			$provider,
-			$in_memory_translations,
-			$user_id,
-			$enforce_permissions
-		);
-		if ( is_wp_error( $preloaded ) ) {
-			return $preloaded;
 		}
 
 		$map = array();
