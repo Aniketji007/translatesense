@@ -116,10 +116,9 @@ class Product_Variation_Synchronizer {
 		// Ensure target product has variable product type
 		if ( ! $target_product->is_type( 'variable' ) ) {
 			wp_set_object_terms( $target_post_id, 'variable', 'product_type' );
-			$target_product = wc_get_product( $target_post_id );
-			if ( ! $target_product instanceof WC_Product ) {
-				return;
-			}
+			clean_post_cache( $target_post_id );
+			wp_cache_delete( 'product-' . $target_post_id, 'products' );
+			$target_product = new \WC_Product_Variable( $target_post_id );
 		}
 
 		// Build attribute mapping using translated attributes from target product
@@ -324,7 +323,6 @@ class Product_Variation_Synchronizer {
 				// Translated description:
 				$source_desc = trim( (string) $source_var->get_description() );
 				$target_var->set_description( $translated_descriptions[ (string) $source_var_id ] ?? $source_desc );
-				$target_var->set_id( 0 );
 
 				// Save variation via WooCommerce CRUD
 				$saved_target_var_id = $target_var->save();
