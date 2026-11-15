@@ -598,7 +598,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
         let totalStringsCount = 0;
         let completedStringsCount = 0;
         let totalCharacters = 0;
-        let sentStrings = [];
 
         try {
           if (isTaxonomy && !useBrowserAi) {
@@ -614,7 +613,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             totalStringsCount = Number(postRes.total_strings) || 0;
             completedStringsCount = totalStringsCount;
             totalCharacters = Number(postRes.total_characters) || 0;
-            sentStrings = Array.isArray(postRes.sent_data) ? postRes.sent_data : [];
           } else {
             setStatusText(`Extracting strings for ${postTitle} (${targetLang.toUpperCase()})... (${startJobPct}%)`);
             let sourceLanguage = 'en';
@@ -818,7 +816,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
 
             totalStringsCount = rawStrings.length;
             completedStringsCount = rawStrings.length;
-            sentStrings = translatable.map((s) => s.value);
           }
 
           await updateBulkJob(jobId, {
@@ -828,7 +825,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             completed_strings: completedStringsCount,
             total_characters: totalCharacters,
             completed_characters: totalCharacters,
-            sent_data: sentStrings,
             time_take: Math.round(performance.now() - jobStartTime),
             target_post_id: postRes.target_post_id,
           }, itemType);

@@ -731,6 +731,9 @@ class Translate {
 		foreach ( $to_translate as $idx => $str ) {
 			$h     = $hashes[ $idx ];
 			$trans = isset( $translated_batch[ $idx ] ) && '' !== trim( (string) $translated_batch[ $idx ] ) ? (string) $translated_batch[ $idx ] : (string) $str;
+			if ( false !== strpos( $trans, '\u' ) && class_exists( Dom_Filter::class ) ) {
+				$trans = Dom_Filter::decode_unicode_escapes( $trans );
+			}
 
 			if ( ! empty( $trans ) && self::should_cache_provider( $provider ) ) {
 				$trans_hase = md5( $trans );
@@ -829,7 +832,7 @@ class Translate {
 	 */
 	public static function build_batch_translation_prompt( string $source_lang, string $target_lang, array $values_seq, array $settings = array() ): string {
 		$template = ! empty( $settings['custom_prompt'] ) ? (string) $settings['custom_prompt'] : self::DEFAULT_PROMPT;
-		$json_str = wp_json_encode( array( 'strings' => $values_seq ) );
+		$json_str = wp_json_encode( array( 'strings' => $values_seq ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		$replacements = array(
 			'{source_lang}'  => $source_lang,

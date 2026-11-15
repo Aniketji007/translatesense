@@ -22,6 +22,7 @@ use TranslateSense\Includes\Translation\Statics;
 use TranslateSense\Includes\Content\Processor\Block_Processor;
 use TranslateSense\Includes\Core\Detector;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
+use TranslateSense\Includes\Content\Parser\Dom_Filter;
 
 use WP_REST_Server;
 use WP_REST_Request;
@@ -3999,8 +4000,6 @@ class Rest_Api {
 			'progress_status',
 			'total_strings',
 			'completed_strings',
-			'sent_data',
-			'receive_data',
 			'error_message',
 			'target_post_id',
 		);
@@ -4026,14 +4025,6 @@ class Rest_Api {
 				case 'progress_status':
 				case 'error_message':
 					$clean_data[ $column ] = sanitize_text_field( (string) $value );
-					break;
-
-				case 'sent_data':
-				case 'receive_data':
-					$normalized_value      = self::normalize_translation_value( $value );
-					$clean_data[ $column ] = is_array( $normalized_value )
-						? wp_json_encode( $normalized_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES )
-						: (string) $normalized_value;
 					break;
 			}
 		}
@@ -4166,13 +4157,8 @@ class Rest_Api {
 				? absint( $updates['total_characters'] )
 				: ( isset( $params['total_characters'] ) ? absint( $params['total_characters'] ) : 0 );
 
-			if ( 0 === $c_chars && ! empty( $clean_data['sent_data'] ) ) {
-				$sent_arr = json_decode( $clean_data['sent_data'], true );
-				if ( is_array( $sent_arr ) ) {
-					foreach ( $sent_arr as $item_text ) {
-						$c_chars += mb_strlen( (string) $item_text );
-					}
-				}
+			if ( 0 === $c_chars && ! empty( $updates['total_strings'] ) ) {
+				$c_chars = absint( $updates['total_strings'] ) * 45;
 			}
 
 			$time_take = isset( $updates['time_take'] )
@@ -4684,6 +4670,9 @@ class Rest_Api {
 		}
 
 		if ( is_string( $value ) ) {
+			if ( false !== strpos( $value, '\u' ) && class_exists( Dom_Filter::class ) ) {
+				$value = Dom_Filter::decode_unicode_escapes( $value );
+			}
 			return wp_check_invalid_utf8( $value );
 		}
 

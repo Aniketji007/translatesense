@@ -976,7 +976,7 @@ class Polylang_Synchronizer {
 		}
 
 		$data = self::walk_elementor_media_data( $data, $target_lang, '' );
-		$json = wp_json_encode( $data );
+		$json = wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		return is_string( $json ) ? $json : $content;
 	}

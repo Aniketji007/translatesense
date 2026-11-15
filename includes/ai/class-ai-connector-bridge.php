@@ -15,6 +15,7 @@ namespace TranslateSense\Includes\AI;
 use WP_Error;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
+use TranslateSense\Includes\Content\Parser\Dom_Filter;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -532,7 +533,7 @@ class Ai_Connector_Bridge {
 					$url,
 					array(
 						'headers'     => $headers,
-						'body'        => wp_json_encode( $body ),
+						'body'        => wp_json_encode( $body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 						'timeout'     => $timeout,
 						'data_format' => 'body',
 					)
@@ -593,7 +594,7 @@ class Ai_Connector_Bridge {
 							'Content-Type'   => 'application/json',
 							'x-goog-api-key' => $api_key,
 						),
-						'body'        => wp_json_encode( $body ),
+						'body'        => wp_json_encode( $body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 						'timeout'     => $timeout,
 						'data_format' => 'body',
 					)
@@ -664,7 +665,11 @@ class Ai_Connector_Bridge {
 
 		foreach ( $keys as $i => $orig_key ) {
 			if ( isset( $translations_seq[ $i ] ) ) {
-				$mapped[ $orig_key ] = (string) $translations_seq[ $i ];
+				$val = (string) $translations_seq[ $i ];
+				if ( false !== strpos( $val, '\u' ) && class_exists( Dom_Filter::class ) ) {
+					$val = Dom_Filter::decode_unicode_escapes( $val );
+				}
+				$mapped[ $orig_key ] = $val;
 			}
 		}
 
@@ -686,7 +691,7 @@ class Ai_Connector_Bridge {
 			: "You are a professional HTML-safe translator. Translate the JSON array of strings from {source_lang} to {target_lang}.\nPreserve all HTML tags, placeholders, and formatting.\nOutput ONLY a valid JSON object matching this schema: {\"translations\": [\"...\", \"...\"]}\nLength of translations array MUST EXACTLY MATCH input array length ({count} items):\n\n{json_strings}";
 
 		$values_seq = array_values( $strings );
-		$json_str   = wp_json_encode( array( 'strings' => $values_seq ) );
+		$json_str   = wp_json_encode( array( 'strings' => $values_seq ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		$replacements = array(
 			'{source_lang}'  => $source_lang,

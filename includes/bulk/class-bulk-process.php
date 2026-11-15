@@ -1172,7 +1172,7 @@ class Bulk_Process {
 					'progress_status' => $is_retranslation
 						? sprintf( 'Updating existing translation (%d strings)...', $total_str )
 						: sprintf( 'Translating strings (%d found)...', $total_str ),
-					'sent_data'       => wp_json_encode( $strings_to_send ),
+					'sent_data'       => wp_json_encode( $strings_to_send, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 					'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
 				)
 			);
@@ -1254,6 +1254,15 @@ class Bulk_Process {
 				}
 			}
 
+			// Update receive_data in queue table immediately upon receiving AI response
+			self::update_job(
+				$job_id,
+				array(
+					'receive_data' => wp_json_encode( $translated_content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+					'updated_at'   => gmdate( 'Y-m-d H:i:s' ),
+				)
+			);
+
 			// Final pre-save check: ensure cancellation was not requested immediately before DB write
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$pre_save_status = $wpdb->get_var(
@@ -1326,7 +1335,7 @@ class Bulk_Process {
 					$completed_label,
 					$total_str,
 					$target_post_id,
-					wp_json_encode( $translated_content ),
+					wp_json_encode( $translated_content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 					gmdate( 'Y-m-d H:i:s' ),
 					$job_id
 				)
@@ -1484,12 +1493,29 @@ class Bulk_Process {
 		$table = self::get_table_name();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		return $wpdb->get_row(
+		$job = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$table} WHERE id = %d LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$job_id
 			)
 		);
+
+		if ( $job ) {
+			if ( ! empty( $job->receive_data ) && false !== strpos( $job->receive_data, '\u' ) ) {
+				$decoded = json_decode( $job->receive_data, true );
+				if ( is_array( $decoded ) ) {
+					$job->receive_data = wp_json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+				}
+			}
+			if ( ! empty( $job->sent_data ) && false !== strpos( $job->sent_data, '\u' ) ) {
+				$decoded = json_decode( $job->sent_data, true );
+				if ( is_array( $decoded ) ) {
+					$job->sent_data = wp_json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+				}
+			}
+		}
+
+		return $job;
 	}
 
 	/**
@@ -1695,6 +1721,8 @@ class Bulk_Process {
 				'source_edit_url'      => $source_edit_url,
 				'view_url'             => $view_url,
 				'error_message'        => $row['error_message'],
+				'sent_data'            => ! empty( $row['sent_data'] ) ? json_decode( $row['sent_data'], true ) : null,
+				'receive_data'         => ! empty( $row['receive_data'] ) ? json_decode( $row['receive_data'], true ) : null,
 				'created_at'           => ! empty( $row['created_at'] ) ? str_replace( ' ', 'T', (string) $row['created_at'] ) . 'Z' : '',
 				'updated_at'           => ! empty( $row['updated_at'] ) ? str_replace( ' ', 'T', (string) $row['updated_at'] ) . 'Z' : '',
 			);
