@@ -6,9 +6,11 @@ namespace TranslateSense\Includes\Translation\Taxonomy;
 
 use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
-use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Translation\Translate;
+use TranslateSense\Includes\Translation\Statics;
+use TranslateSense\Includes\Bulk\Bulk_Process;
+
 use WP_Error;
 use WP_Post;
 use WP_Term;
@@ -266,6 +268,8 @@ class Taxonomy_Translator {
 	 *
 	 * @param array<int, array<string, mixed>>   $items                  Extracted taxonomy string items.
 	 * @param array<string, array<int, WP_Term>> $authorized_tree        Authorized term map.
+	 * @param int                                $job_id                 Job ID.
+	 * @param int                                $term_id                Term ID.
 	 * @param string                             $source_lang            Source language slug.
 	 * @param string                             $target_lang            Target language slug.
 	 * @param string                             $provider               Provider ID.
@@ -275,12 +279,14 @@ class Taxonomy_Translator {
 	private static function ensure_items_translated(
 		array $items,
 		array $authorized_tree,
+		int $job_id,
+		int $term_id,
 		string $source_lang,
 		string $target_lang,
 		string $provider,
 		array &$in_memory_translations
 	) {
-		if ( empty( $items ) ) {
+		if ( empty( $items ) || ! empty( $in_memory_translations ) || ! $term_id ) {
 			return true;
 		}
 
@@ -292,7 +298,7 @@ class Taxonomy_Translator {
 			return true;
 		}
 
-		$uncached = array();
+		$term_texts = array();
 
 		foreach ( $items as $item ) {
 			$taxonomy = (string) ( $item['taxonomy'] ?? '' );
@@ -301,45 +307,10 @@ class Taxonomy_Translator {
 				continue;
 			}
 
-			$hash     = (string) $item['hash'];
-			$widget   = (string) $item['name'];
-			$value    = (string) $item['value'];
-			$raw      = (string) ( $item['source'] ?? $value );
-			$raw_hash = Hashing_Db::generate_hash( $widget, $raw );
+			$hash  = (string) $item['hash'];
+			$value = (string) $item['value'];
 
-			if ( ! isset( $in_memory_translations[ $hash ] ) && $raw_hash !== $hash && isset( $in_memory_translations[ $raw_hash ] ) ) {
-				$in_memory_translations[ $hash ] = $in_memory_translations[ $raw_hash ];
-			}
-
-			if ( isset( $in_memory_translations[ $hash ] ) && is_scalar( $in_memory_translations[ $hash ] ) && '' !== trim( (string) $in_memory_translations[ $hash ] ) ) {
-				$sanitized_res = Translate::translate_string(
-					$value,
-					$effective_source_lang,
-					$target_lang,
-					$widget,
-					array( 'in_memory_translations' => array( $hash => (string) $in_memory_translations[ $hash ] ) )
-				);
-				Hashing_Db::save_translation_result( $hash, $target_lang, (string) ( $sanitized_res['translated'] ?? '' ) );
-				continue;
-			}
-
-			$cached_res = Translate::translate_string( $raw, $effective_source_lang, $target_lang, $widget );
-			if ( ! empty( $cached_res['cached'] ) ) {
-				continue;
-			}
-
-			// Reuse generic translation-memory entries stored under string_hash by Translate::translate_batch().
-			$shared_tm = Hashing_Db::get_cached_translation( md5( $value ), $target_lang );
-			if ( null !== $shared_tm && '' !== trim( $shared_tm ) ) {
-				$in_memory_translations[ $hash ] = $shared_tm;
-				continue;
-			}
-
-			$uncached[ $hash ] = $value;
-		}
-
-		if ( empty( $uncached ) ) {
-			return true;
+			$term_texts[ $hash ] = $value;
 		}
 
 		$provider = sanitize_key( $provider );
@@ -357,8 +328,11 @@ class Taxonomy_Translator {
 				: 'openai';
 		}
 
-		$batch_values = array_values( array_unique( $uncached ) );
-		$batch_res    = Translate::translate_batch(
+		$batch_values = array_values( array_unique( $term_texts ) );
+		$start_time   = microtime( true );
+		$total_str    = count( $batch_values );
+
+		$batch_res = Translate::translate_batch(
 			$batch_values,
 			$effective_source_lang,
 			$target_lang,
@@ -369,21 +343,42 @@ class Taxonomy_Translator {
 			return $batch_res;
 		}
 
-		$value_map = array();
-		foreach ( $batch_values as $idx => $source_text ) {
-			if ( ! isset( $batch_res[ $idx ]['translated'] ) || ! is_string( $batch_res[ $idx ]['translated'] ) || '' === trim( $batch_res[ $idx ]['translated'] ) ) {
-				return new WP_Error(
-					'translatesense_taxonomy_translation_failed',
-					__( 'The AI provider did not return a valid taxonomy translation.', 'translatesense' )
-				);
-			}
-			$value_map[ $source_text ] = $batch_res[ $idx ]['translated'];
+		$receive_data = array();
+		$sent_data    = array();
+		$total_chars  = 0;
+
+		foreach ( $batch_values as $index => $batch_value ) {
+			$sent_data[]    = $batch_value;
+			$receive_data[] = isset( $batch_res[ $index ]['translated'] ) ? (string) $batch_res[ $index ]['translated'] : $batch_value;
+			$total_chars   += function_exists( 'mb_strlen' ) ? mb_strlen( (string) $batch_value, 'UTF-8' ) : strlen( (string) $batch_value );
 		}
 
-		foreach ( $uncached as $hash => $source_text ) {
-			$translated                      = $value_map[ $source_text ];
-			$in_memory_translations[ $hash ] = $translated;
-			Hashing_Db::save_translation_result( $hash, $target_lang, $translated );
+		global $wpdb;
+		$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}translatesense_queue WHERE id = %d AND post_id = %d", $job_id, $term_id ) ) );
+
+		if ( $valid_job_id && $valid_job_id > 0 ) {
+			Bulk_Process::update_job(
+				$valid_job_id,
+				array(
+					'total_strings'   => $total_str,
+					'progress_status' => sprintf( 'Translating strings (%d found)...', $total_str ),
+					'sent_data'       => wp_json_encode( $sent_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+					'receive_data'    => wp_json_encode( $receive_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+					'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
+				)
+			);
+
+			$elapsed_ms = (int) round( ( microtime( true ) - $start_time ) * 1000 );
+			Statics::update_translation_statistics(
+				array(
+					'status'           => 'success',
+					'total_characters' => $total_chars,
+					'total_strings'    => $total_str,
+					'provider'         => $provider,
+					'time_take'        => $elapsed_ms,
+					'request_id'       => 'bulk_cron_job_' . $job_id,
+				)
+			);
 		}
 
 		return true;
@@ -538,6 +533,7 @@ class Taxonomy_Translator {
 	 *
 	 * @param int[]  $term_ids               Term IDs to translate.
 	 * @param string $taxonomy               Taxonomy slug.
+	 * @param int    $job_id                 Job ID.
 	 * @param string $target_lang            Target language slug.
 	 * @param string $provider               AI provider ID.
 	 * @param array  $in_memory_translations Optional translation map indexed by hash.
@@ -547,6 +543,7 @@ class Taxonomy_Translator {
 	public static function translate_terms(
 		array $term_ids,
 		string $taxonomy,
+		int $job_id,
 		string $target_lang,
 		string $provider = '',
 		array $in_memory_translations = array(),
@@ -581,10 +578,13 @@ class Taxonomy_Translator {
 			}
 		}
 
-		$items     = Taxonomy_Parser::extract_terms_strings( array_keys( $authorized_terms ), $taxonomy, $target_lang, $user_id, $enforce_permissions );
+		$items = Taxonomy_Parser::extract_terms_strings( array_keys( $authorized_terms ), $taxonomy, $target_lang, $user_id, $enforce_permissions );
+
 		$preloaded = self::ensure_items_translated(
 			$items,
 			array( $taxonomy => $authorized_terms ),
+			$job_id,
+			$term_ids[0] ?? 0,
 			$source_lang,
 			$target_lang,
 			$provider,

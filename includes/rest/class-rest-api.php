@@ -818,6 +818,14 @@ class Rest_Api {
 				'callback'            => array( __CLASS__, 'bulk_translate_term' ),
 				'permission_callback' => array( __CLASS__, 'permission_bulk_translate_term' ),
 				'args'                => array(
+					'job_id'                 => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+						'validate_callback' => static function ( $value ) {
+							return absint( $value ) > 0;
+						},
+					),
 					'term_id'                => array(
 						'required'          => true,
 						'type'              => 'integer',
@@ -4368,6 +4376,7 @@ class Rest_Api {
 		$taxonomy        = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
 		$target_lang     = sanitize_key( (string) $request->get_param( 'target_lang' ) );
 		$provider        = sanitize_key( (string) $request->get_param( 'provider' ) );
+		$job_id          = absint( (string) $request->get_param( 'job_id' ) );
 		$raw_memory      = $request->get_param( 'in_memory_translations' );
 		$current_user_id = get_current_user_id();
 
@@ -4411,6 +4420,7 @@ class Rest_Api {
 		$translated_map = Taxonomy_Translator::translate_terms(
 			array( $term_id ),
 			$taxonomy,
+			$job_id,
 			$target_lang,
 			$provider,
 			$normalized_translations,

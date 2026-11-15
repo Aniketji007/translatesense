@@ -604,6 +604,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             setStatusText(`Translating ${postTitle} (${targetLang.toUpperCase()})... (${startJobPct}%)`);
 
             postRes = await translateBulkTerm({
+              job_id: job.id,
               term_id: Number(postId),
               taxonomy: subtype,
               target_lang: targetLang,
