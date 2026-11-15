@@ -254,16 +254,7 @@ class Bulk_Process {
 		$seen_pairs       = array();
 		$cutoff           = time() - DAY_IN_SECONDS;
 		$cutoff_mysql     = gmdate( 'Y-m-d H:i:s', $cutoff );
-		$clean_languages  = array();
-		foreach ( $target_languages as $language ) {
-			if ( is_string( $language ) || is_numeric( $language ) ) {
-				$language = sanitize_key( (string) $language );
-				if ( '' !== $language ) {
-					$clean_languages[] = $language;
-				}
-			}
-		}
-		$target_languages = array_values( array_unique( $clean_languages ) );
+		$target_languages = array_values( array_unique( $target_languages ) );
 
 		foreach ( $post_ids as $p_id ) {
 			$item_id     = (int) $p_id;
@@ -295,6 +286,10 @@ class Bulk_Process {
 				: (string) get_edit_post_link( $item_id, 'raw' );
 
 			foreach ( $target_languages as $lang ) {
+				if ( ! is_string( $lang ) || is_numeric( $lang ) ) {
+					continue;
+				}
+
 				$target_lang = sanitize_key( $lang );
 
 				if ( '' === $target_lang ) {
@@ -1122,6 +1117,7 @@ class Bulk_Process {
 			$raw_slug_trans   = ! empty( $settings['slug_translation'] ) ? sanitize_key( (string) $settings['slug_translation'] ) : 'slug_translate';
 			$slug_translation = in_array( $raw_slug_trans, array( 'keep_orignal', 'title_based', 'slug_translate' ), true ) ? $raw_slug_trans : 'slug_translate';
 			$strings_to_send  = array();
+			$total_chars      = 0;
 
 			foreach ( $packages as $idx => $pkg ) {
 				$pkg_name = sanitize_key( is_array( $pkg ) ? ( $pkg['name'] ?? ( $pkg['widget_name'] ?? '' ) ) : '' );
@@ -1131,14 +1127,11 @@ class Bulk_Process {
 				if ( isset( $pkg['value'] ) && ! empty( $pkg['value'] ) ) {
 					$str                     = (string) $pkg['value'];
 					$strings_to_send[ $idx ] = $str;
+					$total_chars            += function_exists( 'mb_strlen' ) ? mb_strlen( (string) $str, 'UTF-8' ) : strlen( (string) $str );
 				}
 			}
 
-			$total_str   = count( $strings_to_send );
-			$total_chars = 0;
-			foreach ( $strings_to_send as $str_to_count ) {
-				$total_chars += function_exists( 'mb_strlen' ) ? mb_strlen( (string) $str_to_count, 'UTF-8' ) : strlen( (string) $str_to_count );
-			}
+			$total_str = count( $strings_to_send );
 
 			// Check if cancellation was requested before calling AI
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
