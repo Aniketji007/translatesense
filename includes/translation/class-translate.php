@@ -768,7 +768,7 @@ class Translate {
 	/**
 	 * Default prompt template for AI batch translation.
 	 */
-	public const DEFAULT_PROMPT = "You are a professional HTML-safe translator. Translate the JSON array of strings from {source_lang} to {target_lang}.\nPreserve all HTML tags, placeholders, and formatting.\nOutput ONLY a valid JSON object matching this schema: {\"translations\": [\"...\", \"...\"]}\nLength of translations array MUST EXACTLY MATCH input array length ({count} items):\n\n{json_strings}";
+	public const DEFAULT_PROMPT = "You are a professional HTML-safe translator. Translate the JSON array of strings from {source_lang} to {target_lang}.\nPreserve all HTML tags, placeholders, and formatting. Also translate readable hyphenated values, but do NOT translate URLs.\nOutput ONLY a valid JSON object matching this schema: {\"translations\": [\"...\", \"...\"]}\nLength of translations array MUST EXACTLY MATCH input array length ({count} items):\n\n{json_strings}";
 
 	/**
 	 * Provider batch translation dispatcher preserving array indices.
