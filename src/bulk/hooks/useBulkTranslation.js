@@ -819,16 +819,18 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             completedStringsCount = rawStrings.length;
           }
 
-          await updateBulkJob(jobId, {
-            status: 'completed',
-            progress_status: 'Completed successfully',
-            total_strings: totalStringsCount,
-            completed_strings: completedStringsCount,
-            total_characters: totalCharacters,
-            completed_characters: totalCharacters,
-            time_take: Math.round(performance.now() - jobStartTime),
-            target_post_id: postRes.target_post_id,
-          }, itemType);
+          if (!isTaxonomy) {
+            await updateBulkJob(jobId, {
+              status: 'completed',
+              progress_status: 'Completed successfully',
+              total_strings: totalStringsCount,
+              completed_strings: completedStringsCount,
+              total_characters: totalCharacters,
+              completed_characters: totalCharacters,
+              time_take: Math.round(performance.now() - jobStartTime),
+              target_post_id: postRes.target_post_id,
+            }, itemType);
+          }
 
           runningJobs[i].status = 'completed';
           runningJobs[i].completed_strings = completedStringsCount;
