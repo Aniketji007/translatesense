@@ -22,12 +22,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Translates WooCommerce product attributes (both global pa_* taxonomies and custom product attributes).
  */
 class Product_Attribute_Translator {
-
-	/**
-	 * Browser-based AI providers that execute on the client device without WP-Cron.
-	 */
-	public const BROWSER_PROVIDERS = array( 'chrome_ai', 'chrome_local_ai', 'edge_ai' );
-
 	/**
 	 * Static context storage for execution metadata (provider, in_memory_translations).
 	 *
