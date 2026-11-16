@@ -857,7 +857,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
           updatedPostResult.targetTitle = `Failed: ${err.message}`;
         }
 
-        if (updateBulkJobData && Object.keys(updateBulkJobData).length > 0) {
+        if (useBrowserAi) {
           try {
             await updateBulkJob(jobId, updateBulkJobData, itemType);
           } catch (err) {
