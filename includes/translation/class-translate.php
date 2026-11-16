@@ -40,6 +40,12 @@ class Translate {
 	private static $initialized = false;
 
 	/**
+	 * Default prompt template for AI batch translation.
+	 */
+	public const DEFAULT_PROMPT = "You are a professional multilingual translator. Translate the provided JSON array from `{source_lang}` to `{target_lang}`.\n\n### Translation Rules\n\n1. **Hyphenated Text:** Translate all human-readable hyphenated content naturally. This includes values containing `[TS_HYPEN_PROTECTED]`. Never treat human-readable content as a technical identifier or URL slug simply because it contains hyphens or placeholders. Preserve the hyphen-separated format using the protected placeholders. Never leave human-readable hyphenated content untranslated or replace its hyphens with spaces. Only preserve genuinely technical elements covered by Rule 3.\n\n2. **Natural Translation:** Translate all human-readable content accurately and naturally while preserving its original meaning, tone, and context. Translate every item fully, even if it already appears in the target language.\n\n3. **Technical Preservation:** Preserve actual technical elements exactly as provided, including URLs, domains, hostnames, query parameters, URL fragments, endpoints, file paths, filenames, email addresses, WordPress shortcodes, PHP, JavaScript, CSS, code, comments, programming identifiers, and structural HTML attributes such as `class`, `id`, `data-*`, `href`, and `src`. Also preserve dynamic placeholders and variables such as `%s`, `" . '%1$s' . "`, `{name}`, `{{name}}`, `:name`, `{0}`, and similar patterns. Translate surrounding human-readable content without modifying protected technical elements.\n\n4. **Protected Placeholders:** Preserve every `[TS_HYPEN_PROTECTED]` placeholder exactly as provided. Never translate, remove, duplicate, modify, or omit it. Translate the surrounding content naturally and contextually.\n\n5. **HTML & Formatting:** Preserve HTML tags, nesting, and structure exactly. Translate visible text and user-facing attribute values such as `alt`, `title`, `placeholder`, and `aria-label`. Preserve numbers, symbols, HTML entities, whitespace, line breaks, and original formatting without changing the structure or syntax.\n\n6. **Strict Parity:** Translate each input string independently. Do not invent, summarize, omit, merge, split, duplicate, or reorder content. Each translated string must correspond to its original input string at the same index.\n\n### Output Format\n\nReturn ONLY a valid JSON object matching this structure:\n\n{\"translations\":[\"translated string 1\",\"translated string 2\"]}\n\nThe `translations` array MUST contain exactly `{count}` items, matching the input array count. Never return fewer or more items. Preserve the original input order and ensure all JSON strings are properly escaped.\n\nStrings to translate:\n\n{json_strings}";
+
+
+	/**
 	 * Initialize builder instances.
 	 */
 	public static function init_builders(): void {
@@ -637,15 +643,20 @@ class Translate {
 	 * @return array|\WP_Error
 	 */
 	public static function translate_batch( $strings_array, $source_lang, $target_lang, $custom_options = array() ) {
-		$results = array();
-		$hashes  = array();
+		$results     = array();
+		$hashes      = array();
+		$hyphen_data = array();
 
-		$requested_provider = isset( $custom_options['provider'] ) ? sanitize_key( (string) $custom_options['provider'] ) : '';
-		if ( 'google' === $requested_provider ) {
-			$requested_provider = 'gemini';
+		// Validate provider.
+		$provider = isset( $custom_options['provider'] )
+		? sanitize_key( (string) $custom_options['provider'] )
+		: '';
+
+		if ( 'google' === $provider ) {
+			$provider = 'gemini';
 		}
 
-		if ( '' === $requested_provider || ! in_array( $requested_provider, array( 'openai', 'gemini' ), true ) ) {
+		if ( ! in_array( $provider, array( 'openai', 'gemini' ), true ) ) {
 			return new \WP_Error(
 				'invalid_provider',
 				__( 'Invalid translation provider.', 'translatesense' ),
@@ -653,62 +664,77 @@ class Translate {
 			);
 		}
 
+		// Generate source hashes.
 		foreach ( $strings_array as $idx => $str ) {
-			$hashes[ $idx ] = md5( $str );
+			$hashes[ $idx ] = md5( (string) $str );
 		}
 
-		// Step 3.2b: Check in-memory translations batch
+		// Check in-memory translations.
 		if ( ! empty( $custom_options['in_memory_translations'] ) && is_array( $custom_options['in_memory_translations'] ) ) {
 			$in_memory = $custom_options['in_memory_translations'];
+
 			foreach ( $strings_array as $idx => $str ) {
-				$h = $hashes[ $idx ];
-				if ( isset( $in_memory[ $h ] ) && '' !== trim( (string) $in_memory[ $h ] ) ) {
+				$hash = $hashes[ $idx ];
+
+				if ( isset( $in_memory[ $hash ] ) && '' !== trim( (string) $in_memory[ $hash ] ) ) {
 					$results[ $idx ] = array(
-						'translated' => (string) $in_memory[ $h ],
+						'translated' => (string) $in_memory[ $hash ],
 						'cached'     => false,
-						'hash'       => $h,
+						'hash'       => $hash,
 					);
 				} elseif ( isset( $in_memory[ $str ] ) && '' !== trim( (string) $in_memory[ $str ] ) ) {
 					$results[ $idx ] = array(
 						'translated' => (string) $in_memory[ $str ],
 						'cached'     => false,
-						'hash'       => $h,
+						'hash'       => $hash,
 					);
 				}
 			}
 		}
 
-		// Step 3.3: Batch Cache Lookup for remaining uncached strings
+		// Check database cache for remaining strings.
 		$remaining_hashes = array();
-		foreach ( $hashes as $idx => $h ) {
+
+		foreach ( $hashes as $idx => $hash ) {
 			if ( ! isset( $results[ $idx ] ) ) {
-				$remaining_hashes[ $idx ] = $h;
+				$remaining_hashes[] = $hash;
 			}
 		}
 
-		$cached_map = ! empty( $remaining_hashes ) ? Hashing_Db::get_cached_translations_batch( array_values( $remaining_hashes ), $target_lang ) : array();
+		$cached_map = ! empty( $remaining_hashes )
+		? Hashing_Db::get_cached_translations_batch( $remaining_hashes, $target_lang )
+		: array();
 
+		// Prepare strings for translation.
 		$to_translate = array();
+
 		foreach ( $strings_array as $idx => $str ) {
 			if ( isset( $results[ $idx ] ) ) {
 				continue;
 			}
 
-			$h = $hashes[ $idx ];
+			$hash = $hashes[ $idx ];
+
 			if ( self::is_email_or_url( (string) $str ) ) {
 				$results[ $idx ] = array(
 					'translated' => $str,
 					'cached'     => true,
-					'hash'       => $h,
+					'hash'       => $hash,
 				);
-			} elseif ( isset( $cached_map[ $h ] ) ) {
+			} elseif ( isset( $cached_map[ $hash ] ) ) {
 				$results[ $idx ] = array(
-					'translated' => $cached_map[ $h ],
+					'translated' => $cached_map[ $hash ],
 					'cached'     => true,
-					'hash'       => $h,
+					'hash'       => $hash,
 				);
 			} else {
-				$to_translate[ $idx ] = $str;
+				$protected = self::protect_hyphenated_value( $str );
+
+				$to_translate[ $idx ] = $protected['text'];
+
+				if ( $protected['count'] > 0 ) {
+					$hyphen_data[ $idx ] = $protected['count'];
+				}
 			}
 		}
 
@@ -717,42 +743,98 @@ class Translate {
 			return $results;
 		}
 
-		// Translate uncached strings via provider
+		// Execute provider batch translation.
 		$settings = get_option( 'translatesense_settings', array() );
-		$provider = $requested_provider;
 
-		// Execute provider batch translation preserving array keys / indices
-		$translated_batch = self::execute_provider_batch_translation( $to_translate, $source_lang, $target_lang, $provider, $settings );
+		$translated_batch = self::execute_provider_batch_translation(
+			$to_translate,
+			$source_lang,
+			$target_lang,
+			$provider,
+			$settings
+		);
 
 		if ( is_wp_error( $translated_batch ) ) {
 			return $translated_batch;
 		}
 
+		// Process translated results.
 		foreach ( $to_translate as $idx => $str ) {
-			$h     = $hashes[ $idx ];
-			$trans = isset( $translated_batch[ $idx ] ) && '' !== trim( (string) $translated_batch[ $idx ] ) ? (string) $translated_batch[ $idx ] : (string) $str;
+			$hash         = $hashes[ $idx ];
+			$original_str = (string) $strings_array[ $idx ];
+			$valid        = true;
+
+			$trans = isset( $translated_batch[ $idx ] ) && '' !== trim( (string) $translated_batch[ $idx ] )
+			? (string) $translated_batch[ $idx ]
+			: $original_str;
+
+			// Decode Unicode escapes.
 			if ( false !== strpos( $trans, '\u' ) && class_exists( Dom_Filter::class ) ) {
 				$trans = Dom_Filter::decode_unicode_escapes( $trans );
 			}
 
-			if ( ! empty( $trans ) && self::should_cache_provider( $provider ) ) {
-				$trans_hase = md5( $trans );
-				if ( $trans_hase !== $h ) {
-					Hashing_Db::save_translation_result( $h, $target_lang, $trans );
+			// Restore protected hyphens.
+			if ( isset( $hyphen_data[ $idx ] ) ) {
+				$token = '[TS_HYPEN_PROTECTED]';
+				$count = $hyphen_data[ $idx ];
+
+				if ( substr_count( $trans, $token ) === $count ) {
+					$trans = str_replace( $token, '-', $trans );
+				} else {
+					$trans = $original_str;
+					$valid = false;
+				}
+			}
+
+			// Save valid translations to cache.
+			if ( $valid && '' !== trim( $trans ) && self::should_cache_provider( $provider ) ) {
+				if ( md5( $trans ) !== $hash ) {
+					Hashing_Db::save_translation_result( $hash, $target_lang, $trans );
 				}
 			}
 
 			$results[ $idx ] = array(
 				'translated' => $trans,
 				'cached'     => false,
-				'hash'       => $h,
+				'hash'       => $hash,
 			);
 		}
 
-		// Maintain original order
+		// Maintain original input order.
 		ksort( $results );
+
 		return $results;
 	}
+
+
+	/**
+	 * Protect hyphens in standalone human-readable values.
+	 *
+	 * @param string $value Original translation string.
+	 * @return array Protected text and hyphen count.
+	 */
+	private static function protect_hyphenated_value( $value ) {
+		$value = (string) $value;
+
+		// Skip empty values, URLs, and non-hyphenated values.
+		if (
+		'' === $value ||
+		self::is_email_or_url( $value ) ||
+		false === strpos( $value, '-' ) ||
+		! preg_match( '/\A[\p{L}\p{M}\p{N}]+(?:-[\p{L}\p{M}\p{N}]+)+\z/u', $value )
+		) {
+			return array(
+				'text'  => $value,
+				'count' => 0,
+			);
+		}
+
+		return array(
+			'text'  => str_replace( '-', '[TS_HYPEN_PROTECTED]', $value ),
+			'count' => substr_count( $value, '-' ),
+		);
+	}
+
 
 	/**
 	 * Determine if provider results should be cached in translations table.
@@ -764,11 +846,6 @@ class Translate {
 		$no_cache_providers = array( 'gemini', 'openai' );
 		return in_array( $provider, $no_cache_providers, true );
 	}
-
-	/**
-	 * Default prompt template for AI batch translation.
-	 */
-	public const DEFAULT_PROMPT = "You are a professional HTML-safe translator. Translate the JSON array of strings from {source_lang} to {target_lang}.\nPreserve all HTML tags, placeholders, and formatting. Also translate readable hyphenated values, but do NOT translate URLs.\nOutput ONLY a valid JSON object matching this schema: {\"translations\": [\"...\", \"...\"]}\nLength of translations array MUST EXACTLY MATCH input array length ({count} items):\n\n{json_strings}";
 
 	/**
 	 * Provider batch translation dispatcher preserving array indices.
