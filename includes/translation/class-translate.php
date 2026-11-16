@@ -186,21 +186,10 @@ class Translate {
 			}
 		}
 
-		// Step 3.3: Check DB Cache
-		$cached = Hashing_Db::get_cached_translation( $hash, $target_lang );
-		if ( null !== $cached ) {
-			return array(
-				'translated' => Dom_Filter::replace_filtered_content( (string) $source_string, self::sanitize_string( $source_string, $cached ) ),
-				'cached'     => true,
-				'hash'       => $hash,
-			);
-		}
-
 		if ( $filtered_string === $source_string ) {
 			$filtered_string = Dom_Filter::filter_dom_content( (string) $source_string );
-			$filtered_hash   = Hashing_Db::generate_hash( (string) $widget_id, (string) $filtered_string );
+			$filtered_hash   = md5( (string) $filtered_string );
 
-			// Step 3.3: Check DB Cache
 			$cached = Hashing_Db::get_cached_translation( $filtered_hash, $target_lang );
 			if ( null !== $cached ) {
 				return array(
