@@ -1635,7 +1635,7 @@ class Bulk_Process {
 			if ( $is_taxonomy ) {
 				$source_term       = get_term( $post_id );
 				$term_taxonomy     = ( $source_term instanceof \WP_Term ) ? (string) $source_term->taxonomy : '';
-				$post_title        = ( $source_term instanceof \WP_Term ) ? $source_term->name : sprintf( '#%d', $post_id );
+				$post_title        = ( $source_term instanceof \WP_Term ) ? Dom_Filter::decode_html_string( $source_term->name ) : sprintf( '#%d', $post_id );
 				$target_term       = ( $target_post_id > 0 && '' !== $term_taxonomy ) ? get_term( $target_post_id, $term_taxonomy ) : null;
 				$target_post_title = ( $target_term instanceof \WP_Term ) ? Dom_Filter::decode_html_string( $target_term->name ) : '';
 				$editor_type       = 'taxonomy';
@@ -1649,7 +1649,7 @@ class Bulk_Process {
 				}
 			} else {
 				$post              = get_post( $post_id );
-				$post_title        = $post ? $post->post_title : sprintf( '#%d', $post_id );
+				$post_title        = $post ? Dom_Filter::decode_html_string( $post->post_title ) : sprintf( '#%d', $post_id );
 				$target_post       = $target_post_id ? get_post( $target_post_id ) : null;
 				$target_post_title = $target_post ? Dom_Filter::decode_html_string( $target_post->post_title ) : '';
 				$is_trashed_target = ( $target_post instanceof \WP_Post && 'trash' === $target_post->post_status );
