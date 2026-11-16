@@ -563,7 +563,19 @@ class Taxonomy_Translator {
 			$enforce_permissions,
 			$skip_unauthorized
 		);
+
 		if ( is_wp_error( $authorized_terms ) ) {
+			Bulk_Process::update_job(
+				$job_id,
+				array(
+					'progress_status' => __( 'Error occured authorization check', 'translatesense' ),
+					'status'          => 'failed',
+					'error_message'   => array(
+						$authorized_terms->get_error_code() => $authorized_terms->get_error_message(),
+					),
+				)
+			);
+
 			return $authorized_terms;
 		}
 
@@ -590,7 +602,19 @@ class Taxonomy_Translator {
 			$provider,
 			$in_memory_translations
 		);
+
 		if ( is_wp_error( $preloaded ) ) {
+			Bulk_Process::update_job(
+				$job_id,
+				array(
+					'progress_status' => __( 'Error occured during AI Translation', 'translatesense' ),
+					'status'          => 'failed',
+					'error_message'   => array(
+						$preloaded->get_error_code() => $preloaded->get_error_message(),
+					),
+				)
+			);
+
 			return $preloaded;
 		}
 
@@ -610,6 +634,17 @@ class Taxonomy_Translator {
 			}
 			$resolved_map[ (int) $source_term_id ] = absint( $resolved_id );
 		}
+
+		Bulk_Process::update_job(
+			$job_id,
+			array(
+				'status'          => 'completed',
+				'progress_status' => __( 'Taxonomy Translation completed', 'translatesense' ),
+				'error_message'   => null,
+				'target_post_id'  => (int) isset( $resolved_map[ $term_ids[0] ] ) ? absint( $resolved_map[ $term_ids[0] ] ) : 0,
+				'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
+			)
+		);
 
 		return $resolved_map;
 	}
