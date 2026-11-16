@@ -2991,8 +2991,6 @@ class Rest_Api {
 			'response_timeout'  => 30,
 			'max_tokens'        => 4096,
 			'temperature'       => 0.2,
-			'custom_prompt'     => '',
-			'default_prompt'    => Translate::DEFAULT_PROMPT,
 			'slug_translation'  => 'slug_translate',
 			'post_status'       => 'draft',
 		);
@@ -3002,6 +3000,8 @@ class Rest_Api {
 			$defaults
 		);
 
+		$settings['default_prompt'] = Translate::DEFAULT_PROMPT;
+
 		$settings['slug_translation'] = ( isset( $settings['slug_translation'] ) && in_array( sanitize_key( (string) $settings['slug_translation'] ), array( 'keep_orignal', 'title_based', 'slug_translate' ), true ) )
 			? sanitize_key( (string) $settings['slug_translation'] )
 			: 'slug_translate';
@@ -3009,10 +3009,6 @@ class Rest_Api {
 		$settings['post_status'] = ( isset( $settings['post_status'] ) && in_array( sanitize_key( (string) $settings['post_status'] ), array( 'publish', 'draft' ), true ) )
 			? sanitize_key( (string) $settings['post_status'] )
 			: 'draft';
-
-		if ( empty( $settings['default_prompt'] ) ) {
-			$settings['default_prompt'] = Translate::DEFAULT_PROMPT;
-		}
 
 		$languages = Polylang_Bridge::get_languages();
 
@@ -3344,10 +3340,8 @@ class Rest_Api {
 			$updated['temperature'] = max( 0, min( 2, (float) $input['temperature'] ) );
 		}
 
-		foreach ( array( 'custom_prompt', 'default_prompt' ) as $key ) {
-			if ( isset( $input[ $key ] ) ) {
-				$updated[ $key ] = sanitize_textarea_field( $input[ $key ] );
-			}
+		if ( isset( $input['custom_prompt'] ) ) {
+			$updated['custom_prompt'] = sanitize_textarea_field( $input['custom_prompt'] );
 		}
 
 		if ( isset( $input['slug_translation'] ) ) {
@@ -3360,10 +3354,6 @@ class Rest_Api {
 			$allowed_post_status    = array( 'publish', 'draft' );
 			$val                    = sanitize_key( (string) $input['post_status'] );
 			$updated['post_status'] = in_array( $val, $allowed_post_status, true ) ? $val : 'draft';
-		}
-
-		if ( empty( $updated['default_prompt'] ) ) {
-			$updated['default_prompt'] = Translate::DEFAULT_PROMPT;
 		}
 
 		return $updated;

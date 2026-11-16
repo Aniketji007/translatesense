@@ -16,6 +16,7 @@ use WP_Error;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Translation\Translate;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -688,7 +689,7 @@ class Ai_Connector_Bridge {
 	private function build_default_prompt( array $strings, string $source_lang, string $target_lang, array $settings = array() ): string {
 		$template = ! empty( $settings['custom_prompt'] )
 			? (string) $settings['custom_prompt']
-			: "You are a professional HTML-safe translator. Translate the JSON array of strings from {source_lang} to {target_lang}.\nPreserve all HTML tags, placeholders, and formatting. Also translate readable hyphenated values, but do NOT translate URLs.\nOutput ONLY a valid JSON object matching this schema: {\"translations\": [\"...\", \"...\"]}\nLength of translations array MUST EXACTLY MATCH input array length ({count} items):\n\n{json_strings}";
+			: Translate::DEFAULT_PROMPT;
 
 		$values_seq = array_values( $strings );
 		$json_str   = wp_json_encode( array( 'strings' => $values_seq ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
