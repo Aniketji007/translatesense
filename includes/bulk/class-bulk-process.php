@@ -394,7 +394,7 @@ class Bulk_Process {
 				if ( $source_term instanceof \WP_Term ) {
 					$target_term_obj                = $has_existing_target ? get_term( $target_post_id, $source_term->taxonomy ) : null;
 					$temp_data['editor_type']       = 'taxonomy';
-					$temp_data['post_title']        = ! empty( $source_term->name ) ? $source_term->name : sprintf( '#%d', $item_id );
+					$temp_data['post_title']        = ! empty( $source_term->name ) ? Dom_Filter::decode_html_string( $source_term->name ) : sprintf( '#%d', $item_id );
 					$temp_data['target_post_title'] = ( $target_term_obj instanceof \WP_Term ) ? Dom_Filter::decode_html_string( $target_term_obj->name ) : '';
 					$temp_data['view_url']          = $has_existing_target ? self::get_safe_term_link( $target_post_id, $source_term->taxonomy ) : '';
 					$temp_data['edit_url']          = $has_existing_target ? (string) get_edit_term_link( $target_post_id, $source_term->taxonomy ) : '';
@@ -402,7 +402,7 @@ class Bulk_Process {
 					$raw_source_title               = get_the_title( $item_id );
 					$raw_target_title               = $has_existing_target ? get_the_title( $target_post_id ) : '';
 					$temp_data['editor_type']       = Editor_Integration::get_post_editor_type( $has_existing_target ? $target_post_id : $item_id );
-					$temp_data['post_title']        = ! empty( $raw_source_title ) ? $raw_source_title : sprintf( '#%d', $item_id );
+					$temp_data['post_title']        = ! empty( $raw_source_title ) ? Dom_Filter::decode_html_string( $raw_source_title ) : sprintf( '#%d', $item_id );
 					$temp_data['target_post_title'] = ! empty( $raw_target_title ) ? Dom_Filter::decode_html_string( $raw_target_title ) : '';
 					$temp_data['view_url']          = ( $has_existing_target && ! $is_trashed_target ) ? get_permalink( $target_post_id ) : '';
 					$temp_data['edit_url']          = ( $has_existing_target && $target_post_id && ! $is_trashed_target ) ? Editor_Integration::get_post_edit_link( $target_post_id ) : '';
