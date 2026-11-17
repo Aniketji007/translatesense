@@ -570,9 +570,7 @@ class Taxonomy_Translator {
 				array(
 					'progress_status' => __( 'Error occured authorization check', 'translatesense' ),
 					'status'          => 'failed',
-					'error_message'   => array(
-						$authorized_terms->get_error_code() => $authorized_terms->get_error_message(),
-					),
+					'error_message'   => $authorized_terms->get_error_message(),
 				)
 			);
 
@@ -609,9 +607,7 @@ class Taxonomy_Translator {
 				array(
 					'progress_status' => __( 'Error occured during AI Translation', 'translatesense' ),
 					'status'          => 'failed',
-					'error_message'   => array(
-						$preloaded->get_error_code() => $preloaded->get_error_message(),
-					),
+					'error_message'   => $preloaded->get_error_message(),
 				)
 			);
 
