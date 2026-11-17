@@ -214,8 +214,7 @@ class Bulk_Translate {
 			true
 		);
 
-		$is_taxonomy_screen        = ( '' !== $taxonomy );
-		$media_translation_enabled = Polylang_Bridge::is_media_translation_enabled();
+		$is_taxonomy_screen = ( '' !== $taxonomy );
 
 		if ( $is_media_screen ) {
 			$localized_type = 'media';
@@ -248,7 +247,6 @@ class Bulk_Translate {
 				'itemLabel'                 => $item_label,
 				'itemSingular'              => $item_singular,
 				'itemPlural'                => $item_plural,
-				'mediaTranslationEnabled'   => $media_translation_enabled,
 				'restUrl'                   => esc_url_raw( rest_url( 'translatesense/v1/' ) ),
 				'nonce'                     => wp_create_nonce( 'wp_rest' ),
 				'polylangActive'            => Polylang_Bridge::is_polylang_active(),

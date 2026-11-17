@@ -144,7 +144,6 @@ class Polylang_Synchronizer {
 	 *     @type bool     $success           Whether all available operations succeeded.
 	 *     @type bool     $taxonomies_synced Whether taxonomy copy ran.
 	 *     @type bool     $post_meta_synced  Whether metadata copy ran.
-	 *     @type bool     $media_synced      Whether featured media was translated.
 	 *     @type string[] $warnings          Non-fatal warnings.
 	 *     @type bool     $skipped           Whether generic synchronization was intentionally skipped.
 	 * }
@@ -155,7 +154,6 @@ class Polylang_Synchronizer {
 			'success'           => true,
 			'taxonomies_synced' => false,
 			'post_meta_synced'  => false,
-			'media_synced'      => false,
 			'warnings'          => array(),
 			'skipped'           => false,
 		);
@@ -241,18 +239,6 @@ class Polylang_Synchronizer {
 
 			if ( ! $post_meta_sync_enabled ) {
 				self::sync_acf_structural_fields( $source_post_id, $target_post_id );
-			}
-
-			// Some Polylang versions/integrations may not route the featured
-			// image through pll_translate_post_meta. Ensure it is translated
-			// once more through the same guarded media resolver.
-			$source_thumbnail_id = (int) get_post_thumbnail_id( $source_post_id );
-			if ( $source_thumbnail_id > 0 ) {
-				$target_thumbnail_id = self::resolve_media_translation( $source_thumbnail_id, $target_lang );
-				if ( $target_thumbnail_id > 0 ) {
-					set_post_thumbnail( $target_post_id, $target_thumbnail_id );
-					$result['media_synced'] = ( $target_thumbnail_id !== $source_thumbnail_id );
-				}
 			}
 
 			// Notify integrations only after the actual synchronization calls
@@ -477,7 +463,7 @@ class Polylang_Synchronizer {
 
 		// Respect Polylang's Media Support setting. When disabled, media IDs
 		// remain shared rather than creating language-specific attachments.
-		if ( ! isset( $polylang->options ) || ! is_array( $polylang->options ) || empty( $polylang->options['media_support'] ) ) {
+		if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
 			return $attachment_id;
 		}
 

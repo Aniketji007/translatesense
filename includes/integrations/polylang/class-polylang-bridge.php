@@ -451,7 +451,6 @@ class Polylang_Bridge {
 			! $is_existing,
 			array(
 				'sync_taxonomies' => empty( $args['skip_taxonomies_sync'] ),
-				'sync_media'      => empty( $args['skip_media_sync'] ),
 			)
 		);
 
