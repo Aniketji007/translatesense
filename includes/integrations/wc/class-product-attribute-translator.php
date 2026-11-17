@@ -30,17 +30,38 @@ class Product_Attribute_Translator {
 	private static array $current_context = array();
 
 	/**
-	 * Recursion guard.
+	 * Recursion guard for attributes translation.
 	 *
 	 * @var bool
 	 */
 	private static bool $translating = false;
 
 	/**
+	 * Recursion guard for downloadable-name and purchase-note translation.
+	 *
+	 * @var bool
+	 */
+	private static bool $syncing_downloads_and_note = false;
+
+	/**
+	 * Initialization guard.
+	 *
+	 * @var bool
+	 */
+	private static bool $initialized = false;
+
+	/**
 	 * Initialize hooks.
 	 */
 	public static function init(): void {
+		if ( self::$initialized ) {
+			return;
+		}
+
 		add_action( 'translatesense_after_save_translation', array( __CLASS__, 'translate_attributes' ), 10, 6 );
+		add_action( 'translatesense_after_save_translation', array( __CLASS__, 'synchronize_downloads_and_note' ), 18, 6 );
+
+		self::$initialized = true;
 	}
 
 	/**
@@ -265,6 +286,150 @@ class Product_Attribute_Translator {
 					}
 				}
 			}
+		}
+
+		// 3. WooCommerce downloadable file names
+		$download_strings = self::extract_downloadable_file_strings( $product, $post_id, $lang, $builder );
+		if ( ! empty( $download_strings ) ) {
+			$extracted = array_merge( $extracted, $download_strings );
+		}
+
+		// 4. WooCommerce purchase note
+		$note_strings = self::extract_purchase_note_string( $product, $post_id, $lang, $builder );
+		if ( ! empty( $note_strings ) ) {
+			$extracted = array_merge( $extracted, $note_strings );
+		}
+
+		return $extracted;
+	}
+
+	/**
+	 * Extract translatable downloadable file names from a product and record them in Hashing_Db.
+	 *
+	 * @param WC_Product $product Source product.
+	 * @param int        $post_id Source post ID.
+	 * @param string     $lang    Source language slug.
+	 * @param string     $builder Builder slug.
+	 * @return array Extracted package array items.
+	 */
+	public static function extract_downloadable_file_strings( WC_Product $product, int $post_id, string $lang, string $builder ): array {
+		$extracted = array();
+		$downloads = $product->get_downloads();
+
+		// Fallback to post meta if get_downloads() returned empty but _downloadable_files exists
+		if ( empty( $downloads ) ) {
+			$raw_meta = get_post_meta( $post_id, '_downloadable_files', true );
+			if ( is_array( $raw_meta ) ) {
+				$downloads = $raw_meta;
+			}
+		}
+
+		if ( empty( $downloads ) || ! is_array( $downloads ) ) {
+			return $extracted;
+		}
+
+		foreach ( $downloads as $key => $download ) {
+			$file_id = '';
+			$name    = '';
+
+			if ( is_a( $download, 'WC_Product_Download' ) ) {
+				$file_id = (string) $download->get_id();
+				$name    = trim( (string) $download->get_name() );
+			} elseif ( is_array( $download ) ) {
+				$file_id = (string) ( $download['id'] ?? ( $download['download_id'] ?? $key ) );
+				$name    = trim( (string) ( $download['name'] ?? '' ) );
+			}
+
+			if ( '' === $file_id || '' === $name || Custom_Field_Parser::is_only_numbers( $name ) ) {
+				continue;
+			}
+
+			$field_key   = 'wc_download_name_' . $file_id;
+			$hash        = Hashing_Db::generate_hash( $field_key, $name );
+			$string_hash = md5( $name );
+			$string_id   = Hashing_Db::get_or_create_string_id( $name, $name );
+
+			if ( $string_id > 0 ) {
+				Hashing_Db::record_package(
+					$post_id,
+					$lang,
+					$hash,
+					$builder,
+					$field_key,
+					sprintf( 'Downloadable File: %s', $name ),
+					$name,
+					$name,
+					$string_hash
+				);
+				$extracted[] = array(
+					'hash'        => $hash,
+					'name'        => $field_key,
+					'key'         => sprintf( 'Downloadable File: %s', $name ),
+					'source'      => $name,
+					'value'       => $name,
+					'string_hash' => $string_hash,
+					'type'        => 'woocommerce',
+					'wc_type'     => 'downloadable_file_name',
+					'file_id'     => $file_id,
+				);
+			}
+		}
+
+		return $extracted;
+	}
+
+	/**
+	 * Extract translatable purchase note from a product and record it in Hashing_Db.
+	 *
+	 * @param WC_Product $product Source product.
+	 * @param int        $post_id Source post ID.
+	 * @param string     $lang    Source language slug.
+	 * @param string     $builder Builder slug.
+	 * @return array Extracted package array items.
+	 */
+	public static function extract_purchase_note_string( WC_Product $product, int $post_id, string $lang, string $builder ): array {
+		$extracted = array();
+		$note      = trim( (string) $product->get_purchase_note() );
+
+		// Fallback to post meta if empty
+		if ( '' === $note ) {
+			$raw_meta = get_post_meta( $post_id, '_purchase_note', true );
+			if ( is_string( $raw_meta ) ) {
+				$note = trim( $raw_meta );
+			}
+		}
+
+		if ( '' === $note || Custom_Field_Parser::is_only_numbers( $note ) ) {
+			return $extracted;
+		}
+
+		$field_key   = 'wc_purchase_note';
+		$hash        = Hashing_Db::generate_hash( $field_key, $note );
+		$string_hash = md5( $note );
+		$string_id   = Hashing_Db::get_or_create_string_id( $note, $note );
+
+		if ( $string_id > 0 ) {
+			Hashing_Db::record_package(
+				$post_id,
+				$lang,
+				$hash,
+				$builder,
+				$field_key,
+				'Product Purchase Note',
+				$note,
+				$note,
+				$string_hash
+			);
+			$extracted[] = array(
+				'hash'        => $hash,
+				'name'        => $field_key,
+				'key'         => 'Product Purchase Note',
+				'source'      => $note,
+				'value'       => $note,
+				'string_hash' => $string_hash,
+				'type'        => 'woocommerce',
+				'wc_type'     => 'purchase_note',
+			);
 		}
 
 		return $extracted;
@@ -676,5 +841,312 @@ class Product_Attribute_Translator {
 		}
 
 		return $map;
+	}
+
+	/**
+	 * Translate downloadable file names and the purchase note on the target product.
+	 *
+	 * The target product's downloadable configuration is expected to have been
+	 * copied by the configured Polylang custom-field synchronization. This method
+	 * deliberately does not copy source URLs, IDs, enabled flags, limits, or expiry.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Saved target post ID.
+	 * @param string $target_lang    Target language slug.
+	 * @param bool   $is_existing    Whether an existing translation was updated.
+	 * @param array  $sync_result    Synchronization result and warnings.
+	 * @param array  $context        Execution context including provider and in-memory translations.
+	 */
+	public static function synchronize_downloads_and_note( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
+		if ( self::$syncing_downloads_and_note ) {
+			return;
+		}
+
+		$source_post = get_post( $source_post_id );
+		if ( ! $source_post || 'product' !== $source_post->post_type || ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
+
+		$source_product = wc_get_product( $source_post_id );
+		$target_product = wc_get_product( $target_post_id );
+		$target_lang    = sanitize_key( $target_lang );
+
+		if ( ! $source_product instanceof WC_Product || ! $target_product instanceof WC_Product || '' === $target_lang ) {
+			return;
+		}
+
+		$source_lang = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) );
+		if ( '' === $source_lang ) {
+			$source_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
+		}
+
+		if ( '' === $source_lang || $source_lang === $target_lang ) {
+			return;
+		}
+
+		if ( empty( $context ) ) {
+			$context = self::get_current_context();
+		}
+		$context = is_array( $context ) ? $context : array();
+
+		self::$syncing_downloads_and_note = true;
+
+		try {
+			$downloads_changed = self::translate_downloadable_file_names(
+				$source_product,
+				$target_product,
+				$source_lang,
+				$target_lang,
+				$context
+			);
+			$note_changed      = self::synchronize_purchase_note(
+				$source_product,
+				$target_product,
+				$source_lang,
+				$target_lang,
+				$context
+			);
+
+			// Persist all changed WooCommerce properties in one CRUD save.
+			if ( $downloads_changed || $note_changed ) {
+				$target_product->save();
+			}
+		} finally {
+			self::$syncing_downloads_and_note = false;
+		}
+	}
+
+	/**
+	 * Translate only downloadable file names on the target product.
+	 *
+	 * Matching is performed by WooCommerce download ID. The target download list
+	 * is never rebuilt from the source, so target URLs, IDs, enabled state, ordering,
+	 * and any other target-side download data remain untouched.
+	 *
+	 * @param WC_Product $source_product Source WooCommerce product.
+	 * @param WC_Product $target_product Target WooCommerce product.
+	 * @param string     $source_lang    Source language slug.
+	 * @param string     $target_lang    Target language slug.
+	 * @param array      $context        Translation execution context.
+	 * @return bool True when at least one target download name changed.
+	 */
+	public static function translate_downloadable_file_names(
+		WC_Product $source_product,
+		WC_Product $target_product,
+		string $source_lang,
+		string $target_lang,
+		array $context = array()
+	): bool {
+		if ( $source_lang === $target_lang ) {
+			return false;
+		}
+
+		// Read source downloads. WooCommerce normally returns WC_Product_Download
+		// objects, but retain a metadata fallback for older/custom integrations.
+		$source_downloads = $source_product->get_downloads( 'edit' );
+		if ( empty( $source_downloads ) ) {
+			$raw_source_downloads = get_post_meta( $source_product->get_id(), '_downloadable_files', true );
+			if ( is_array( $raw_source_downloads ) ) {
+				$source_downloads = $raw_source_downloads;
+			}
+		}
+
+		if ( empty( $source_downloads ) || ! is_array( $source_downloads ) ) {
+			return false;
+		}
+
+		$target_downloads = $target_product->get_downloads( 'edit' );
+		if ( ! is_array( $target_downloads ) ) {
+			$target_downloads = array();
+		}
+
+		// Index existing target downloads once. If Polylang has not synchronized
+		// _downloadable_files, source downloads will be used to initialize the
+		// target configuration instead of silently skipping all file names.
+		$target_by_id = array();
+		foreach ( $target_downloads as $target_download ) {
+			if ( $target_download instanceof \WC_Product_Download ) {
+				$target_id = (string) $target_download->get_id();
+				if ( '' !== $target_id ) {
+					$target_by_id[ $target_id ] = $target_download;
+				}
+			}
+		}
+
+		$source_names = array();
+		$source_items = array();
+
+		foreach ( $source_downloads as $key => $source_download ) {
+			$file_id = '';
+			$name    = '';
+
+			if ( $source_download instanceof \WC_Product_Download ) {
+				$file_id = (string) $source_download->get_id();
+				$name    = trim( (string) $source_download->get_name() );
+			} elseif ( is_array( $source_download ) ) {
+				$file_id = (string) ( $source_download['id'] ?? ( $source_download['download_id'] ?? $key ) );
+				$name    = trim( (string) ( $source_download['name'] ?? '' ) );
+			}
+
+			if ( '' === $file_id ) {
+				$file_id = (string) $key;
+			}
+
+			if ( '' === $file_id ) {
+				continue;
+			}
+
+			$source_items[ $file_id ] = $source_download;
+
+			if ( '' !== $name && ! Custom_Field_Parser::is_only_numbers( $name ) ) {
+				$source_names[ $file_id ] = $name;
+			}
+		}
+
+		if ( empty( $source_items ) ) {
+			return false;
+		}
+
+		$translated_names = ! empty( $source_names )
+			? self::translate_strings(
+				$source_names,
+				$source_lang,
+				$target_lang,
+				$context,
+				'wc_download_name_'
+			)
+			: array();
+
+		$downloads_to_save = array();
+		$changed           = false;
+
+		foreach ( $source_items as $file_id => $source_download ) {
+			// Prefer the existing target object to retain any target-side values.
+			// If it does not exist, clone/build it from the source so the target
+			// still receives a usable download entry.
+			if ( isset( $target_by_id[ $file_id ] ) ) {
+				$download = clone $target_by_id[ $file_id ];
+			} elseif ( $source_download instanceof \WC_Product_Download ) {
+				$download = clone $source_download;
+				$changed  = true;
+			} elseif ( is_array( $source_download ) && class_exists( '\\WC_Product_Download' ) ) {
+				$download = new \WC_Product_Download();
+				$download->set_id( $file_id );
+				$download->set_name( (string) ( $source_download['name'] ?? '' ) );
+				$download->set_file( (string) ( $source_download['file'] ?? '' ) );
+				$download->set_enabled( isset( $source_download['enabled'] ) ? (bool) $source_download['enabled'] : true );
+
+				if ( isset( $source_download['previous_hash'] ) ) {
+					$download->set_previous_hash( (string) $source_download['previous_hash'] );
+				}
+				$changed = true;
+			} else {
+				continue;
+			}
+
+			$translated_name = trim( (string) ( $translated_names[ $file_id ] ?? '' ) );
+
+			// Do not overwrite an existing target translation with source text
+			// when no translated value was found in the execution context/cache.
+			if (
+				'' !== $translated_name &&
+				isset( $source_names[ $file_id ] ) &&
+				$translated_name !== $source_names[ $file_id ] &&
+				$download->get_name() !== $translated_name
+			) {
+				$download->set_name( $translated_name );
+				$changed = true;
+			}
+
+			$downloads_to_save[ $file_id ] = $download;
+		}
+
+		if ( ! $changed ) {
+			return false;
+		}
+
+		$target_product->set_downloads( $downloads_to_save );
+
+		return true;
+	}
+
+	/**
+	 * Backward-compatible method name retained for existing internal callers.
+	 * This method now translates names only; it does not synchronize configuration.
+	 *
+	 * @param WC_Product $source_product Source WooCommerce product.
+	 * @param WC_Product $target_product Target WooCommerce product.
+	 * @param string     $source_lang    Source language slug.
+	 * @param string     $target_lang    Target language slug.
+	 * @param array      $context        Translation execution context.
+	 * @return bool True when at least one target download name changed.
+	 */
+	public static function synchronize_downloadable_files(
+		WC_Product $source_product,
+		WC_Product $target_product,
+		string $source_lang,
+		string $target_lang,
+		array $context = array()
+	): bool {
+		return self::translate_downloadable_file_names(
+			$source_product,
+			$target_product,
+			$source_lang,
+			$target_lang,
+			$context
+		);
+	}
+
+	/**
+	 * Translate the WooCommerce purchase note on the target product.
+	 *
+	 * @param WC_Product $source_product Source WooCommerce product.
+	 * @param WC_Product $target_product Target WooCommerce product.
+	 * @param string     $source_lang    Source language slug.
+	 * @param string     $target_lang    Target language slug.
+	 * @param array      $context        Translation execution context.
+	 * @return bool True when the target purchase note changed.
+	 */
+	public static function synchronize_purchase_note(
+		WC_Product $source_product,
+		WC_Product $target_product,
+		string $source_lang,
+		string $target_lang,
+		array $context = array()
+	): bool {
+		if ( $source_lang === $target_lang ) {
+			return false;
+		}
+
+		$source_note = trim( (string) $source_product->get_purchase_note( 'edit' ) );
+		if ( '' === $source_note ) {
+			// Keep the target consistent when the source purchase note was removed.
+			if ( '' !== trim( (string) $target_product->get_purchase_note( 'edit' ) ) ) {
+				$target_product->set_purchase_note( '' );
+				return true;
+			}
+			return false;
+		}
+
+		$translated_notes = self::translate_strings(
+			array( 'wc_purchase_note' => $source_note ),
+			$source_lang,
+			$target_lang,
+			$context
+		);
+		$translated_note  = trim( (string) ( $translated_notes['wc_purchase_note'] ?? '' ) );
+
+		// Do not replace an existing target translation with the source text when
+		// the translation is missing from memory/context.
+		if ( '' === $translated_note || $translated_note === $source_note ) {
+			return false;
+		}
+
+		if ( $target_product->get_purchase_note( 'edit' ) === $translated_note ) {
+			return false;
+		}
+
+		$target_product->set_purchase_note( $translated_note );
+		return true;
 	}
 }
