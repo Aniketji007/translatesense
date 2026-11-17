@@ -84,11 +84,32 @@ class Bulk_Translate {
 	}
 
 	/**
-	 * Enqueue assets on edit.php (Polylang translated post types) and edit-tags.php (Polylang translated taxonomies).
+	 * Check whether the current user can run bulk media translation on upload.php.
+	 *
+	 * @return bool
+	 */
+	private static function can_use_media_bulk_translate(): bool {
+		if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+			return false;
+		}
+
+		$att_obj = get_post_type_object( 'attachment' );
+		if ( ! $att_obj ) {
+			return false;
+		}
+
+		$edit_cap = ! empty( $att_obj->cap->edit_posts ) ? (string) $att_obj->cap->edit_posts : 'upload_files';
+		return current_user_can( 'upload_files' ) && current_user_can( $edit_cap );
+	}
+
+	/**
+	 * Enqueue assets on edit.php (Polylang translated post types), edit-tags.php (Polylang translated taxonomies),
+	 * and upload.php (WordPress Media Library when Polylang Media translation is enabled).
 	 */
 	public static function enqueue_bulk_assets( $hook ) {
-		$post_type = '';
-		$taxonomy  = '';
+		$post_type       = '';
+		$taxonomy        = '';
+		$is_media_screen = false;
 
 		if ( 'edit.php' === $hook ) {
 			$post_type = self::get_current_screen_post_type();
@@ -100,6 +121,11 @@ class Bulk_Translate {
 			if ( '' === $taxonomy ) {
 				return;
 			}
+		} elseif ( 'upload.php' === $hook ) {
+			if ( ! self::can_use_media_bulk_translate() ) {
+				return;
+			}
+			$is_media_screen = true;
 		} else {
 			return;
 		}
@@ -188,23 +214,41 @@ class Bulk_Translate {
 			true
 		);
 
-		$is_taxonomy_screen = ( '' !== $taxonomy );
-		$subtype            = $is_taxonomy_screen ? $taxonomy : $post_type;
-		$label_obj          = $is_taxonomy_screen ? get_taxonomy( $taxonomy ) : get_post_type_object( $post_type );
+		$is_taxonomy_screen        = ( '' !== $taxonomy );
+		$media_translation_enabled = Polylang_Bridge::is_media_translation_enabled();
 
-		$item_label    = ! empty( $label_obj->labels->name ) ? (string) $label_obj->labels->name : ( $is_taxonomy_screen ? 'Terms' : 'Posts' );
-		$item_singular = strtolower( ! empty( $label_obj->labels->singular_name ) ? (string) $label_obj->labels->singular_name : ( $is_taxonomy_screen ? 'term' : 'post' ) );
-		$item_plural   = strtolower( $item_label );
+		if ( $is_media_screen ) {
+			$localized_type = 'media';
+			$subtype        = 'attachment';
+			$item_label     = __( 'Media', 'translatesense' );
+			$item_singular  = __( 'media item', 'translatesense' );
+			$item_plural    = __( 'media items', 'translatesense' );
+		} elseif ( $is_taxonomy_screen ) {
+			$localized_type = 'term';
+			$subtype        = $taxonomy;
+			$label_obj      = get_taxonomy( $taxonomy );
+			$item_label     = ! empty( $label_obj->labels->name ) ? (string) $label_obj->labels->name : 'Terms';
+			$item_singular  = strtolower( ! empty( $label_obj->labels->singular_name ) ? (string) $label_obj->labels->singular_name : 'term' );
+			$item_plural    = strtolower( $item_label );
+		} else {
+			$localized_type = 'post';
+			$subtype        = $post_type;
+			$label_obj      = get_post_type_object( $post_type );
+			$item_label     = ! empty( $label_obj->labels->name ) ? (string) $label_obj->labels->name : 'Posts';
+			$item_singular  = strtolower( ! empty( $label_obj->labels->singular_name ) ? (string) $label_obj->labels->singular_name : 'post' );
+			$item_plural    = strtolower( $item_label );
+		}
 
 		wp_localize_script(
 			'translatesense-bulk',
 			'TranslateSenseBulkData',
 			array(
-				'type'                      => $is_taxonomy_screen ? 'term' : 'post',
+				'type'                      => $localized_type,
 				'subtype'                   => $subtype,
 				'itemLabel'                 => $item_label,
 				'itemSingular'              => $item_singular,
 				'itemPlural'                => $item_plural,
+				'mediaTranslationEnabled'   => $media_translation_enabled,
 				'restUrl'                   => esc_url_raw( rest_url( 'translatesense/v1/' ) ),
 				'nonce'                     => wp_create_nonce( 'wp_rest' ),
 				'polylangActive'            => Polylang_Bridge::is_polylang_active(),
