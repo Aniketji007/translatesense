@@ -20,11 +20,22 @@ export function BulkApp() {
   const localizedData =
     (typeof window !== 'undefined' && window.TranslateSenseBulkData) || {};
   const allLanguages = Object.values(localizedData.languages || {});
-  const itemType = localizedData.type === 'term' ? 'term' : 'post';
+  const itemType =
+    localizedData.type === 'term'
+      ? 'term'
+      : localizedData.type === 'media'
+        ? 'media'
+        : 'post';
   const subtype = localizedData.subtype || '';
   const isTaxonomy = itemType === 'term';
-  const itemSingular = localizedData.itemSingular || (isTaxonomy ? 'term' : 'post');
-  const itemPlural = localizedData.itemPlural || (isTaxonomy ? 'terms' : 'posts');
+  const isMedia = itemType === 'media';
+  const isStandaloneRuntime = isTaxonomy || isMedia;
+  const itemSingular =
+    localizedData.itemSingular ||
+    (isTaxonomy ? 'term' : isMedia ? 'media item' : 'post');
+  const itemPlural =
+    localizedData.itemPlural ||
+    (isTaxonomy ? 'terms' : isMedia ? 'media items' : 'posts');
   const itemLabel = localizedData.itemLabel || '';
 
   const translationState = useBulkTranslation(selectedPostIds, {
@@ -33,11 +44,13 @@ export function BulkApp() {
     subtype,
   });
 
-  // Query selected posts or taxonomy terms from DOM checkboxes
+  // Query selected posts, taxonomy terms, or media items from DOM checkboxes
   const getCheckedPostIds = useCallback(() => {
     const selector = isTaxonomy
       ? '#posts-filter input[name="delete_tags[]"]:checked, input[name="delete_tags[]"]:checked'
-      : 'input[name="post[]"]:checked, input[name="media[]"]:checked';
+      : isMedia
+        ? 'input[name="media[]"]:checked'
+        : 'input[name="post[]"]:checked, input[name="media[]"]:checked';
     const checkedBoxes = document.querySelectorAll(selector);
     const ids = [];
     const seen = new Set();
@@ -49,7 +62,7 @@ export function BulkApp() {
       }
     });
     return ids;
-  }, [isTaxonomy]);
+  }, [isTaxonomy, isMedia]);
 
   // Update animated pulse dot on Bulk Translate buttons in table header/footer
   const updatePulseDot = useCallback((active) => {
@@ -63,10 +76,10 @@ export function BulkApp() {
     });
   }, []);
 
-  // On supported Polylang taxonomy listing pages (edit-tags.php), inject Bulk Translate buttons
-  // into top and bottom tablenav matching edit.php markup and hooks.
+  // On supported Polylang taxonomy (edit-tags.php) and Media Library (upload.php) listing pages,
+  // inject Bulk Translate buttons into top and bottom tablenav matching edit.php markup.
   useEffect(() => {
-    if (!isTaxonomy || typeof document === 'undefined') return undefined;
+    if (!isStandaloneRuntime || typeof document === 'undefined') return undefined;
 
     const insertedWrappers = [];
     const positions = [
@@ -118,7 +131,7 @@ export function BulkApp() {
         }
       });
     };
-  }, [isTaxonomy]);
+  }, [isStandaloneRuntime]);
 
   // Keep pulse dot synced whenever active job state changes (including right after button injection)
   useEffect(() => {
@@ -136,7 +149,7 @@ export function BulkApp() {
 
   // Check background jobs with conditional interval scheduling
   const checkBackgroundJobs = useCallback(async (shouldSchedule = false) => {
-    if (isTaxonomy) {
+    if (isStandaloneRuntime) {
       setHasActiveJobs(false);
       updatePulseDot(false);
       stopBgPolling();
@@ -172,17 +185,17 @@ export function BulkApp() {
     } finally {
       isCheckingBgRef.current = false;
     }
-  }, [isTaxonomy, updatePulseDot, stopBgPolling]);
+  }, [isStandaloneRuntime, updatePulseDot, stopBgPolling]);
 
   // Initial check on mount: perform one fresh check for background post queues.
   // Continues polling only while active batches exist; stops immediately if empty.
   useEffect(() => {
-    if (isTaxonomy) {
+    if (isStandaloneRuntime) {
       return undefined;
     }
     checkBackgroundJobs(true);
     return () => stopBgPolling();
-  }, [isTaxonomy, checkBackgroundJobs, stopBgPolling]);
+  }, [isStandaloneRuntime, checkBackgroundJobs, stopBgPolling]);
 
   // Bind click listener to table action buttons
   useEffect(() => {
@@ -193,9 +206,9 @@ export function BulkApp() {
 
       const ids = getCheckedPostIds();
 
-      // Case B1: User has NOT selected any posts or terms
+      // Case B1: User has NOT selected any posts, terms, or media items
       if (ids.length === 0) {
-        if (!isTaxonomy) {
+        if (!isStandaloneRuntime) {
           setIsPrevRunningMode(true);
           setSelectedPostIds([]);
           setIsOpen(true);
@@ -215,7 +228,7 @@ export function BulkApp() {
         return;
       }
 
-      // Case B2 / Workflow A: User HAS selected posts or terms
+      // Case B2 / Workflow A: User HAS selected posts, terms, or media items
       setIsPrevRunningMode(false);
       setSelectedPostIds(ids);
       translationState.setPostIds(ids);
@@ -223,7 +236,7 @@ export function BulkApp() {
       translationState.setProgressModalSource('provider_selection');
       translationState.setCurrentStep(1);
 
-      if (!isTaxonomy) {
+      if (!isStandaloneRuntime) {
         // Perform one fresh check to see if background jobs are running, so Step 1 notice banner can show
         checkBackgroundJobs(false).then((batches) => {
           if (translationState.setActiveBatches) {
@@ -237,7 +250,7 @@ export function BulkApp() {
 
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
-  }, [getCheckedPostIds, checkBackgroundJobs, updatePulseDot, translationState, isTaxonomy, itemPlural]);
+  }, [getCheckedPostIds, checkBackgroundJobs, updatePulseDot, translationState, isStandaloneRuntime, itemPlural]);
 
   return (
     <BulkWizard
@@ -248,7 +261,7 @@ export function BulkApp() {
         if (translationState.stopPolling) {
           translationState.stopPolling();
         }
-        if (!isTaxonomy) {
+        if (!isStandaloneRuntime) {
           // When modal is closed: perform one fresh check.
           // If active batches exist, resumes polling; if none, does not start polling.
           checkBackgroundJobs(true);
@@ -259,6 +272,7 @@ export function BulkApp() {
       itemMeta={{
         type: itemType,
         isTaxonomy,
+        isMedia,
         subtype,
         itemLabel,
         itemSingular,

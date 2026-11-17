@@ -14,13 +14,16 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
   const bulkConfig =
     (typeof window !== 'undefined' && window.TranslateSenseBulkData) || {};
   const itemType =
-    options.type === 'term' || options.type === 'post'
+    options.type === 'term' || options.type === 'media' || options.type === 'post'
       ? options.type
-      : (bulkConfig.type === 'term' ? 'term' : 'post');
+      : (bulkConfig.type === 'term' ? 'term' : bulkConfig.type === 'media' ? 'media' : 'post');
   const subtype =
     options.subtype !== undefined ? options.subtype : (bulkConfig.subtype || '');
   const isTaxonomy = itemType === 'term';
-  const rawSingular = bulkConfig.itemSingular || (isTaxonomy ? 'term' : 'post');
+  const isMedia = itemType === 'media';
+  const isStandaloneRuntime = isTaxonomy || isMedia;
+  const rawSingular =
+    bulkConfig.itemSingular || (isTaxonomy ? 'term' : isMedia ? 'media item' : 'post');
   const itemTitlePrefix = rawSingular.charAt(0).toUpperCase() + rawSingular.slice(1);
 
   const [currentStep, setCurrentStep] = useState(isPreviouslyRunning ? 3 : 1);
@@ -83,10 +86,10 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
   const pollTimerRef = useRef(null);
   const isPollingRef = useRef(false);
 
-  // Runtime browser detection: taxonomy runtime sessions and Chrome AI require keeping the window open
+  // Runtime browser detection: taxonomy/media runtime sessions and Chrome AI require keeping the window open
   const isQueueChromeAi = useMemo(() => {
     if (progressSessionType === 'new_queue') {
-      return selectedProvider === 'chrome_ai' || isTaxonomy;
+      return selectedProvider === 'chrome_ai' || isStandaloneRuntime;
     }
 
     const activeBatch = currentBatch || (activeBatches && activeBatches.find((b) => b.batch_id === currentBatchId));
@@ -119,7 +122,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     }
 
     return false;
-  }, [progressSessionType, selectedProvider, isTaxonomy, currentBatch, activeBatches, currentBatchId, postResultsMap]);
+  }, [progressSessionType, selectedProvider, isStandaloneRuntime, currentBatch, activeBatches, currentBatchId, postResultsMap]);
 
 
   // Load providers and active background batches (posts only) on mount
@@ -136,7 +139,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       }
     });
 
-    if (!isTaxonomy) {
+    if (!isStandaloneRuntime) {
       getActiveBatches()
         .then((res) => {
           if (!mounted) return;
@@ -154,7 +157,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       mounted = false;
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
     };
-  }, [isTaxonomy]);
+  }, [isStandaloneRuntime]);
 
   useEffect(() => {
     if (!postResultsMap || Object.keys(postResultsMap).length === 0) return;
@@ -176,14 +179,13 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     if (!batchData || !Array.isArray(batchData.items)) return;
 
     const firstItem = batchData.items[0];
-    const batchIsTaxonomy =
-      firstItem && firstItem.editor_type
-        ? firstItem.editor_type === 'taxonomy'
-        : isTaxonomy;
+    const batchEditorType = firstItem && firstItem.editor_type ? firstItem.editor_type : '';
+    const batchIsTaxonomy = batchEditorType ? batchEditorType === 'taxonomy' : isTaxonomy;
+    const batchIsMedia = batchEditorType ? batchEditorType === 'media' : isMedia;
     const prefix =
-      batchIsTaxonomy === isTaxonomy
+      batchIsTaxonomy === isTaxonomy && batchIsMedia === isMedia
         ? itemTitlePrefix
-        : (batchIsTaxonomy ? 'Term' : 'Post');
+        : (batchIsTaxonomy ? 'Term' : batchIsMedia ? 'Media' : 'Post');
 
     setPostResultsMap((prev) => {
       const updated = replace ? {} : { ...prev };
@@ -242,7 +244,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       setOrderedPostIds(itemsOrder);
     }
 
-  }, [isTaxonomy, itemTitlePrefix]);
+  }, [isTaxonomy, isMedia, itemTitlePrefix]);
 
   // Server background polling logic
   const pollStatus = useCallback(
@@ -501,6 +503,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     itemType,
     subtype,
     isTaxonomy,
+    isMedia,
     itemTitlePrefix,
     updatePostTranslation,
     populateMapFromBatch,
@@ -526,6 +529,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       itemType,
       subtype,
       isTaxonomy,
+      isMedia,
       itemTitlePrefix,
       updatePostTranslation,
       populateMapFromBatch,
@@ -622,7 +626,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       setTotalJobsCount(batchJobs.length);
       setProgressPercent(Math.round(getOverallProgress(batchJobs)));
 
-      if (isChromeAi || isTaxonomy) {
+      if (isChromeAi || isStandaloneRuntime) {
         runBulkTranslation(batchJobs, batchRes.batch_id, selectedProvider);
       } else {
         const hasQueueJobs = batchJobs.some((job) => job.status !== 'already_exists' && job.status !== 'skipped');
@@ -653,7 +657,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     selectedProvider,
     itemType,
     subtype,
-    isTaxonomy,
+    isStandaloneRuntime,
     itemTitlePrefix,
     populateMapFromBatch,
     resetTimer,
@@ -713,9 +717,10 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
         setStatusText(`Restarted ${res.retried_count} translation job(s)...`);
       }
 
-      // If Chrome AI or taxonomy runtime, execute retried jobs in browser
+      // If Chrome AI, taxonomy, or media runtime, execute retried jobs sequentially in browser
       if (isQueueChromeAi && Array.isArray(res.retried_jobs) && res.retried_jobs.length > 0) {
-        runBulkTranslation(res.retried_jobs, bId, selectedProvider);
+        const retryProvider = (res.batch && res.batch.provider) || selectedProvider;
+        runBulkTranslation(res.retried_jobs, bId, retryProvider);
       } else {
         // Backend provider (OpenAI / Gemini): resume live polling
         pollStatus(bId);

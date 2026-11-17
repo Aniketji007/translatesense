@@ -67,22 +67,27 @@ export function getBulkItemLabels(itemMeta = {}) {
     typeof itemMeta.isTaxonomy === "boolean"
       ? itemMeta.isTaxonomy
       : itemType === "term";
+  const isMedia =
+    typeof itemMeta.isMedia === "boolean"
+      ? itemMeta.isMedia
+      : itemType === "media";
   const singular =
     itemMeta.itemSingular ||
     bulkData.itemSingular ||
-    (isTaxonomy ? "term" : "post");
+    (isTaxonomy ? "term" : isMedia ? "media item" : "post");
   const plural =
     itemMeta.itemPlural ||
     bulkData.itemPlural ||
-    (isTaxonomy ? "terms" : "posts");
+    (isTaxonomy ? "terms" : isMedia ? "media items" : "posts");
   const capitalize = (str) =>
     str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
   const itemLabel =
     itemMeta.itemLabel || bulkData.itemLabel || capitalize(plural);
 
   return {
-    type: isTaxonomy ? "term" : "post",
+    type: isTaxonomy ? "term" : isMedia ? "media" : "post",
     isTaxonomy,
+    isMedia,
     subtype,
     itemLabel,
     singular,

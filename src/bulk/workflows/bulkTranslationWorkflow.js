@@ -1,4 +1,4 @@
-import { translateBulkTerm, updateBulkJob } from '../services/bulkService';
+import { translateBulkTerm, translateBulkMedia, updateBulkJob } from '../services/bulkService';
 import { getBatchStatus } from '../services/batchService';
 import { extractStrings, translatePost } from '../../services/core/translationService';
 import { getCoreInstance } from '../../services/core/coreService';
@@ -74,34 +74,43 @@ async function validateTranslationProvider(core, providerName, sourceLanguage, t
  * @return {Promise<Object>} Extracted strings and item metadata.
  */
 async function extractTranslationStrings(postId, targetLang, options = {}, cache = {}) {
-  const { type = 'post', subtype = '', isTaxonomy = false } = options;
+  const {
+    type = 'post',
+    subtype = '',
+    isTaxonomy = false,
+    isMedia = false,
+  } = options;
   const extractionKey = `${postId}:${targetLang}`;
 
   let rawStrings = [];
   let sourceLanguage = 'en';
   let itemTaxonomy = isTaxonomy ? subtype : '';
   let itemIsTaxonomy = isTaxonomy;
+  let itemIsMedia = isMedia;
 
   if (cache[extractionKey]) {
     rawStrings = cache[extractionKey].strings || [];
     sourceLanguage = cache[extractionKey].sourceLanguage || 'en';
     itemTaxonomy = cache[extractionKey].taxonomy || itemTaxonomy;
     itemIsTaxonomy = cache[extractionKey].isTaxonomy;
+    itemIsMedia = cache[extractionKey].isMedia;
   } else {
     const extRes = await extractStrings(postId, '', targetLang, {
       type,
       subtype,
-      includeTaxonomies: !isTaxonomy,
+      includeTaxonomies: !isTaxonomy && !isMedia,
     });
     rawStrings = extRes.strings || [];
     sourceLanguage = extRes.source_language || 'en';
     itemIsTaxonomy = extRes.editor_type === 'taxonomy' || isTaxonomy;
+    itemIsMedia = extRes.editor_type === 'media' || isMedia;
     itemTaxonomy = extRes.taxonomy || itemTaxonomy;
     cache[extractionKey] = {
       strings: rawStrings,
       sourceLanguage,
       taxonomy: itemTaxonomy,
       isTaxonomy: itemIsTaxonomy,
+      isMedia: itemIsMedia,
     };
   }
 
@@ -109,7 +118,7 @@ async function extractTranslationStrings(postId, targetLang, options = {}, cache
     (s) => s.value && s.value.trim() && !isEmailOrUrl(s.value)
   );
 
-  if (translatable.length === 0) {
+  if (translatable.length === 0 && !itemIsMedia) {
     console.error(`No translatable text found in ${itemIsTaxonomy ? 'taxonomy term' : 'post'}.`);
   }
 
@@ -119,6 +128,7 @@ async function extractTranslationStrings(postId, targetLang, options = {}, cache
     sourceLanguage,
     itemTaxonomy,
     itemIsTaxonomy,
+    itemIsMedia,
   };
 }
 
@@ -200,22 +210,29 @@ async function handleExpiredBulkJob(job, index, state, context) {
 }
 
 /**
- * Executes a taxonomy job through the server-side provider.
+ * Executes a standalone taxonomy or media job through the server-side provider.
  */
-async function executeServerTaxonomyJob(job, jobContext) {
+async function executeServerItemJob(job, jobContext) {
   const { postId, targetLang, postTitle, activeProvider, context, startJobPct } = jobContext;
 
   context.setStatusText(
     `Translating ${postTitle} (${targetLang.toUpperCase()})... (${startJobPct}%)`
   );
 
-  const response = await translateBulkTerm({
-    job_id: job.id,
-    term_id: Number(postId),
-    taxonomy: context.subtype,
-    target_lang: targetLang,
-    provider: activeProvider,
-  });
+  const response = context.isMedia
+    ? await translateBulkMedia({
+      job_id: job.id,
+      attachment_id: Number(postId),
+      target_lang: targetLang,
+      provider: activeProvider,
+    })
+    : await translateBulkTerm({
+      job_id: job.id,
+      term_id: Number(postId),
+      taxonomy: context.subtype,
+      target_lang: targetLang,
+      provider: activeProvider,
+    });
 
   const totalStrings = Number(response.total_strings) || 0;
   const totalCharacters = Number(response.total_characters) || 0;
@@ -262,6 +279,7 @@ async function executeBrowserTranslation(job, jobContext) {
       type: context.itemType,
       subtype: context.subtype,
       isTaxonomy: context.isTaxonomy,
+      isMedia: context.isMedia,
     },
     state.extractedCache
   );
@@ -272,9 +290,12 @@ async function executeBrowserTranslation(job, jobContext) {
     sourceLanguage,
     itemTaxonomy,
     itemIsTaxonomy,
+    itemIsMedia,
   } = extracted;
 
-  await validateTranslationProvider(core, 'chrome_ai', sourceLanguage, targetLang);
+  if (translatable.length > 0) {
+    await validateTranslationProvider(core, 'chrome_ai', sourceLanguage, targetLang);
+  }
 
   const totalStrings = translatable.length;
   const totalCharacters = translatable.reduce(
@@ -319,60 +340,64 @@ async function executeBrowserTranslation(job, jobContext) {
     }
   });
 
-  await core.translate(
-    'chrome_ai',
-    {
-      items: itemsToTranslate,
-      sourceLang: sourceLanguage,
-      targetLang,
-      postId,
-    },
-    (resultItem) => {
-      if (resultItem && resultItem.translated && resultItem.hash) {
-        inMemoryTranslations[resultItem.hash] = resultItem.translated;
+  if (itemsToTranslate.length > 0) {
+    await core.translate(
+      'chrome_ai',
+      {
+        items: itemsToTranslate,
+        sourceLang: sourceLanguage,
+        targetLang,
+        postId,
+      },
+      (resultItem) => {
+        if (resultItem && resultItem.translated && resultItem.hash) {
+          inMemoryTranslations[resultItem.hash] = resultItem.translated;
+        }
+
+        completedStrings += 1;
+
+        const original = resultItem?.hash ? stringMap.get(resultItem.hash) : null;
+        if (original && original.value) {
+          completedCharacters += original.value.length;
+        } else if (resultItem && resultItem.source) {
+          completedCharacters += resultItem.source.length;
+        }
+
+        state.runningJobs[index].completed_strings = completedStrings;
+        state.runningJobs[index].total_strings = totalStrings;
+        state.runningJobs[index].completed_characters = completedCharacters;
+        state.runningJobs[index].total_characters = totalCharacters;
+        state.runningJobs[index].status = 'running';
+
+        const postPercent = getPostProgress(state.runningJobs[index]);
+        const overallPercent = Math.round(getOverallProgress(state.runningJobs));
+
+        context.setProgressPercent(overallPercent);
+        context.setStatusText(
+          `Translating on-device: ${postTitle} (${targetLang.toUpperCase()}) - string ${completedStrings} of ${totalStrings} (${overallPercent}%)`
+        );
+
+        context.updatePostTranslation(postId, targetLang, {
+          status: 'running',
+          completedStrings,
+          totalStrings,
+          completedCharacters,
+          totalCharacters,
+          progressPercent: postPercent,
+          progressStatus: `Translating string ${completedStrings} of ${totalStrings} (${postPercent}%)`,
+          targetTitle: `Translating string ${completedStrings} of ${totalStrings} (${postPercent}%)...`,
+        });
       }
+    );
 
-      completedStrings += 1;
-
-      const original = resultItem?.hash ? stringMap.get(resultItem.hash) : null;
-      if (original && original.value) {
-        completedCharacters += original.value.length;
-      } else if (resultItem && resultItem.source) {
-        completedCharacters += resultItem.source.length;
-      }
-
-      state.runningJobs[index].completed_strings = completedStrings;
-      state.runningJobs[index].total_strings = totalStrings;
-      state.runningJobs[index].completed_characters = completedCharacters;
-      state.runningJobs[index].total_characters = totalCharacters;
-      state.runningJobs[index].status = 'running';
-
-      const postPercent = getPostProgress(state.runningJobs[index]);
-      const overallPercent = Math.round(getOverallProgress(state.runningJobs));
-
-      context.setProgressPercent(overallPercent);
-      context.setStatusText(
-        `Translating on-device: ${postTitle} (${targetLang.toUpperCase()}) - string ${completedStrings} of ${totalStrings} (${overallPercent}%)`
-      );
-
-      context.updatePostTranslation(postId, targetLang, {
-        status: 'running',
-        completedStrings,
-        totalStrings,
-        completedCharacters,
-        totalCharacters,
-        progressPercent: postPercent,
-        progressStatus: `Translating string ${completedStrings} of ${totalStrings} (${postPercent}%)`,
-        targetTitle: `Translating string ${completedStrings} of ${totalStrings} (${postPercent}%)...`,
-      });
-    }
-  );
-
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
 
   const saveStatus = itemIsTaxonomy
     ? 'Saving translated term to WordPress...'
-    : 'Saving translated post to WordPress...';
+    : itemIsMedia
+      ? 'Saving translated media to WordPress...'
+      : 'Saving translated post to WordPress...';
 
   context.setStatusText(`Saving ${postTitle} (${targetLang.toUpperCase()}) to WordPress...`);
   context.updatePostTranslation(postId, targetLang, {
@@ -389,13 +414,21 @@ async function executeBrowserTranslation(job, jobContext) {
       provider: 'chrome_ai',
       in_memory_translations: inMemoryTranslations,
     })
-    : await translatePost({
-      post_id: postId,
-      target_lang: targetLang,
-      provider: 'chrome_ai',
-      in_memory_translations: inMemoryTranslations,
-      include_taxonomies: true,
-    });
+    : itemIsMedia
+      ? await translateBulkMedia({
+        job_id: job.id,
+        attachment_id: Number(postId),
+        target_lang: targetLang,
+        provider: 'chrome_ai',
+        in_memory_translations: inMemoryTranslations,
+      })
+      : await translatePost({
+        post_id: postId,
+        target_lang: targetLang,
+        provider: 'chrome_ai',
+        in_memory_translations: inMemoryTranslations,
+        include_taxonomies: true,
+      });
 
   return {
     response,
@@ -435,7 +468,7 @@ async function processBulkTranslationJob(job, index, state, runOptions, context)
   context.setProgressPercent(startJobPct);
 
   const initialProgressStatus =
-    context.isTaxonomy && !useBrowserAi
+    (context.isTaxonomy || context.isMedia) && !useBrowserAi
       ? `Translating ${postTitle}...`
       : `Extracting strings for ${postTitle}...`;
 
@@ -454,8 +487,8 @@ async function processBulkTranslationJob(job, index, state, runOptions, context)
   try {
     let jobResult;
 
-    if (context.isTaxonomy && !useBrowserAi) {
-      jobResult = await executeServerTaxonomyJob(job, {
+    if ((context.isTaxonomy || context.isMedia) && !useBrowserAi) {
+      jobResult = await executeServerItemJob(job, {
         postId,
         targetLang,
         postTitle,
