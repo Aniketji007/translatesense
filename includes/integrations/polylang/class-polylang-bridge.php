@@ -45,6 +45,31 @@ class Polylang_Bridge {
 	}
 
 	/**
+	 * Check if Polylang Media translation is enabled.
+	 *
+	 * Supports both legacy array options and Polylang 3.7+ ArrayAccess Options objects.
+	 *
+	 * @return bool
+	 */
+	public static function is_media_translation_enabled(): bool {
+		if ( ! self::is_polylang_active() || ! function_exists( 'PLL' ) ) {
+			return false;
+		}
+
+		$polylang = PLL();
+		if ( ! is_object( $polylang ) || ! isset( $polylang->options ) || empty( $polylang->model->post ) ) {
+			return false;
+		}
+
+		$options = $polylang->options;
+		if ( ( ! is_array( $options ) && ! ( $options instanceof \ArrayAccess ) ) || empty( $options['media_support'] ) ) {
+			return false;
+		}
+
+		return ! function_exists( 'pll_is_translated_post_type' ) || (bool) pll_is_translated_post_type( 'attachment' );
+	}
+
+	/**
 	 * Check if a post type is translated / supported by Polylang.
 	 *
 	 * @param string $post_type
@@ -424,7 +449,10 @@ class Polylang_Bridge {
 			$target_post_id,
 			$target_lang,
 			! $is_existing,
-			array( 'sync_taxonomies' => empty( $args['skip_taxonomies_sync'] ) )
+			array(
+				'sync_taxonomies' => empty( $args['skip_taxonomies_sync'] ),
+				'sync_media'      => empty( $args['skip_media_sync'] ),
+			)
 		);
 
 		update_post_meta(
