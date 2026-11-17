@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Synchronizes WooCommerce variable product variations to translated products.
  */
-class Product_Variation_Synchronizer {
+class Product_Variation_Synchronizer extends WC_Base {
 
 	/**
 	 * Recursion guard.
@@ -28,11 +28,12 @@ class Product_Variation_Synchronizer {
 	 */
 	private static bool $synchronizing = false;
 
-	/**
-	 * Initialize hooks.
-	 */
-	public static function init(): void {
-		add_action( 'translatesense_after_save_translation', array( __CLASS__, 'synchronize_variations' ), 15, 6 );
+	public function __construct() {
+		parent::__construct( 15 );
+	}
+
+	public function translate( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
+		self::synchronize_variations( $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $context );
 	}
 
 	/**
@@ -47,11 +48,6 @@ class Product_Variation_Synchronizer {
 	 */
 	public static function synchronize_variations( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
 		if ( self::$synchronizing ) {
-			return;
-		}
-
-		$source_post = get_post( $source_post_id );
-		if ( ! $source_post || 'product' !== $source_post->post_type ) {
 			return;
 		}
 
@@ -165,7 +161,7 @@ class Product_Variation_Synchronizer {
 		}
 
 		$translated_descriptions = ! empty( $descriptions_to_translate )
-			? Product_Attribute_Translator::translate_strings(
+			? self::translate_strings(
 				$descriptions_to_translate,
 				$source_lang,
 				$target_lang,

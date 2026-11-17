@@ -11,9 +11,8 @@ use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Synchronizer;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 use TranslateSense\Includes\Admin\Editor_Integration;
+use TranslateSense\Includes\Integrations\WC\WC_Integration;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
-use TranslateSense\Includes\Integrations\WC\Product_Relationship_Synchronizer;
-use TranslateSense\Includes\Integrations\WC\Product_Variation_Synchronizer;
 
 use WP_Post;
 use WP_Error;
@@ -177,9 +176,7 @@ abstract class Base_Builder {
 
 		// Initialize WooCommerce Integration.
 		if ( 'product' === $source_post->post_type ) {
-			Product_Relationship_Synchronizer::init();
-			Product_Attribute_Translator::init();
-			Product_Variation_Synchronizer::init();
+			WC_Integration::translate_wc();
 		}
 
 		$source_lang = Polylang_Bridge::get_post_language( $post_id );
@@ -242,14 +239,16 @@ abstract class Base_Builder {
 			'in_memory_translations' => $in_memory_translations,
 		);
 
-		Product_Attribute_Translator::set_current_context(
-			array(
-				'provider'               => $provider,
-				'in_memory_translations' => $in_memory_translations,
-				'source_lang'            => $source_lang,
-				'target_lang'            => $target_lang,
-			)
-		);
+		if ( 'product' === $source_post->post_type ) {
+			Product_Attribute_Translator::set_current_context(
+				array(
+					'provider'               => $provider,
+					'in_memory_translations' => $in_memory_translations,
+					'source_lang'            => $source_lang,
+					'target_lang'            => $target_lang,
+				)
+			);
+		}
 
 		if ( ! $is_existing ) {
 			$create_args['post_status'] = $bulk_post_status;
@@ -305,8 +304,6 @@ abstract class Base_Builder {
 			$wp_post_content,
 			$create_args
 		);
-
-		Product_Attribute_Translator::clear_current_context();
 
 		if ( is_wp_error( $created_post_id ) ) {
 			return $created_post_id;

@@ -16,7 +16,7 @@ use TranslateSense\Includes\Admin\Editor_Integration;
 use TranslateSense\Includes\Content\Parser\Content_Parser;
 use TranslateSense\Includes\Cron\Cron;
 use TranslateSense\Includes\Admin\Feedback\Feedback_Form;
-use TranslateSense\Includes\Integrations\WC\Product_Relationship_Synchronizer;
+use TranslateSense\Includes\Integrations\WC\WC_Integration;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -69,7 +69,7 @@ class Plugin {
 		Editor_Integration::init();
 		Content_Parser::init();
 		Cron::init();
-		Product_Relationship_Synchronizer::init();
+		WC_Integration::init();
 
 		if ( is_admin() ) {
 			Activator::maybe_upgrade_db();

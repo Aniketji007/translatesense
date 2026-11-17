@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Synchronizes WooCommerce product relationships (upsells, cross-sells, grouped children)
  * and manages relationship recovery metadata when translated products are deleted.
  */
-class Product_Relationship_Synchronizer {
+class Product_Relationship_Synchronizer extends WC_Base {
 
 	/**
 	 * Recovery post meta keys.
@@ -59,12 +59,19 @@ class Product_Relationship_Synchronizer {
 	 */
 	private static array $recovered_deletions = array();
 
+	public function __construct() {
+		parent::__construct( 20 );
+	}
+
+	public function translate( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
+		self::synchronize_relationships( $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $context );
+	}
+
 	/**
-	 * Initialize hooks.
+	 * Restore product relationships when a translated product is deleted.
 	 */
-	public static function init(): void {
-		add_action( 'translatesense_after_save_translation', array( __CLASS__, 'synchronize_relationships' ), 20, 6 );
-		add_action( 'before_delete_post', array( __CLASS__, 'handle_product_deletion' ), 10, 1 );
+	public static function handle_before_delete_post( int $post_id ): void {
+		self::handle_product_deletion( $post_id );
 	}
 
 	/**
@@ -79,12 +86,6 @@ class Product_Relationship_Synchronizer {
 	 */
 	public static function synchronize_relationships( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
 		if ( self::$syncing ) {
-			return;
-		}
-
-		$source_post = get_post( $source_post_id );
-
-		if ( ! $source_post || 'product' !== $source_post->post_type ) {
 			return;
 		}
 
@@ -582,6 +583,7 @@ class Product_Relationship_Synchronizer {
 		}
 
 		$post_id = absint( $post_id );
+
 		if ( $post_id <= 0 ) {
 			return;
 		}
