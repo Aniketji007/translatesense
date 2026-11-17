@@ -9,6 +9,7 @@ use TranslateSense\Includes\Translation\Custom_Fields\Custom_Field_Translator;
 use TranslateSense\Includes\Translation\InternalLinks\Internal_Link_Translator;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Synchronizer;
+use TranslateSense\Includes\Translation\Media\Media_Translator;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 use TranslateSense\Includes\Admin\Editor_Integration;
 use TranslateSense\Includes\Integrations\WC\WC_Integration;
@@ -296,6 +297,21 @@ abstract class Base_Builder {
 			$create_args['skip_taxonomies_sync'] = true;
 		}
 
+		// 3b. Resolve featured-image media translation before creating/updating the target post.
+		$include_media         = Polylang_Bridge::is_media_translation_enabled();
+		$featured_media_result = array();
+
+		if ( $include_media ) {
+			$featured_media_result = Media_Translator::prepare_featured_image_for_post(
+				$post_id,
+				$target_lang,
+				(string) $source_lang,
+				(string) $provider,
+				$in_memory_translations,
+				$taxonomy_options
+			);
+		}
+
 		// 4. Create or update Polylang translated post.
 		$created_post_id = Polylang_Bridge::create_or_update_translated_post(
 			$post_id,
@@ -313,10 +329,22 @@ abstract class Base_Builder {
 		$this->after_save_post( $created_post_id );
 		Polylang_Synchronizer::attach_translated_media_to_post( $created_post_id );
 
-		$tax_warnings = Taxonomy_Translator::get_last_warnings();
-		if ( ! empty( $tax_warnings ) ) {
+		$sync_warnings_to_merge = Taxonomy_Translator::get_last_warnings();
+		if ( ! empty( $featured_media_result['warning'] ) ) {
+			$sync_warnings_to_merge[] = (string) $featured_media_result['warning'];
+		}
+		if ( ! empty( $sync_warnings_to_merge ) ) {
 			$existing_warnings = (array) get_post_meta( $created_post_id, '_translatesense_sync_warnings', true );
-			update_post_meta( $created_post_id, '_translatesense_sync_warnings', array_values( array_unique( array_merge( $existing_warnings, $tax_warnings ) ) ) );
+			update_post_meta( $created_post_id, '_translatesense_sync_warnings', array_values( array_unique( array_merge( $existing_warnings, $sync_warnings_to_merge ) ) ) );
+		}
+
+		// Assign resolved translated featured image (or clear stale/source thumbnail safely).
+		if ( $include_media ) {
+			Media_Translator::assign_featured_image_to_post(
+				$created_post_id,
+				$featured_media_result,
+				$is_existing
+			);
 		}
 
 		// Replace copied source-language assignments with resolved target-language terms.
