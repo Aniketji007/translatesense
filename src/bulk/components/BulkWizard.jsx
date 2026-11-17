@@ -138,7 +138,7 @@ export function BulkWizard({
           actionUrl={errorModal.actionUrl}
           actionLabel={errorModal.actionLabel}
           icon={errorModal.icon}
-          onClose={() =>
+          onClose={() => {
             setErrorModal({
               isOpen: false,
               type: 'error',
@@ -152,6 +152,10 @@ export function BulkWizard({
               actionUrl: '',
               actionLabel: '',
             })
+            if (!postResultsMap || Object.keys(postResultsMap).length <= 0) {
+              handleModalClose();
+            }
+          }
           }
         />
       ) : currentStep === 1 ? (

@@ -257,9 +257,10 @@ class Bulk_Process {
 		$target_languages = array_values( array_unique( $target_languages ) );
 
 		foreach ( $post_ids as $p_id ) {
-			$item_id     = (int) $p_id;
-			$source_term = $is_term ? get_term( $item_id, $subtype ) : null;
-			$source_post = ! $is_term ? get_post( $item_id ) : null;
+			$item_id          = (int) $p_id;
+			$source_term      = $is_term ? get_term( $item_id, $subtype ) : null;
+			$source_post      = ! $is_term ? get_post( $item_id ) : null;
+			$source_item_lang = '';
 
 			if ( $is_term ? ( ! $source_term instanceof \WP_Term ) : ( ! $source_post instanceof \WP_Post ) ) {
 				continue;
@@ -292,7 +293,7 @@ class Bulk_Process {
 
 				$target_lang = sanitize_key( $lang );
 
-				if ( '' === $target_lang ) {
+				if ( '' === $target_lang || ( $item_has_language && $source_item_lang === $target_lang ) ) {
 					continue;
 				}
 

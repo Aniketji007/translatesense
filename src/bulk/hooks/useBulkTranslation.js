@@ -597,18 +597,30 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
 
       const batchJobs = Array.isArray(batchRes.jobs) ? batchRes.jobs : [];
 
-      if (batchJobs.length > 0) {
-        populateMapFromBatch(
-          {
-            subtype: batchRes.subtype || subtype,
-            provider: selectedProvider,
-            items: batchJobs,
-          },
-          true
-        );
-        setTotalJobsCount(batchJobs.length);
-        setProgressPercent(Math.round(getOverallProgress(batchJobs)));
+      if (!batchJobs || !batchJobs.length) {
+        setEndpointLoading(null);
+        setHideReviewNotice(true);
+        setIsTranslating(false);
+        setPostResultsMap({})
+        setStatusText(`Error: No job found`);
+        setErrorModal({
+          isOpen: true,
+          title: 'No job found',
+          message: `No job found to translate ${TranslateSenseBulkData?.itemSingular} in selected languages.`,
+        });
+        return;
       }
+
+      populateMapFromBatch(
+        {
+          subtype: batchRes.subtype || subtype,
+          provider: selectedProvider,
+          items: batchJobs,
+        },
+        true
+      );
+      setTotalJobsCount(batchJobs.length);
+      setProgressPercent(Math.round(getOverallProgress(batchJobs)));
 
       if (isChromeAi || isTaxonomy) {
         runBulkTranslation(batchJobs, batchRes.batch_id, selectedProvider);
