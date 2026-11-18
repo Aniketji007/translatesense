@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace TranslateSense\Includes\Integrations\WC;
 
-use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use WC_Product;
 use WP_Post;

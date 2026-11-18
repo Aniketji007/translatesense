@@ -232,12 +232,20 @@ abstract class Base_Builder {
 		$wp_post_content    = is_string( $translated_batch['post_content'] ?? null ) ? $translated_batch['post_content'] : $wp_post_content;
 		$translated_excerpt = is_string( $translated_batch['post_excerpt'] ?? null ) ? $translated_batch['post_excerpt'] : $translated_excerpt;
 
+		$taxonomy_options = array(
+			'user_id'             => ( array_key_exists( 'user_id', $options ) && null !== $options['user_id'] ) ? (int) $options['user_id'] : null,
+			'enforce_permissions' => array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true,
+			'skip_unauthorized'   => ! empty( $options['skip_unauthorized'] ),
+		);
+
 		// Existing translations are updated in place. Slug and status settings
 		// are creation-only and must not overwrite editorial choices on a target.
 		$create_args = array(
 			'post_excerpt'           => $translated_excerpt,
 			'provider'               => $provider,
 			'in_memory_translations' => $in_memory_translations,
+			'user_id'                => $taxonomy_options['user_id'],
+			'enforce_permissions'    => $taxonomy_options['enforce_permissions'],
 		);
 
 		if ( 'product' === $source_post->post_type ) {
@@ -247,6 +255,8 @@ abstract class Base_Builder {
 					'in_memory_translations' => $in_memory_translations,
 					'source_lang'            => $source_lang,
 					'target_lang'            => $target_lang,
+					'user_id'                => $taxonomy_options['user_id'],
+					'enforce_permissions'    => $taxonomy_options['enforce_permissions'],
 				)
 			);
 		}
@@ -271,12 +281,6 @@ abstract class Base_Builder {
 
 		$include_taxonomies    = ! array_key_exists( 'include_taxonomies', $options ) || ! empty( $options['include_taxonomies'] );
 		$translated_taxonomies = array();
-
-		$taxonomy_options = array(
-			'user_id'             => ( array_key_exists( 'user_id', $options ) && null !== $options['user_id'] ) ? (int) $options['user_id'] : null,
-			'enforce_permissions' => array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true,
-			'skip_unauthorized'   => ! empty( $options['skip_unauthorized'] ),
-		);
 
 		// 3. Resolve taxonomy translations before creating/updating the target post (Bulk workflow only).
 		// This ensures Polylang can link existing translated terms during its copy pass.

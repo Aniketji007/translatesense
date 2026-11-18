@@ -8,6 +8,7 @@ use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
+use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 
 use WC_Product;
 use WC_Product_Attribute;
@@ -106,10 +107,15 @@ class Product_Attribute_Translator extends WC_Base {
 
 		$extracted = array();
 
-		// 1. Custom product attributes (labels and options)
+		// 1. Custom product attributes. Global pa_* terms are handled by Taxonomy_Translator.
 		$attributes = (array) $product->get_attributes();
 		foreach ( $attributes as $attr_key => $attr ) {
-			if ( ! $attr instanceof WC_Product_Attribute || $attr->is_taxonomy() ) {
+			if ( ! $attr instanceof WC_Product_Attribute ) {
+				continue;
+			}
+
+			$taxonomy = sanitize_key( (string) $attr->get_name() );
+			if ( $attr->is_taxonomy() || ( 0 === strpos( $taxonomy, 'pa_' ) && taxonomy_exists( $taxonomy ) ) ) {
 				continue;
 			}
 
@@ -537,12 +543,15 @@ class Product_Attribute_Translator extends WC_Base {
 			return;
 		}
 
-		$target_post_id = (int) $target_product->get_id();
-
-		// 1. Collect all custom attribute labels and options for batch translation
+		// Translate only custom attribute labels and values through the product string pipeline.
 		$custom_strings = array();
 		foreach ( $source_attributes as $attr_key => $source_attr ) {
-			if ( ! $source_attr instanceof WC_Product_Attribute || $source_attr->is_taxonomy() ) {
+			if ( ! $source_attr instanceof WC_Product_Attribute ) {
+				continue;
+			}
+
+			$taxonomy = sanitize_key( (string) $source_attr->get_name() );
+			if ( $source_attr->is_taxonomy() || ( 0 === strpos( $taxonomy, 'pa_' ) && taxonomy_exists( $taxonomy ) ) ) {
 				continue;
 			}
 
@@ -551,9 +560,7 @@ class Product_Attribute_Translator extends WC_Base {
 				$custom_strings[ 'label_' . $attr_key ] = $label;
 			}
 
-			$raw_options = $source_attr->get_options();
-			$options     = is_array( $raw_options ) ? $raw_options : array_filter( array_map( 'trim', explode( '|', (string) $raw_options ) ) );
-
+			$options = (array) $source_attr->get_options();
 			foreach ( $options as $opt_idx => $opt_val ) {
 				$opt_val = trim( (string) $opt_val );
 				if ( '' !== $opt_val && ! Custom_Field_Parser::is_only_numbers( $opt_val ) ) {
@@ -566,7 +573,6 @@ class Product_Attribute_Translator extends WC_Base {
 			? self::translate_strings( $custom_strings, $source_lang, $target_lang, $context, 'wc_attr_' )
 			: array();
 
-		// 2. Build target product attributes
 		$target_attributes = array();
 
 		foreach ( $source_attributes as $attr_key => $source_attr ) {
@@ -579,70 +585,112 @@ class Product_Attribute_Translator extends WC_Base {
 			$target_attr->set_visible( (bool) $source_attr->get_visible() );
 			$target_attr->set_variation( (bool) $source_attr->get_variation() );
 
-			$is_taxonomy = $source_attr->is_taxonomy() || ( 0 === strpos( (string) $source_attr->get_name(), 'pa_' ) && taxonomy_exists( (string) $source_attr->get_name() ) );
+			$taxonomy    = sanitize_key( (string) $source_attr->get_name() );
+			$is_taxonomy = $source_attr->is_taxonomy() || ( 0 === strpos( $taxonomy, 'pa_' ) && taxonomy_exists( $taxonomy ) );
 
 			if ( $is_taxonomy ) {
-				// Global attribute (pa_* taxonomy)
-				$taxonomy = sanitize_key( (string) $source_attr->get_name() );
-				$attr_id  = (int) $source_attr->get_id();
-				if ( $attr_id <= 0 && function_exists( 'wc_attribute_taxonomy_id_by_name' ) ) {
-					$attr_id = (int) wc_attribute_taxonomy_id_by_name( $taxonomy );
+				// Global attribute: keep the WooCommerce attribute taxonomy and resolve its terms.
+				$attribute_id = (int) $source_attr->get_id();
+				if ( $attribute_id <= 0 && function_exists( 'wc_attribute_taxonomy_id_by_name' ) ) {
+					$attribute_id = (int) wc_attribute_taxonomy_id_by_name( $taxonomy );
 				}
-				$target_attr->set_id( $attr_id );
+
+				$target_attr->set_id( $attribute_id );
 				$target_attr->set_name( $taxonomy );
 
-				$source_term_ids = (array) $source_attr->get_options();
-				$target_term_ids = array();
+				$source_term_ids = array_values(
+					array_unique(
+						array_filter( array_map( 'absint', (array) $source_attr->get_options() ) )
+					)
+				);
 
-				foreach ( $source_term_ids as $source_term_id ) {
-					$source_term_id = absint( $source_term_id );
-					if ( $source_term_id <= 0 ) {
-						continue;
+				if ( ! Taxonomy_Parser::is_translatable_taxonomy( $taxonomy ) ) {
+					// Non-translatable attribute taxonomies retain their original terms.
+					$target_attr->set_options( $source_term_ids );
+				} else {
+					$resolved_terms = array();
+					$missing_ids    = array();
+
+					// Resolve existing translations and validate taxonomy membership.
+					foreach ( $source_term_ids as $source_term_id ) {
+						$translated_term_id = absint( Taxonomy_Parser::get_translation_id( $source_term_id, $target_lang ) );
+
+						if ( $translated_term_id <= 0 && function_exists( 'pll_get_term' ) ) {
+							$translated_term_id = absint( pll_get_term( $source_term_id, $target_lang ) );
+						}
+
+						$translated_term = $translated_term_id > 0
+							? get_term( $translated_term_id, $taxonomy )
+							: null;
+
+						if ( $translated_term instanceof WP_Term ) {
+							$resolved_terms[ $source_term_id ] = $translated_term_id;
+						} else {
+							$missing_ids[] = $source_term_id;
+						}
 					}
 
-					// Look up existing translation in target language
-					$translated_term_id = Taxonomy_Parser::get_translation_id( $source_term_id, $target_lang );
+					// Create all missing translated terms in one operation.
+					if ( ! empty( $missing_ids ) ) {
+						$translated_map = Taxonomy_Translator::translate_terms(
+							$missing_ids,
+							$taxonomy,
+							0,
+							$target_lang,
+							(string) ( $context['provider'] ?? '' ),
+							is_array( $context['in_memory_translations'] ?? null ) ? $context['in_memory_translations'] : array(),
+							array(
+								'source_lang'         => $source_lang,
+								'user_id'             => array_key_exists( 'user_id', $context ) ? $context['user_id'] : null,
+								'enforce_permissions' => array_key_exists( 'enforce_permissions', $context ) ? (bool) $context['enforce_permissions'] : true,
+								'skip_unauthorized'   => true,
+							)
+						);
 
-					// Direct Polylang fallback
-					if ( $translated_term_id <= 0 && function_exists( 'pll_get_term' ) ) {
-						$translated_term_id = absint( pll_get_term( $source_term_id, $target_lang ) );
+						if ( is_array( $translated_map ) ) {
+							foreach ( $translated_map as $source_id => $target_id ) {
+								$source_id = absint( $source_id );
+								$target_id = absint( $target_id );
+
+								if ( $source_id <= 0 || $target_id <= 0 || ! in_array( $source_id, $missing_ids, true ) ) {
+									continue;
+								}
+
+								$translated_term = get_term( $target_id, $taxonomy );
+								if ( $translated_term instanceof WP_Term ) {
+									$resolved_terms[ $source_id ] = $target_id;
+								}
+							}
+						}
 					}
 
-					$final_term_id     = ( $translated_term_id > 0 ) ? $translated_term_id : $source_term_id;
-					$target_term_ids[] = $final_term_id;
-				}
+					// Never attach source-language terms when a target translation is missing.
+					$target_term_ids = array();
+					foreach ( $source_term_ids as $source_term_id ) {
+						if ( isset( $resolved_terms[ $source_term_id ] ) ) {
+							$target_term_ids[] = $resolved_terms[ $source_term_id ];
+						}
+					}
 
-				$target_term_ids = array_values( array_unique( array_filter( $target_term_ids ) ) );
-				$target_attr->set_options( $target_term_ids );
-
-				// Associate translated terms with target product post
-				if ( taxonomy_exists( $taxonomy ) ) {
-					wp_set_object_terms( $target_post_id, $target_term_ids, $taxonomy );
+					$target_attr->set_options( array_values( array_unique( $target_term_ids ) ) );
 				}
 
 				$target_attributes[ $attr_key ] = $target_attr;
-			} else {
-				// Custom attribute
-				$target_attr->set_id( 0 );
-
-				// Translated label
-				$source_name     = (string) $source_attr->get_name();
-				$translated_name = $translated_custom[ 'label_' . $attr_key ] ?? $source_name;
-				$target_attr->set_name( $translated_name );
-
-				// Translated options
-				$raw_options    = $source_attr->get_options();
-				$options        = is_array( $raw_options ) ? $raw_options : array_filter( array_map( 'trim', explode( '|', (string) $raw_options ) ) );
-				$target_options = array();
-
-				foreach ( $options as $opt_idx => $opt_val ) {
-					$opt_val          = (string) $opt_val;
-					$target_options[] = $translated_custom[ 'opt_' . $attr_key . '_' . $opt_idx ] ?? $opt_val;
-				}
-
-				$target_attr->set_options( $target_options );
-				$target_attributes[ $attr_key ] = $target_attr;
+				continue;
 			}
+
+			// Custom product attribute.
+			$target_attr->set_id( 0 );
+			$source_name = (string) $source_attr->get_name();
+			$target_attr->set_name( $translated_custom[ 'label_' . $attr_key ] ?? $source_name );
+
+			$target_options = array();
+			foreach ( (array) $source_attr->get_options() as $opt_idx => $opt_val ) {
+				$target_options[] = $translated_custom[ 'opt_' . $attr_key . '_' . $opt_idx ] ?? $opt_val;
+			}
+
+			$target_attr->set_options( $target_options );
+			$target_attributes[ $attr_key ] = $target_attr;
 		}
 
 		$target_product->set_attributes( $target_attributes );
@@ -668,14 +716,14 @@ class Product_Attribute_Translator extends WC_Base {
 				continue;
 			}
 
-			$is_taxonomy = $source_attr->is_taxonomy() || ( 0 === strpos( (string) $source_attr->get_name(), 'pa_' ) && taxonomy_exists( (string) $source_attr->get_name() ) );
+			$taxonomy    = sanitize_key( (string) $source_attr->get_name() );
+			$is_taxonomy = $source_attr->is_taxonomy() || ( 0 === strpos( $taxonomy, 'pa_' ) && taxonomy_exists( $taxonomy ) );
 
 			if ( $is_taxonomy ) {
-				$taxonomy = sanitize_key( (string) $source_attr->get_name() );
-				$term_map = array();
+				$term_map        = array();
+				$is_translatable = Taxonomy_Parser::is_translatable_taxonomy( $taxonomy );
 
-				$source_term_ids = (array) $source_attr->get_options();
-				foreach ( $source_term_ids as $source_term_id ) {
+				foreach ( (array) $source_attr->get_options() as $source_term_id ) {
 					$source_term_id = absint( $source_term_id );
 					if ( $source_term_id <= 0 ) {
 						continue;
@@ -686,16 +734,21 @@ class Product_Attribute_Translator extends WC_Base {
 						continue;
 					}
 
-					$trans_term_id = Taxonomy_Parser::get_translation_id( $source_term_id, $target_lang );
-					if ( $trans_term_id <= 0 && function_exists( 'pll_get_term' ) ) {
-						$trans_term_id = absint( pll_get_term( $source_term_id, $target_lang ) );
-					}
-					$target_term = ( $trans_term_id > 0 ) ? get_term( $trans_term_id, $taxonomy ) : $source_term;
+					$target_term = $source_term;
+					if ( $is_translatable ) {
+						$translated_id = absint( Taxonomy_Parser::get_translation_id( $source_term_id, $target_lang ) );
+						if ( $translated_id <= 0 && function_exists( 'pll_get_term' ) ) {
+							$translated_id = absint( pll_get_term( $source_term_id, $target_lang ) );
+						}
 
-					if ( $target_term instanceof WP_Term ) {
-						$term_map[ $source_term->slug ] = $target_term->slug;
-						$term_map[ $source_term->name ] = $target_term->name;
+						$target_term = $translated_id > 0 ? get_term( $translated_id, $taxonomy ) : null;
+						if ( ! $target_term instanceof WP_Term ) {
+							continue;
+						}
 					}
+
+					$term_map[ $source_term->slug ] = $target_term->slug;
+					$term_map[ $source_term->name ] = $target_term->name;
 				}
 
 				$map[ $taxonomy ] = array(
@@ -703,56 +756,50 @@ class Product_Attribute_Translator extends WC_Base {
 					'target_key'  => $taxonomy,
 					'terms'       => $term_map,
 				);
-			} else {
-				// Custom attribute
-				$val_map            = array();
-				$raw_source_options = $source_attr->get_options();
-				$source_options     = is_array( $raw_source_options ) ? array_values( $raw_source_options ) : array_filter( array_map( 'trim', explode( '|', (string) $raw_source_options ) ) );
-
-				// Target attribute might be keyed by attr_key or by sanitize_title(target_name)
-				$target_attr = $target_attributes[ $attr_key ] ?? null;
-				if ( ! $target_attr instanceof WC_Product_Attribute ) {
-					$sanitized_source_key = sanitize_title( (string) $source_attr->get_name() );
-					$target_attr          = $target_attributes[ $sanitized_source_key ] ?? null;
-				}
-				if ( ! $target_attr instanceof WC_Product_Attribute ) {
-					// Match by position rather than selecting an arbitrary custom attribute.
-					$source_position = (int) $source_attr->get_position();
-					foreach ( $target_attributes as $t_attr ) {
-						if (
-							$t_attr instanceof WC_Product_Attribute
-							&& ! $t_attr->is_taxonomy()
-							&& (int) $t_attr->get_position() === $source_position
-						) {
-							$target_attr = $t_attr;
-							break;
-						}
-					}
-				}
-
-				$target_key = $attr_key;
-				if ( $target_attr instanceof WC_Product_Attribute ) {
-					$target_key         = sanitize_title( (string) $target_attr->get_name() );
-					$raw_target_options = $target_attr->get_options();
-					$target_options     = is_array( $raw_target_options ) ? array_values( $raw_target_options ) : array_filter( array_map( 'trim', explode( '|', (string) $raw_target_options ) ) );
-
-					foreach ( $source_options as $idx => $source_val ) {
-						$source_val                               = (string) $source_val;
-						$target_val                               = isset( $target_options[ $idx ] ) ? (string) $target_options[ $idx ] : $source_val;
-						$val_map[ $source_val ]                   = $target_val;
-						$val_map[ sanitize_title( $source_val ) ] = sanitize_title( $target_val );
-					}
-				}
-
-				$map_entry = array(
-					'is_taxonomy' => false,
-					'target_key'  => $target_key,
-					'values'      => $val_map,
-				);
-
-				$map[ $attr_key ] = $map_entry;
-				$map[ sanitize_title( (string) $source_attr->get_name() ) ] = $map_entry;
+				continue;
 			}
+
+			// Custom attribute mapping is positional because translated labels can change the key.
+			$source_options = array_values( (array) $source_attr->get_options() );
+			$target_attr    = $target_attributes[ $attr_key ] ?? null;
+
+			if ( ! $target_attr instanceof WC_Product_Attribute ) {
+				$source_key  = sanitize_title( (string) $source_attr->get_name() );
+				$target_attr = $target_attributes[ $source_key ] ?? null;
+			}
+
+			if ( ! $target_attr instanceof WC_Product_Attribute ) {
+				$source_position = (int) $source_attr->get_position();
+				foreach ( $target_attributes as $candidate ) {
+					if ( $candidate instanceof WC_Product_Attribute && ! $candidate->is_taxonomy() && (int) $candidate->get_position() === $source_position ) {
+						$target_attr = $candidate;
+						break;
+					}
+				}
+			}
+
+			$target_key = $attr_key;
+			$val_map    = array();
+			if ( $target_attr instanceof WC_Product_Attribute ) {
+				$target_key     = sanitize_title( (string) $target_attr->get_name() );
+				$target_options = array_values( (array) $target_attr->get_options() );
+
+				foreach ( $source_options as $index => $source_value ) {
+					$source_value                               = (string) $source_value;
+					$target_value                               = isset( $target_options[ $index ] ) ? (string) $target_options[ $index ] : $source_value;
+					$val_map[ $source_value ]                   = $target_value;
+					$val_map[ sanitize_title( $source_value ) ] = sanitize_title( $target_value );
+				}
+			}
+
+			$entry = array(
+				'is_taxonomy' => false,
+				'target_key'  => $target_key,
+				'values'      => $val_map,
+			);
+
+			$map[ $attr_key ] = $entry;
+			$map[ sanitize_title( (string) $source_attr->get_name() ) ] = $entry;
 		}
 
 		return $map;
