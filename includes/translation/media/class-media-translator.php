@@ -436,6 +436,214 @@ class Media_Translator {
 	}
 
 	/**
+	 * Resolve a product's gallery media translation before saving the target product (Workflow B / WC Integration).
+	 * Reuses `translate_attachments()` and converts errors to non-fatal warnings.
+	 *
+	 * @param int    $source_post_id         Source product post ID.
+	 * @param string $target_lang            Target language slug.
+	 * @param string $source_lang            Source language slug.
+	 * @param string $provider               AI Provider ID.
+	 * @param array  $in_memory_translations In-memory translations indexed by hash.
+	 * @param array  $options                Additional options (user_id, enforce_permissions, etc.).
+	 * @return array{ has_gallery: bool, source_gallery_ids: int[], target_gallery_ids: int[], warnings: string[] }
+	 */
+	public static function prepare_product_gallery_for_post(
+		int $source_post_id,
+		string $target_lang,
+		string $source_lang,
+		string $provider = '',
+		array $in_memory_translations = array(),
+		array $options = array()
+	): array {
+		$result = array(
+			'has_gallery'        => false,
+			'source_gallery_ids' => array(),
+			'target_gallery_ids' => array(),
+			'warnings'           => array(),
+		);
+
+		$target_lang = sanitize_key( $target_lang );
+		if ( $source_post_id <= 0 || '' === $target_lang || ! Polylang_Bridge::is_media_translation_enabled() ) {
+			return $result;
+		}
+
+		$source_gallery_ids = Media_Parser::get_product_gallery_image_ids( $source_post_id );
+		if ( empty( $source_gallery_ids ) ) {
+			return $result;
+		}
+
+		$result['has_gallery']        = true;
+		$result['source_gallery_ids'] = $source_gallery_ids;
+
+		$post_lang    = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) ) ?: sanitize_key( $source_lang );
+		$default_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
+
+		$resolved_map     = array();
+		$to_translate_ids = array();
+		$warnings         = array();
+
+		foreach ( $source_gallery_ids as $attachment_id ) {
+			if ( ! Media_Parser::is_valid_attachment( $attachment_id ) ) {
+				continue;
+			}
+
+			// 1. Check if translated attachment already exists in Polylang
+			$existing_id = Media_Parser::get_translation_id( $attachment_id, $target_lang );
+			if ( $existing_id > 0 ) {
+				$resolved_map[ $attachment_id ] = $existing_id;
+				continue;
+			}
+
+			// 2. Check if attachment is already in the target language
+			$att_lang = Media_Parser::get_attachment_language( $attachment_id );
+			if ( $att_lang === $target_lang ) {
+				$resolved_map[ $attachment_id ] = $attachment_id;
+				continue;
+			}
+
+			// 3. Ensure language is assigned in Polylang
+			if ( '' === $att_lang ) {
+				if ( '' !== $post_lang && $post_lang === $default_lang ) {
+					Polylang_Bridge::set_post_language( $attachment_id, $default_lang );
+					$att_lang = $default_lang;
+				} else {
+					/* translators: %d: attachment ID */
+					$warnings[] = sprintf( __( 'Gallery image %d skipped: no language assigned in Polylang.', 'translatesense' ), $attachment_id );
+					continue;
+				}
+			}
+
+			$to_translate_ids[] = $attachment_id;
+		}
+
+		if ( ! empty( $to_translate_ids ) ) {
+			$translate_options                = $options;
+			$translate_options['source_lang'] = $post_lang;
+
+			$translated = self::translate_attachments(
+				$to_translate_ids,
+				0,
+				$target_lang,
+				$provider,
+				$in_memory_translations,
+				$translate_options
+			);
+
+			if ( is_wp_error( $translated ) ) {
+				$warnings[] = $translated->get_error_message();
+			} elseif ( is_array( $translated ) ) {
+				foreach ( $translated as $src_id => $tgt_id ) {
+					$tgt_id = absint( $tgt_id );
+					if ( $tgt_id > 0 ) {
+						$resolved_map[ (int) $src_id ] = $tgt_id;
+					}
+				}
+			}
+		}
+
+		// Rebuild target gallery IDs preserving the source gallery order
+		$target_gallery_ids = array();
+		foreach ( $source_gallery_ids as $source_att_id ) {
+			if ( isset( $resolved_map[ $source_att_id ] ) && $resolved_map[ $source_att_id ] > 0 ) {
+				$target_gallery_ids[] = $resolved_map[ $source_att_id ];
+			}
+		}
+
+		$result['target_gallery_ids'] = array_values( array_unique( array_filter( array_map( 'absint', $target_gallery_ids ) ) ) );
+		$result['warnings']           = $warnings;
+
+		return $result;
+	}
+
+	/**
+	 * Assign resolved translated gallery images to the target WooCommerce product (Workflow B / WC Integration).
+	 *
+	 * @param int   $target_post_id Target product post ID.
+	 * @param array $gallery_result Result from prepare_product_gallery_for_post().
+	 * @param bool  $is_existing    Whether this is an update to an existing translation.
+	 */
+	public static function assign_product_gallery_to_post( int $target_post_id, array $gallery_result, bool $is_existing = false ): void {
+		if ( $target_post_id <= 0 || ! Polylang_Bridge::is_media_translation_enabled() ) {
+			return;
+		}
+
+		$source_gallery_ids = (array) ( $gallery_result['source_gallery_ids'] ?? array() );
+		$target_gallery_ids = (array) ( $gallery_result['target_gallery_ids'] ?? array() );
+		$has_gallery        = ! empty( $gallery_result['has_gallery'] ) && ! empty( $source_gallery_ids );
+
+		if ( ! $has_gallery ) {
+			if ( $is_existing ) {
+				if ( function_exists( 'wc_get_product' ) ) {
+					$target_product = wc_get_product( $target_post_id );
+					if ( $target_product instanceof \WC_Product ) {
+						$target_product->set_gallery_image_ids( array() );
+						$target_product->save();
+					}
+				}
+				delete_post_meta( $target_post_id, '_product_image_gallery' );
+			}
+			return;
+		}
+
+		if ( ! empty( $target_gallery_ids ) ) {
+			$gallery_string = implode( ',', $target_gallery_ids );
+
+			if ( function_exists( 'wc_get_product' ) ) {
+				$target_product = wc_get_product( $target_post_id );
+				if ( $target_product instanceof \WC_Product ) {
+					$target_product->set_gallery_image_ids( $target_gallery_ids );
+					$target_product->save();
+				}
+			}
+
+			update_post_meta( $target_post_id, '_product_image_gallery', $gallery_string );
+		}
+	}
+
+	/**
+	 * Synchronize a product's gallery media from source to target product.
+	 *
+	 * @param int    $source_post_id Source product post ID.
+	 * @param int    $target_post_id Target product post ID.
+	 * @param string $target_lang    Target language slug.
+	 * @param array  $context        Execution context including provider, in_memory_translations.
+	 * @param bool   $is_existing    Whether updating an existing target product.
+	 * @return array Gallery result.
+	 */
+	public static function synchronize_product_gallery(
+		int $source_post_id,
+		int $target_post_id,
+		string $target_lang,
+		array $context = array(),
+		bool $is_existing = false
+	): array {
+		if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+			return array();
+		}
+
+		$source_lang = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) );
+		if ( '' === $source_lang ) {
+			$source_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
+		}
+
+		$provider               = (string) ( $context['provider'] ?? '' );
+		$in_memory_translations = is_array( $context['in_memory_translations'] ?? null ) ? $context['in_memory_translations'] : array();
+
+		$gallery_result = self::prepare_product_gallery_for_post(
+			$source_post_id,
+			$target_lang,
+			$source_lang,
+			$provider,
+			$in_memory_translations,
+			$context
+		);
+
+		self::assign_product_gallery_to_post( $target_post_id, $gallery_result, $is_existing );
+
+		return $gallery_result;
+	}
+
+	/**
 	 * Resolve, update, or create one translated attachment in `$target_lang`.
 	 *
 	 * @return int|WP_Error

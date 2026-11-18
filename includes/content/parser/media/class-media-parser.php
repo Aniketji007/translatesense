@@ -287,4 +287,81 @@ class Media_Parser {
 
 		return self::extract_attachment_strings( array( $thumbnail_id ), $target_lang, $user_id, $enforce_permissions );
 	}
+
+	/**
+	 * Get assigned product gallery image attachment IDs.
+	 *
+	 * @param int $post_id Product post ID.
+	 * @return int[]
+	 */
+	public static function get_product_gallery_image_ids( int $post_id ): array {
+		if ( $post_id <= 0 ) {
+			return array();
+		}
+
+		$gallery_ids = array();
+		if ( function_exists( 'wc_get_product' ) ) {
+			$product = wc_get_product( $post_id );
+			if ( $product instanceof \WC_Product ) {
+				$gallery_ids = $product->get_gallery_image_ids();
+			}
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'absint', (array) $gallery_ids ) ) ) );
+	}
+
+	/**
+	 * Extract runtime strings for a WooCommerce product's untranslated gallery images.
+	 *
+	 * @param int      $post_id             Product post ID.
+	 * @param string   $target_lang         Target language slug.
+	 * @param int|null $user_id             Optional user ID.
+	 * @param bool     $enforce_permissions Whether to check capabilities.
+	 * @return array<int, array<string, mixed>>
+	 */
+	public static function extract_product_gallery_strings(
+		int $post_id,
+		string $target_lang,
+		?int $user_id = null,
+		bool $enforce_permissions = true
+	): array {
+		$target_lang = sanitize_key( $target_lang );
+		if ( $post_id <= 0 || '' === $target_lang || ! Polylang_Bridge::is_media_translation_enabled() ) {
+			return array();
+		}
+
+		if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'edit_post', $post_id ) ) {
+			return array();
+		}
+
+		$gallery_ids = self::get_product_gallery_image_ids( $post_id );
+		if ( empty( $gallery_ids ) ) {
+			return array();
+		}
+
+		$thumbnail_id     = absint( get_post_thumbnail_id( $post_id ) );
+		$untranslated_ids = array();
+
+		foreach ( $gallery_ids as $attachment_id ) {
+			if ( $attachment_id === $thumbnail_id ) {
+				continue;
+			}
+			if ( ! self::is_valid_attachment( $attachment_id ) ) {
+				continue;
+			}
+			if ( self::get_translation_id( $attachment_id, $target_lang ) > 0 ) {
+				continue;
+			}
+			if ( self::get_attachment_language( $attachment_id ) === $target_lang ) {
+				continue;
+			}
+			$untranslated_ids[] = $attachment_id;
+		}
+
+		if ( empty( $untranslated_ids ) ) {
+			return array();
+		}
+
+		return self::extract_attachment_strings( $untranslated_ids, $target_lang, $user_id, $enforce_permissions );
+	}
 }

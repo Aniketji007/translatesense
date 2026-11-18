@@ -436,12 +436,42 @@ class Polylang_Synchronizer {
 	 * @return mixed
 	 */
 	public static function translate_post_meta( $value, $key, $lang ) {
-		if ( '_thumbnail_id' !== $key || ! is_numeric( $value ) ) {
-			return $value;
+		if ( '_thumbnail_id' === $key && is_numeric( $value ) ) {
+			$translated_id = self::resolve_media_translation( absint( $value ), (string) $lang );
+			return $translated_id > 0 ? $translated_id : $value;
 		}
 
-		$translated_id = self::resolve_media_translation( absint( $value ), (string) $lang );
-		return $translated_id > 0 ? $translated_id : $value;
+		if ( '_product_image_gallery' === $key ) {
+			if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+				return $value;
+			}
+
+			$ids = array();
+			if ( is_string( $value ) ) {
+				$ids = array_filter( array_map( 'trim', explode( ',', $value ) ) );
+			} elseif ( is_array( $value ) ) {
+				$ids = $value;
+			}
+
+			if ( empty( $ids ) ) {
+				return $value;
+			}
+
+			$translated_ids = array();
+			foreach ( $ids as $id ) {
+				$id_int = absint( $id );
+				if ( $id_int <= 0 ) {
+					continue;
+				}
+				$translated_id    = self::resolve_media_translation( $id_int, (string) $lang );
+				$translated_ids[] = $translated_id > 0 ? $translated_id : $id_int;
+			}
+
+			$translated_ids = array_values( array_unique( array_filter( $translated_ids ) ) );
+			return is_array( $value ) ? $translated_ids : implode( ',', $translated_ids );
+		}
+
+		return $value;
 	}
 
 	/**

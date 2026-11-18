@@ -3739,7 +3739,7 @@ class Rest_Api {
 			);
 		}
 
-		if ( 'product' === get_post_type( $post_id ) ) {
+		if ( 'product' === $post->post_type ) {
 			Product_Attribute_Translator::ensure_product_package_prepared(
 				$post_id,
 				$source_language,
@@ -3776,6 +3776,14 @@ class Rest_Api {
 
 		if ( ! empty( $media_strings ) ) {
 			$package_strings = array_merge( $package_strings, $media_strings );
+		}
+
+		// Runtime WooCommerce product gallery strings when Polylang Media translation is enabled.
+		if ( '' !== $target_language && 'product' === $post->post_type && Polylang_Bridge::is_media_translation_enabled() ) {
+			$gallery_strings = Media_Parser::extract_product_gallery_strings( $post_id, $target_language, get_current_user_id(), true );
+			if ( ! empty( $gallery_strings ) ) {
+				$package_strings = array_merge( $package_strings, $gallery_strings );
+			}
 		}
 
 		return rest_ensure_response(

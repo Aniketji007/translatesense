@@ -762,8 +762,8 @@ class Bulk_Process {
 			$target_lang = sanitize_key( (string) ( $job['target_language'] ?? '' ) );
 			$updated_at  = (string) ( $job['updated_at'] ?? '' );
 
-			$term       = ( ! $is_media && $item_id > 0 ) ? get_term( $item_id ) : null;
-			$is_valid   = $job_id > 0 && '' !== $target_lang && ( $is_media ? Media_Parser::is_valid_attachment( $item_id ) : $term instanceof \WP_Term );
+			$term     = ( ! $is_media && $item_id > 0 ) ? get_term( $item_id ) : null;
+			$is_valid = $job_id > 0 && '' !== $target_lang && ( $is_media ? Media_Parser::is_valid_attachment( $item_id ) : $term instanceof \WP_Term );
 
 			if ( ! $is_valid ) {
 				$updates = array(
@@ -1165,7 +1165,7 @@ class Bulk_Process {
 				$packages = array_merge( $packages, $taxonomy_strings );
 			}
 
-			// Runtime featured-image strings (extracted in memory only; never persisted as package rows).
+			// Runtime featured-image and WooCommerce gallery strings (extracted in memory only; never persisted as package rows).
 			if ( Polylang_Bridge::is_media_translation_enabled() ) {
 				$media_strings = Media_Parser::extract_featured_image_strings(
 					$post_id,
@@ -1175,6 +1175,18 @@ class Bulk_Process {
 				);
 				if ( ! empty( $media_strings ) ) {
 					$packages = array_merge( $packages, $media_strings );
+				}
+
+				if ( 'product' === $source_post->post_type ) {
+					$gallery_strings = Media_Parser::extract_product_gallery_strings(
+						$post_id,
+						$target_lang,
+						$perm_context['user_id'],
+						$perm_context['enforce_permissions']
+					);
+					if ( ! empty( $gallery_strings ) ) {
+						$packages = array_merge( $packages, $gallery_strings );
+					}
 				}
 			}
 

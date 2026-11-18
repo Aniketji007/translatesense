@@ -8,6 +8,7 @@ use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
+use TranslateSense\Includes\Translation\Media\Media_Translator;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 
 use WC_Product;
@@ -51,6 +52,7 @@ class Product_Attribute_Translator extends WC_Base {
 	public function translate( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
 		self::translate_attributes( $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $context );
 		self::synchronize_downloads_and_note( $source_post_id, $target_post_id, $target_lang, $context );
+		Media_Translator::synchronize_product_gallery( $source_post_id, $target_post_id, $target_lang, $context, $is_existing );
 		self::clear_current_context();
 	}
 

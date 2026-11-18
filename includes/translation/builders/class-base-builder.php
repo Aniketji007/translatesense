@@ -301,9 +301,10 @@ abstract class Base_Builder {
 			$create_args['skip_taxonomies_sync'] = true;
 		}
 
-		// 3b. Resolve featured-image media translation before creating/updating the target post.
+		// 3b. Resolve featured-image and product gallery media translation before creating/updating the target post.
 		$include_media         = Polylang_Bridge::is_media_translation_enabled();
 		$featured_media_result = array();
+		$gallery_media_result  = array();
 
 		if ( $include_media ) {
 			$featured_media_result = Media_Translator::prepare_featured_image_for_post(
@@ -314,6 +315,17 @@ abstract class Base_Builder {
 				$in_memory_translations,
 				$taxonomy_options
 			);
+
+			if ( 'product' === $source_post->post_type ) {
+				$gallery_media_result = Media_Translator::prepare_product_gallery_for_post(
+					$post_id,
+					$target_lang,
+					(string) $source_lang,
+					(string) $provider,
+					$in_memory_translations,
+					$taxonomy_options
+				);
+			}
 		}
 
 		// 4. Create or update Polylang translated post.
@@ -337,18 +349,31 @@ abstract class Base_Builder {
 		if ( ! empty( $featured_media_result['warning'] ) ) {
 			$sync_warnings_to_merge[] = (string) $featured_media_result['warning'];
 		}
+		if ( ! empty( $gallery_media_result['warnings'] ) && is_array( $gallery_media_result['warnings'] ) ) {
+			foreach ( $gallery_media_result['warnings'] as $gallery_warn ) {
+				$sync_warnings_to_merge[] = (string) $gallery_warn;
+			}
+		}
 		if ( ! empty( $sync_warnings_to_merge ) ) {
 			$existing_warnings = (array) get_post_meta( $created_post_id, '_translatesense_sync_warnings', true );
 			update_post_meta( $created_post_id, '_translatesense_sync_warnings', array_values( array_unique( array_merge( $existing_warnings, $sync_warnings_to_merge ) ) ) );
 		}
 
-		// Assign resolved translated featured image (or clear stale/source thumbnail safely).
+		// Assign resolved translated featured image and product gallery (or clear stale/source safely).
 		if ( $include_media ) {
 			Media_Translator::assign_featured_image_to_post(
 				$created_post_id,
 				$featured_media_result,
 				$is_existing
 			);
+
+			if ( 'product' === get_post_type( $created_post_id ) ) {
+				Media_Translator::assign_product_gallery_to_post(
+					$created_post_id,
+					$gallery_media_result,
+					$is_existing
+				);
+			}
 		}
 
 		// Replace copied source-language assignments with resolved target-language terms.
