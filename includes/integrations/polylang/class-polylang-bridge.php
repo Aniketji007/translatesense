@@ -407,10 +407,15 @@ class Polylang_Bridge {
 		 */
 		$target_post_id = apply_filters( 'translatesense_before_save_translation', $target_post_id, $source_post_id, $target_lang, $is_existing, $post_data );
 
-		$is_existing = $target_post_id > 0;
+		if ( $is_existing || $target_post_id > 0 ) {
+			$is_existing = true;
 
-		if ( $is_existing ) {
+			if ( ! isset( $post_data['ID'] ) ) {
+				$post_data['ID'] = $target_post_id;
+			}
+
 			$saved_id = wp_update_post( wp_slash( $post_data ), true );
+
 			if ( is_wp_error( $saved_id ) ) {
 				return $saved_id;
 			}
