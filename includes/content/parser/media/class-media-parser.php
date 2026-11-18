@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace TranslateSense\Includes\Content\Parser\Media;
 
 use TranslateSense\Includes\Bulk\Bulk_Process;
-use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
-use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\Database\Hashing_Db;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
-use TranslateSense\Includes\Translation\Translate;
 use TranslateSense\Includes\XML\Custom_Field_Rule_Resolver;
 use TranslateSense\Includes\XML\Xml_Engine;
 use WP_Post;
@@ -159,7 +157,7 @@ class Media_Parser {
 
 		$filtered = Dom_Filter::filter_dom_content( $raw_value );
 		$value    = false !== $filtered ? (string) $filtered : '';
-		if ( '' === trim( $value ) || Translate::is_email_or_url( $value ) || Custom_Field_Parser::is_only_numbers( $value ) ) {
+		if ( '' === trim( $value ) || Utils::is_email_or_url( $value ) || Utils::is_only_numbers( $value ) ) {
 			return null;
 		}
 
@@ -208,7 +206,7 @@ class Media_Parser {
 			if ( ! $attachment || self::get_attachment_language( $attachment_id ) === $target_lang ) {
 				continue;
 			}
-			if ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $attachment_id ) ) {
+			if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'edit_post', $attachment_id ) ) {
 				continue;
 			}
 
@@ -216,7 +214,7 @@ class Media_Parser {
 
 			if ( $target_id <= 0 ) {
 
-				if ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, 'upload_files' ) ) {
+				if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'upload_files' ) ) {
 					continue;
 				}
 
@@ -235,7 +233,7 @@ class Media_Parser {
 						$strings[] = $item;
 					}
 				}
-			} elseif ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $target_id ) ) {
+			} elseif ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'edit_post', $target_id ) ) {
 				continue;
 			}
 
@@ -278,7 +276,7 @@ class Media_Parser {
 			return array();
 		}
 
-		if ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $post_id ) ) {
+		if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'edit_post', $post_id ) ) {
 			return array();
 		}
 

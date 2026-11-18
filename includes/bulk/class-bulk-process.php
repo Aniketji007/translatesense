@@ -17,6 +17,7 @@ use TranslateSense\Includes\Admin\Editor_Integration;
 use TranslateSense\Includes\Translation\Statics;
 use TranslateSense\Includes\Content\Processor\Block_Processor;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
 use WP_Error;
@@ -254,7 +255,7 @@ class Bulk_Process {
 			);
 		}
 
-		$is_chrome_ai = ( 'chrome_ai' === $provider || 'chrome_local_ai' === $provider );
+		$is_chrome_ai = Utils::is_browser_provider( $provider );
 		$is_backend   = ! $is_chrome_ai && ! $is_term && ! $is_media;
 
 		if ( $is_term ) {
@@ -441,7 +442,7 @@ class Bulk_Process {
 					$temp_data['post_title']        = ! empty( $raw_source_title ) ? Dom_Filter::decode_html_string( $raw_source_title ) : sprintf( '#%d', $item_id );
 					$temp_data['target_post_title'] = ! empty( $raw_target_title ) ? Dom_Filter::decode_html_string( $raw_target_title ) : '';
 					$temp_data['view_url']          = ( $has_existing_target && ! $is_trashed_target )
-						? ( $is_media ? ( (string) get_attachment_link( $target_post_id ) ?: (string) wp_get_attachment_url( $target_post_id ) ) : get_permalink( $target_post_id ) )
+						? ( $is_media ? Utils::get_safe_attachment_url( $target_post_id ) : get_permalink( $target_post_id ) )
 						: '';
 					$temp_data['edit_url']          = ( $has_existing_target && $target_post_id && ! $is_trashed_target )
 						? ( $is_media ? (string) get_edit_post_link( $target_post_id, 'raw' ) : Editor_Integration::get_post_edit_link( $target_post_id ) )
@@ -651,7 +652,7 @@ class Bulk_Process {
 			}
 
 			if ( 'pending' === $new_status ) {
-				$is_chrome_ai = ( 'chrome_ai' === $provider || 'chrome_local_ai' === $provider );
+				$is_chrome_ai = Utils::is_browser_provider( $provider );
 				if ( ! $is_chrome_ai && ! $is_client_driven ) {
 					$has_backend_queue = true;
 				}
@@ -1199,7 +1200,7 @@ class Bulk_Process {
 				if ( isset( $pkg['value'] ) && ! empty( $pkg['value'] ) ) {
 					$str                     = (string) $pkg['value'];
 					$strings_to_send[ $idx ] = $str;
-					$total_chars            += function_exists( 'mb_strlen' ) ? mb_strlen( (string) $str, 'UTF-8' ) : strlen( (string) $str );
+					$total_chars            += Utils::strlen_utf8( $str );
 				}
 			}
 
@@ -1609,6 +1610,29 @@ class Bulk_Process {
 	}
 
 	/**
+	 * Mark an active queue job as failed and return the originating WP_Error.
+	 *
+	 * @param int      $job_id          Queue job ID.
+	 * @param string   $progress_status Human-readable failure progress status.
+	 * @param WP_Error $error           Failure error object.
+	 * @return WP_Error
+	 */
+	public static function fail_job( int $job_id, string $progress_status, WP_Error $error ): WP_Error {
+		if ( $job_id > 0 ) {
+			self::update_job(
+				$job_id,
+				array(
+					'progress_status' => $progress_status,
+					'status'          => 'failed',
+					'error_message'   => $error->get_error_message(),
+				)
+			);
+		}
+
+		return $error;
+	}
+
+	/**
 	 * Get aggregated batch status for 5-second polling endpoint.
 	 *
 	 * @param string $batch_id
@@ -1732,7 +1756,7 @@ class Bulk_Process {
 					: '';
 				$source_edit_url   = $post ? (string) get_edit_post_link( $post_id, 'raw' ) : '';
 				$view_url          = ( $target_post_id && ! $is_trashed_target && current_user_can( 'edit_post', $target_post_id ) )
-					? ( $is_media ? ( (string) get_attachment_link( $target_post_id ) ?: (string) wp_get_attachment_url( $target_post_id ) ) : get_permalink( $target_post_id ) )
+					? ( $is_media ? Utils::get_safe_attachment_url( $target_post_id ) : get_permalink( $target_post_id ) )
 					: '';
 
 				if ( $target_post_id && ( $is_media ? ! Media_Parser::is_valid_attachment( $target_post_id ) : ! get_post( $target_post_id ) ) ) {
@@ -1756,7 +1780,7 @@ class Bulk_Process {
 				$sent_arr = json_decode( $row['sent_data'], true );
 				if ( is_array( $sent_arr ) ) {
 					foreach ( $sent_arr as $item_text ) {
-						$t_chars += mb_strlen( (string) $item_text );
+						$t_chars += Utils::strlen_utf8( (string) $item_text );
 					}
 				}
 			}

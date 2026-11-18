@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace TranslateSense\Includes\Integrations\WC;
 
-use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
-use TranslateSense\Includes\Database\Hashing_Db;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Translation\Translate;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,22 +38,19 @@ abstract class WC_Base {
 			return $strings;
 		}
 
-		$results  = array();
-		$uncached = array();
+		$results = array();
 
-		// 1. Check in-memory translations and translation memory (DB cache)
+		// Resolve translated strings from in-memory translations without secondary AI calls.
 		foreach ( $strings as $key => $str ) {
 			$str     = (string) $str;
 			$key_str = (string) $key;
-			if ( '' === trim( $str ) || Custom_Field_Parser::is_only_numbers( $str ) ) {
+			if ( '' === trim( $str ) || Utils::is_only_numbers( $str ) ) {
 				$results[ $key ] = $str;
 				continue;
 			}
 
-			// Check in-memory translations first
 			$matched = null;
 			if ( ! empty( $context ) ) {
-				// Check by generated package hashes
 				$candidate_keys = array( $key_str );
 				if ( '' !== $prefix ) {
 					$candidate_keys[] = $prefix . $key_str;
@@ -73,27 +69,7 @@ abstract class WC_Base {
 
 			if ( null !== $matched ) {
 				$results[ $key ] = $matched;
-				continue;
 			}
-
-			// Check translation memory DB cache by string hash (md5)
-			// $cached = Hashing_Db::get_cached_translation( md5( $str ), $target_lang );
-			// if ( null !== $cached && '' !== trim( $cached ) ) {
-			// $results[ $key ] = $cached;
-			// } else {
-			// $uncached[ $key ] = $str;
-			// }
-		}
-
-		if ( empty( $uncached ) ) {
-			return $results;
-		}
-
-		// Fallback: retain original source string without making any secondary AI requests.
-		// All translatable WooCommerce strings are extracted and translated during the
-		// normal post translation pipeline (WP-Cron backend AI or Browser AI).
-		foreach ( $uncached as $key => $orig ) {
-			$results[ $key ] = $orig;
 		}
 
 		return $results;

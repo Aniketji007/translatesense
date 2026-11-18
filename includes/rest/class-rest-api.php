@@ -25,6 +25,7 @@ use TranslateSense\Includes\Content\Processor\Block_Processor;
 use TranslateSense\Includes\Core\Detector;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Helper\Utils;
 
 use WP_REST_Server;
 use WP_REST_Request;
@@ -3916,36 +3917,9 @@ class Rest_Api {
 			);
 		}
 
-		if (
-			! is_array( $in_memory_translations )
-		) {
-			return new WP_Error(
-				'invalid_translations',
-				__( 'Invalid translation data.', 'translatesense' ),
-				array(
-					'status' => 400,
-				)
-			);
-		}
-
-		$normalized_translations = self::normalize_translation_value(
-			$in_memory_translations
-		);
-
-		if ( ! is_array( $normalized_translations ) ) {
-			return new WP_Error(
-				'invalid_translations',
-				__( 'Invalid translation data.', 'translatesense' ),
-				array( 'status' => 400 )
-			);
-		}
-
-		if ( strlen( wp_json_encode( $normalized_translations ) ) > 1048576 ) {
-			return new WP_Error(
-				'rest_request_too_large',
-				__( 'The translation data is too large.', 'translatesense' ),
-				array( 'status' => 400 )
-			);
+		$normalized_translations = self::parse_translation_payload( $in_memory_translations, true );
+		if ( is_wp_error( $normalized_translations ) ) {
+			return $normalized_translations;
 		}
 
 		$result = Translate::translate_post(
@@ -4592,34 +4566,15 @@ class Rest_Api {
 			);
 		}
 
-		if ( ! is_array( $raw_memory ) ) {
-			$raw_memory = is_object( $raw_memory ) ? (array) $raw_memory : array();
-		}
-
-		$normalized_translations = self::normalize_translation_value( $raw_memory );
-		if ( ! is_array( $normalized_translations ) ) {
-			return new WP_Error( 'invalid_translations', __( 'Invalid taxonomy translation data.', 'translatesense' ), array( 'status' => 400 ) );
-		}
-
-		if ( strlen( (string) wp_json_encode( $normalized_translations ) ) > 1048576 ) {
-			return new WP_Error( 'rest_request_too_large', __( 'The taxonomy translation payload is too large.', 'translatesense' ), array( 'status' => 400 ) );
+		$normalized_translations = self::parse_translation_payload( $raw_memory );
+		if ( is_wp_error( $normalized_translations ) ) {
+			return $normalized_translations;
 		}
 
 		$term_strings = Taxonomy_Parser::extract_terms_strings( array( $term_id ), $taxonomy, $target_lang, $current_user_id, true );
-		$sent_values  = array_values(
-			array_filter(
-				array_map(
-					static function ( $item ) {
-						return isset( $item['value'] ) ? (string) $item['value'] : '';
-					},
-					$term_strings
-				)
-			)
-		);
-		$total_chars  = 0;
-		foreach ( $sent_values as $val ) {
-			$total_chars += mb_strlen( $val, 'UTF-8' );
-		}
+		$summary      = Utils::summarize_extracted_strings( $term_strings );
+		$sent_values  = $summary['values'];
+		$total_chars  = $summary['total_chars'];
 
 		$translated_map = Taxonomy_Translator::translate_terms(
 			array( $term_id ),
@@ -4632,6 +4587,7 @@ class Rest_Api {
 				'user_id'             => $current_user_id,
 				'enforce_permissions' => true,
 				'skip_unauthorized'   => false,
+				'extracted_items'     => $term_strings,
 			)
 		);
 
@@ -4690,29 +4646,15 @@ class Rest_Api {
 			);
 		}
 
-		if ( ! is_array( $raw_memory ) ) {
-			$raw_memory = is_object( $raw_memory ) ? (array) $raw_memory : array();
-		}
-
-		$normalized_translations = self::normalize_translation_value( $raw_memory );
-		if ( ! is_array( $normalized_translations ) ) {
-			return new WP_Error( 'invalid_translations', __( 'Invalid media translation data.', 'translatesense' ), array( 'status' => 400 ) );
-		}
-
-		if ( strlen( (string) wp_json_encode( $normalized_translations ) ) > 1048576 ) {
-			return new WP_Error( 'rest_request_too_large', __( 'The media translation payload is too large.', 'translatesense' ), array( 'status' => 400 ) );
+		$normalized_translations = self::parse_translation_payload( $raw_memory );
+		if ( is_wp_error( $normalized_translations ) ) {
+			return $normalized_translations;
 		}
 
 		$media_strings = Media_Parser::extract_attachment_strings( array( $attachment_id ), $target_lang, $current_user_id, true );
-		$sent_values   = array();
-		$total_chars   = 0;
-		foreach ( $media_strings as $item ) {
-			$val = isset( $item['value'] ) ? (string) $item['value'] : '';
-			if ( '' !== $val ) {
-				$sent_values[] = $val;
-				$total_chars  += function_exists( 'mb_strlen' ) ? mb_strlen( $val, 'UTF-8' ) : strlen( $val );
-			}
-		}
+		$summary       = Utils::summarize_extracted_strings( $media_strings );
+		$sent_values   = $summary['values'];
+		$total_chars   = $summary['total_chars'];
 
 		$translated_map = Media_Translator::translate_attachments(
 			array( $attachment_id ),
@@ -4751,7 +4693,7 @@ class Rest_Api {
 				'total_characters'     => $total_chars,
 				'sent_data'            => $sent_values,
 				'edit_url'             => (string) get_edit_post_link( $target_attachment_id, 'raw' ),
-				'view_url'             => (string) get_attachment_link( $target_attachment_id ) ?: (string) wp_get_attachment_url( $target_attachment_id ),
+				'view_url'             => Utils::get_safe_attachment_url( $target_attachment_id ),
 			)
 		);
 	}
@@ -4987,6 +4929,38 @@ class Rest_Api {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Validate, normalize, and size-check submitted in-memory translation payloads (max 1 MB).
+	 *
+	 * @param mixed $raw_translations Raw request payload.
+	 * @param bool  $strict_array     When true, reject non-array input immediately.
+	 * @return array|WP_Error
+	 */
+	private static function parse_translation_payload( $raw_translations, bool $strict_array = false ) {
+		if ( $strict_array ) {
+			if ( ! is_array( $raw_translations ) ) {
+				return new WP_Error( 'invalid_translations', __( 'Invalid translation data.', 'translatesense' ), array( 'status' => 400 ) );
+			}
+		} elseif ( null === $raw_translations ) {
+			$raw_translations = array();
+		} elseif ( is_object( $raw_translations ) ) {
+			$raw_translations = (array) $raw_translations;
+		} elseif ( ! is_array( $raw_translations ) ) {
+			return new WP_Error( 'invalid_translations', __( 'Invalid translation data.', 'translatesense' ), array( 'status' => 400 ) );
+		}
+
+		$normalized = self::normalize_translation_value( $raw_translations );
+		if ( ! is_array( $normalized ) ) {
+			return new WP_Error( 'invalid_translations', __( 'Invalid translation data.', 'translatesense' ), array( 'status' => 400 ) );
+		}
+
+		if ( strlen( (string) wp_json_encode( $normalized ) ) > 1048576 ) {
+			return new WP_Error( 'rest_request_too_large', __( 'The translation payload is too large.', 'translatesense' ), array( 'status' => 400 ) );
+		}
+
+		return $normalized;
 	}
 
 	/**

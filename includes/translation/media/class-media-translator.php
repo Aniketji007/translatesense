@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace TranslateSense\Includes\Translation\Media;
 
 use TranslateSense\Includes\Bulk\Bulk_Process;
-use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Media\Media_Parser;
-use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\Database\Hashing_Db;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Translation\Statics;
 use TranslateSense\Includes\Translation\Translate;
 use WP_Error;
 use WP_Post;
-use WP_User;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -25,8 +23,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * for standalone Media Library bulk translation and featured-image post translation.
  */
 class Media_Translator {
-
-	const BROWSER_PROVIDERS = array( 'chrome_ai', 'chrome_local_ai', 'edge_ai' );
 
 	/**
 	 * Recursion guard to prevent nested attachment translation cycles.
@@ -100,17 +96,10 @@ class Media_Translator {
 			return new WP_Error( 'translatesense_media_translation_disabled', __( 'Polylang Media translation is not enabled.', 'translatesense' ), array( 'status' => 400 ) );
 		}
 
-		$target_lang = sanitize_key( $target_lang );
-		$languages   = Polylang_Bridge::get_languages();
-		if ( '' === $target_lang || ! isset( $languages[ $target_lang ] ) ) {
-			return new WP_Error( 'translatesense_invalid_media_language', __( 'The selected media target language is not configured in Polylang.', 'translatesense' ), array( 'status' => 400 ) );
-		}
-
-		if ( $enforce_permissions && null !== $user_id ) {
-			$user_obj = $user_id > 0 ? get_userdata( $user_id ) : null;
-			if ( ! $user_obj instanceof WP_User || ! $user_obj->exists() ) {
-				return new WP_Error( 'translatesense_media_invalid_user', __( 'The user account for media translation could not be verified.', 'translatesense' ), array( 'status' => 403 ) );
-			}
+		$target_lang     = sanitize_key( $target_lang );
+		$lang_user_valid = Utils::validate_language_and_user( $target_lang, $user_id, $enforce_permissions, 'media' );
+		if ( is_wp_error( $lang_user_valid ) ) {
+			return $lang_user_valid;
 		}
 
 		$authorized = array();
@@ -121,16 +110,16 @@ class Media_Translator {
 			}
 
 			if ( $enforce_permissions ) {
-				if ( ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $attachment_id ) ) {
+				if ( ! Utils::user_has_cap( $user_id, 'edit_post', $attachment_id ) ) {
 					return new WP_Error( 'translatesense_media_edit_forbidden', __( 'You are not allowed to translate one or more selected media attachments.', 'translatesense' ), array( 'status' => 403 ) );
 				}
 
 				if ( Media_Parser::get_attachment_language( $attachment_id ) !== $target_lang ) {
 					$target_id = Media_Parser::get_translation_id( $attachment_id, $target_lang );
-					if ( $target_id <= 0 && ! Taxonomy_Parser::user_has_cap( $user_id, 'upload_files' ) ) {
+					if ( $target_id <= 0 && ! Utils::user_has_cap( $user_id, 'upload_files' ) ) {
 						return new WP_Error( 'translatesense_media_create_forbidden', __( 'You are not allowed to create translated media attachments.', 'translatesense' ), array( 'status' => 403 ) );
 					}
-					if ( $target_id > 0 && self::has_missing_translatable_meta( $attachment, $target_id ) && ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $target_id ) ) {
+					if ( $target_id > 0 && self::has_missing_translatable_meta( $attachment, $target_id ) && ! Utils::user_has_cap( $user_id, 'edit_post', $target_id ) ) {
 						return new WP_Error( 'translatesense_media_edit_forbidden', __( 'You are not allowed to update the translated media attachment.', 'translatesense' ), array( 'status' => 403 ) );
 					}
 				}
@@ -152,23 +141,6 @@ class Media_Translator {
 	public static function check_attachments_permissions( array $attachment_ids, string $target_lang, ?int $user_id = null ) {
 		$authorized = self::authorize_attachments( $attachment_ids, $target_lang, $user_id, true );
 		return is_wp_error( $authorized ) ? $authorized : true;
-	}
-
-	/**
-	 * Mark a queue job as failed when a job ID is active.
-	 */
-	private static function fail_job( int $job_id, string $progress_status, WP_Error $error ): WP_Error {
-		if ( $job_id > 0 ) {
-			Bulk_Process::update_job(
-				$job_id,
-				array(
-					'progress_status' => $progress_status,
-					'status'          => 'failed',
-					'error_message'   => $error->get_error_message(),
-				)
-			);
-		}
-		return $error;
 	}
 
 	/**
@@ -216,8 +188,7 @@ class Media_Translator {
 			return true;
 		}
 
-		$provider = sanitize_key( $provider );
-		if ( in_array( $provider, self::BROWSER_PROVIDERS, true ) ) {
+		if ( Utils::is_browser_provider( $provider ) ) {
 			return new WP_Error(
 				'translatesense_media_browser_translation_missing',
 				__( 'The browser AI translation for one or more media strings is missing or incomplete. Please retry the translation.', 'translatesense' ),
@@ -225,10 +196,7 @@ class Media_Translator {
 			);
 		}
 
-		if ( '' === $provider ) {
-			$settings = get_option( 'translatesense_settings', array() );
-			$provider = ! empty( $settings['provider'] ) ? sanitize_key( (string) $settings['provider'] ) : 'openai';
-		}
+		$provider = Utils::get_default_provider( $provider );
 
 		$batch_values = array_values( array_unique( $missing_texts ) );
 		$start_time   = microtime( true );
@@ -246,7 +214,7 @@ class Media_Translator {
 			$translated_val                       = isset( $batch_res[ $index ]['translated'] ) ? (string) $batch_res[ $index ]['translated'] : $batch_value;
 			$translated_by_source[ $batch_value ] = $translated_val;
 			$receive_data[]                       = $translated_val;
-			$total_chars                         += function_exists( 'mb_strlen' ) ? mb_strlen( $batch_value, 'UTF-8' ) : strlen( $batch_value );
+			$total_chars                         += Utils::strlen_utf8( $batch_value );
 
 			if ( Translate::should_cache_provider( $provider ) && '' !== trim( $translated_val ) && $batch_value !== $translated_val ) {
 				Hashing_Db::save_translation_result( md5( $batch_value ), $target_lang, $translated_val );
@@ -314,7 +282,7 @@ class Media_Translator {
 
 		$authorized = self::authorize_attachments( $attachment_ids, $target_lang, $user_id, $enforce_permissions );
 		if ( is_wp_error( $authorized ) ) {
-			return self::fail_job( $job_id, __( 'Error occurred during authorization check', 'translatesense' ), $authorized );
+			return Bulk_Process::fail_job( $job_id, __( 'Error occurred during authorization check', 'translatesense' ), $authorized );
 		}
 
 		$source_lang = sanitize_key( (string) ( $options['source_lang'] ?? '' ) );
@@ -333,21 +301,21 @@ class Media_Translator {
 			: Media_Parser::extract_attachment_strings( array_keys( $authorized ), $target_lang, $user_id, $enforce_permissions );
 
 		if ( empty( $items ) ) {
-			return self::fail_job( $job_id, __( 'No text found in the media files', 'translatesense' ), new WP_Error( 'no_text_found', __( 'No text found in the media files', 'translatesense' ), $items ) );
+			return Bulk_Process::fail_job( $job_id, __( 'No text found in the media files', 'translatesense' ), new WP_Error( 'no_text_found', __( 'No text found in the media files', 'translatesense' ), $items ) );
 		}
 
 		$primary_id = (int) array_key_first( $authorized );
 		$preloaded  = self::ensure_items_translated( $items, $authorized, $job_id, $primary_id, $source_lang, $target_lang, $provider, $in_memory_translations );
 
 		if ( is_wp_error( $preloaded ) ) {
-			return self::fail_job( $job_id, __( 'Error occurred during AI Translation', 'translatesense' ), $preloaded );
+			return Bulk_Process::fail_job( $job_id, __( 'Error occurred during AI Translation', 'translatesense' ), $preloaded );
 		}
 
 		$resolved_map = array();
 		foreach ( $authorized as $source_att_id => $source_attachment ) {
 			$resolved_id = self::resolve_attachment( $source_attachment, $target_lang, $provider, $in_memory_translations, $user_id, $enforce_permissions );
 			if ( is_wp_error( $resolved_id ) ) {
-				return self::fail_job( $job_id, __( 'Failed to save translated media', 'translatesense' ), $resolved_id );
+				return Bulk_Process::fail_job( $job_id, __( 'Failed to save translated media', 'translatesense' ), $resolved_id );
 			}
 			$resolved_map[ (int) $source_att_id ] = absint( $resolved_id );
 		}
@@ -494,7 +462,7 @@ class Media_Translator {
 
 		$existing_id = Media_Parser::get_translation_id( $source_id, $target_lang );
 		if ( $existing_id > 0 ) {
-			if ( ! $enforce_permissions || Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $existing_id ) ) {
+			if ( ! $enforce_permissions || Utils::user_has_cap( $user_id, 'edit_post', $existing_id ) ) {
 				self::translate_attachment_meta( $source_attachment, $existing_id, $att_language, $target_lang, $provider, $in_memory_translations, false );
 			}
 			return $existing_id;
@@ -522,12 +490,8 @@ class Media_Translator {
 
 		$source_id = (int) $source_attachment->ID;
 		$lock_key  = 'translatesense_media_lock_' . md5( $source_id . ':' . $target_lang );
-		$lock      = get_option( $lock_key, 0 );
-		if ( $lock && ( time() - absint( $lock ) ) > 300 ) {
-			delete_option( $lock_key );
-		}
 
-		if ( ! add_option( $lock_key, time(), '', false ) ) {
+		if ( ! Utils::acquire_lock( $lock_key ) ) {
 			$existing_id = Media_Parser::get_translation_id( $source_id, $target_lang );
 			return $existing_id > 0
 				? $existing_id
@@ -594,7 +558,7 @@ class Media_Translator {
 			return $target_id;
 		} finally {
 			self::$translating = false;
-			delete_option( $lock_key );
+			Utils::release_lock( $lock_key );
 		}
 	}
 
@@ -607,10 +571,9 @@ class Media_Translator {
 		}
 		$translated = (string) ( Translate::translate_string( $source, $source_lang, $target_lang, 'media_attachment', $custom_opts )['translated'] ?? $source );
 
-		if ( $single_line ) {
-			return sanitize_text_field( $translated );
-		}
-		return false !== strpos( $translated, '<' ) ? wp_kses_post( $translated ) : sanitize_textarea_field( $translated );
+		return $single_line
+			? sanitize_text_field( $translated )
+			: Utils::sanitize_translated_text( $translated, true );
 	}
 
 	/**
@@ -625,13 +588,7 @@ class Media_Translator {
 			}
 
 			foreach ( (array) $values as $value ) {
-				if ( is_string( $value ) && is_serialized( $value ) ) {
-					$trimmed = trim( $value );
-					// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Safely decode without instantiating PHP objects.
-					$decoded = @unserialize( $trimmed, array( 'allowed_classes' => false ) );
-					$value   = ( false !== $decoded || 'b:0;' === $trimmed ) ? $decoded : $value;
-				}
-				add_post_meta( $target_attachment_id, $meta_key, wp_slash( $value ), false );
+				add_post_meta( $target_attachment_id, $meta_key, wp_slash( Utils::safe_unserialize( $value ) ), false );
 			}
 		}
 	}
@@ -662,14 +619,13 @@ class Media_Translator {
 			delete_post_meta( $target_attachment_id, $meta_key );
 
 			foreach ( (array) $source_values as $source_value ) {
-				if ( ! is_string( $source_value ) || '' === trim( $source_value ) || Custom_Field_Parser::is_only_numbers( $source_value ) ) {
+				if ( ! is_string( $source_value ) || '' === trim( $source_value ) || Utils::is_only_numbers( $source_value ) ) {
 					add_post_meta( $target_attachment_id, $meta_key, wp_slash( $source_value ), false );
 					continue;
 				}
 
 				$translated_val = (string) ( Translate::translate_string( $source_value, $source_lang, $target_lang, 'media_attachment_meta', $custom_opts )['translated'] ?? $source_value );
-				$sanitized_val  = false !== strpos( $translated_val, '<' ) ? wp_kses_post( $translated_val ) : sanitize_text_field( $translated_val );
-				add_post_meta( $target_attachment_id, $meta_key, wp_slash( $sanitized_val ), false );
+				add_post_meta( $target_attachment_id, $meta_key, wp_slash( Utils::sanitize_translated_text( $translated_val ) ), false );
 			}
 		}
 	}
