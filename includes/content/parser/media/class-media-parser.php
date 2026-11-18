@@ -202,6 +202,7 @@ class Media_Parser {
 		}
 
 		$strings = array();
+
 		foreach ( array_unique( array_map( 'absint', $attachment_ids ) ) as $attachment_id ) {
 			$attachment = self::get_attachment( $attachment_id );
 			if ( ! $attachment || self::get_attachment_language( $attachment_id ) === $target_lang ) {
@@ -214,15 +215,18 @@ class Media_Parser {
 			$target_id = self::get_translation_id( $attachment_id, $target_lang );
 
 			if ( $target_id <= 0 ) {
+
 				if ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, 'upload_files' ) ) {
 					continue;
 				}
 
 				$raw_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
-				$fields  = array(
+
+				$fields = array(
 					'alt'         => is_string( $raw_alt ) ? $raw_alt : '',
 					'caption'     => (string) $attachment->post_excerpt,
 					'description' => (string) $attachment->post_content,
+					'title'       => (string) $attachment->post_title,
 				);
 
 				foreach ( $fields as $field => $raw_val ) {

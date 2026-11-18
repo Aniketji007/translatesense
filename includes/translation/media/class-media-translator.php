@@ -261,7 +261,7 @@ class Media_Translator {
 
 		if ( $job_id > 0 && $attachment_id > 0 ) {
 			global $wpdb;
-			$table        = Bulk_Process::get_table_name();
+			$table = Bulk_Process::get_table_name();
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'media'", $job_id, $attachment_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
@@ -328,9 +328,14 @@ class Media_Translator {
 			}
 		}
 
-		$items      = ( isset( $options['extracted_items'] ) && is_array( $options['extracted_items'] ) )
+		$items = ( isset( $options['extracted_items'] ) && is_array( $options['extracted_items'] ) )
 			? $options['extracted_items']
 			: Media_Parser::extract_attachment_strings( array_keys( $authorized ), $target_lang, $user_id, $enforce_permissions );
+
+		if ( empty( $items ) ) {
+			return self::fail_job( $job_id, __( 'No text found in the media files', 'translatesense' ), new WP_Error( 'no_text_found', __( 'No text found in the media files', 'translatesense' ), $items ) );
+		}
+
 		$primary_id = (int) array_key_first( $authorized );
 		$preloaded  = self::ensure_items_translated( $items, $authorized, $job_id, $primary_id, $source_lang, $target_lang, $provider, $in_memory_translations );
 
@@ -557,9 +562,11 @@ class Media_Translator {
 			$translated_alt     = self::translate_field( is_string( $raw_alt ) ? $raw_alt : '', $actual_source_lang, $target_lang, $custom_opts, true );
 			$translated_caption = self::translate_field( (string) $source_attachment->post_excerpt, $actual_source_lang, $target_lang, $custom_opts );
 			$translated_desc    = self::translate_field( (string) $source_attachment->post_content, $actual_source_lang, $target_lang, $custom_opts );
+			$translated_title   = self::translate_field( (string) $source_attachment->post_title, $actual_source_lang, $target_lang, $custom_opts );
+			$is_translatable    = ( $translated_alt !== $raw_alt || $translated_caption !== (string) $source_attachment->post_excerpt || $translated_desc !== (string) $source_attachment->post_content || $translated_title !== (string) $source_attachment->post_title );
 
 			$target_post = get_post( $target_id );
-			if ( $target_post instanceof WP_Post && ( $target_post->post_excerpt !== $translated_caption || $target_post->post_content !== $translated_desc ) ) {
+			if ( $target_post instanceof WP_Post && $is_translatable ) {
 				add_filter( 'pll_enable_duplicate_media', '__return_false', 99 );
 				try {
 					wp_update_post(
@@ -568,6 +575,7 @@ class Media_Translator {
 								'ID'           => $target_id,
 								'post_excerpt' => $translated_caption,
 								'post_content' => $translated_desc,
+								'post_title'   => $translated_title,
 							)
 						)
 					);
@@ -598,6 +606,7 @@ class Media_Translator {
 			return $source;
 		}
 		$translated = (string) ( Translate::translate_string( $source, $source_lang, $target_lang, 'media_attachment', $custom_opts )['translated'] ?? $source );
+
 		if ( $single_line ) {
 			return sanitize_text_field( $translated );
 		}
