@@ -405,7 +405,9 @@ class Polylang_Bridge {
 		 * @param bool   $is_existing    Whether post is existing.
 		 * @param array  $post_data      Prepared wp_insert_post/wp_update_post data.
 		 */
-		do_action( 'translatesense_before_save_translation', $source_post_id, $target_post_id, $target_lang, $is_existing, $post_data );
+		$target_post_id = apply_filters( 'translatesense_before_save_translation', $target_post_id, $source_post_id, $target_lang, $is_existing, $post_data );
+
+		$is_existing = $target_post_id > 0;
 
 		if ( $is_existing ) {
 			$saved_id = wp_update_post( wp_slash( $post_data ), true );
@@ -484,7 +486,7 @@ class Polylang_Bridge {
 		 * @param array  $sync_result    Synchronization result and warnings.
 		 * @param array  $args           Additional context arguments (provider, in_memory_translations, etc.).
 		 */
-		do_action( 'translatesense_after_save_translation', $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $args );
+		$target_post_id = apply_filters( 'translatesense_after_save_translation', $target_post_id, $source_post_id, $target_lang, $is_existing, $sync_result, $args );
 
 		return $target_post_id;
 	}

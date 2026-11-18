@@ -15,7 +15,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 abstract class WC_Base {
 
 	public function __construct( int $priority = 10 ) {
-		add_action( 'translatesense_after_save_translation', array( $this, 'translate' ), $priority, 6 );
+		add_filter( 'translatesense_after_save_translation', array( $this, 'handle_after_save_translation' ), $priority, 6 );
+	}
+
+	/**
+	 * Filter callback for `translatesense_after_save_translation`.
+	 */
+	public function handle_after_save_translation(
+		int $target_post_id,
+		int $source_post_id,
+		string $target_lang,
+		bool $is_existing = false,
+		array $sync_result = array(),
+		array $context = array()
+	): int {
+		$this->translate( $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $context );
+		return $target_post_id;
 	}
 
 	abstract public function translate(
