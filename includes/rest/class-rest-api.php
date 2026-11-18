@@ -7,10 +7,12 @@ namespace TranslateSense\Includes\REST;
 use TranslateSense\Includes\Content\Parser\Content_Parser;
 use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Manager;
 use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
+use TranslateSense\Includes\Content\Parser\Media\Media_Parser;
 use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\XML\Custom_Field_Rule_Resolver;
 use TranslateSense\Includes\XML\Xml_Engine;
 use TranslateSense\Includes\Translation\Translate;
+use TranslateSense\Includes\Translation\Media\Media_Translator;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Admin\Editor_Integration;
@@ -865,6 +867,55 @@ class Rest_Api {
 		);
 
 		/*
+		 * 12c. Translate/create/update a media attachment in the bulk media workflow.
+		 */
+		register_rest_route(
+			self::NAMESPACE,
+			'/bulk-translate-media',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'bulk_translate_media' ),
+				'permission_callback' => array( __CLASS__, 'permission_bulk_translate_media' ),
+				'args'                => array(
+					'job_id'                 => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+						'validate_callback' => static function ( $value ) {
+							return absint( $value ) > 0;
+						},
+					),
+					'attachment_id'          => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+						'validate_callback' => static function ( $value ) {
+							return absint( $value ) > 0;
+						},
+					),
+					'target_lang'            => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_key',
+						'validate_callback' => static function ( $value ) {
+							return '' !== sanitize_key( (string) $value );
+						},
+					),
+					'provider'               => array(
+						'required'          => false,
+						'type'              => 'string',
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'in_memory_translations' => array(
+						'required' => false,
+						'default'  => array(),
+					),
+				),
+			)
+		);
+
+		/*
 		 * 13. Clear Gutenberg block process pending flag.
 		 */
 		register_rest_route(
@@ -1164,27 +1215,35 @@ class Rest_Api {
 
 		if ( null !== $raw_type && '' !== (string) $raw_type ) {
 			$type = sanitize_key( (string) $raw_type );
-			return in_array( $type, array( 'post', 'term' ), true ) ? $type : '';
+			return in_array( $type, array( 'post', 'term', 'media' ), true ) ? $type : '';
 		}
 
 		$subtype = sanitize_key( (string) ( ( is_array( $params ) && isset( $params['subtype'] ) ) ? $params['subtype'] : $request->get_param( 'subtype' ) ) );
+		if ( 'attachment' === $subtype ) {
+			return 'media';
+		}
 		return ( '' !== $subtype && taxonomy_exists( $subtype ) ) ? 'term' : 'post';
 	}
 
 	/**
-	 * Resolve item type (`'post'` or `'term'`) for an existing queue job record.
+	 * Resolve item type (`'post'`, `'term'`, or `'media'`) for an existing queue job record.
 	 *
-	 * Uses the persisted `item_type` column (`'post'` or `'taxonomy'`) and verifies
+	 * Uses the persisted `item_type` column (`'post'`, `'taxonomy'`, or `'media'`) and verifies
 	 * that any explicit runtime `type` parameter matches the stored job type.
 	 *
 	 * @param WP_REST_Request $request REST request.
 	 * @param object          $job     Queue job object.
-	 * @return string `'post'`, `'term'`, or empty string when invalid/mismatched.
+	 * @return string `'post'`, `'term'`, `'media'`, or empty string when invalid/mismatched.
 	 */
 	private static function resolve_job_item_type( WP_REST_Request $request, $job ): string {
-		$job_type = ( ! empty( $job->item_type ) && 'taxonomy' === sanitize_key( (string) $job->item_type ) )
-			? 'term'
-			: 'post';
+		$stored_type = ! empty( $job->item_type ) ? sanitize_key( (string) $job->item_type ) : 'post';
+		if ( 'taxonomy' === $stored_type ) {
+			$job_type = 'term';
+		} elseif ( 'media' === $stored_type ) {
+			$job_type = 'media';
+		} else {
+			$job_type = 'post';
+		}
 
 		$params   = $request->get_json_params();
 		$raw_type = ( is_array( $params ) && array_key_exists( 'type', $params ) )
@@ -1193,7 +1252,7 @@ class Rest_Api {
 
 		if ( null !== $raw_type && '' !== (string) $raw_type ) {
 			$req_type = sanitize_key( (string) $raw_type );
-			if ( ! in_array( $req_type, array( 'post', 'term' ), true ) || $req_type !== $job_type ) {
+			if ( ! in_array( $req_type, array( 'post', 'term', 'media' ), true ) || $req_type !== $job_type ) {
 				return '';
 			}
 		}
@@ -1233,6 +1292,26 @@ class Rest_Api {
 
 			if ( ! current_user_can( 'edit_term', $post_id ) ) {
 				return self::permission_error( __( 'You are not allowed to extract strings from this taxonomy term.', 'translatesense' ) );
+			}
+
+			return true;
+		}
+
+		if ( 'media' === $type ) {
+			if ( ! is_user_logged_in() ) {
+				return self::permission_error( __( 'You must be logged in to extract media strings.', 'translatesense' ), 'rest_forbidden', 401 );
+			}
+
+			if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+				return self::permission_error( __( 'Polylang Media translation is not enabled.', 'translatesense' ), 'translatesense_media_translation_disabled', 400 );
+			}
+
+			if ( ! Media_Parser::is_valid_attachment( $post_id ) ) {
+				return self::permission_error( __( 'The selected media attachment could not be found.', 'translatesense' ), 'rest_attachment_not_found', 404 );
+			}
+
+			if ( ! current_user_can( 'edit_post', $post_id ) ) {
+				return self::permission_error( __( 'You are not allowed to extract strings from this media attachment.', 'translatesense' ) );
 			}
 
 			return true;
@@ -1535,6 +1614,46 @@ class Rest_Api {
 			return true;
 		}
 
+		if ( 'media' === $type ) {
+			if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+				return self::permission_error(
+					__( 'Polylang Media translation is not enabled.', 'translatesense' ),
+					'translatesense_media_translation_disabled',
+					400
+				);
+			}
+
+			$clean_media_ids = Media_Parser::filter_linked_attachments( $clean_post_ids );
+			if ( empty( $clean_media_ids ) || empty( $clean_languages ) ) {
+				return self::permission_error(
+					__( 'Valid media attachment IDs and target languages are required.', 'translatesense' ),
+					'rest_invalid_params',
+					400
+				);
+			}
+
+			if ( count( $clean_media_ids ) > 100 || count( $clean_languages ) > 50 ) {
+				return self::permission_error(
+					__( 'The bulk translation request is too large.', 'translatesense' ),
+					'rest_request_too_large',
+					400
+				);
+			}
+
+			foreach ( $clean_languages as $target_language ) {
+				$media_perm = Media_Translator::check_attachments_permissions(
+					$clean_media_ids,
+					$target_language,
+					get_current_user_id()
+				);
+				if ( is_wp_error( $media_perm ) ) {
+					return $media_perm;
+				}
+			}
+
+			return true;
+		}
+
 		$clean_post_ids = Bulk_Process::filter_linked_posts( $clean_post_ids );
 
 		if ( empty( $clean_post_ids ) || empty( $clean_languages ) ) {
@@ -1782,6 +1901,7 @@ class Rest_Api {
 		}
 
 		$is_term        = ( 'term' === $type );
+		$is_media       = ( 'media' === $type );
 		$source_post_id = ! empty( $job->post_id ) ? absint( $job->post_id ) : 0;
 		$source_term    = $is_term ? get_term( $source_post_id ) : null;
 		$job_taxonomy   = $source_term instanceof \WP_Term ? (string) $source_term->taxonomy : '';
@@ -1791,6 +1911,21 @@ class Rest_Api {
 			if ( ! $source_term instanceof \WP_Term || ! Taxonomy_Parser::is_translatable_taxonomy( $job_taxonomy ) ) {
 				return self::permission_error(
 					__( 'The translation job has no valid source taxonomy term.', 'translatesense' ),
+					'rest_invalid_job',
+					400
+				);
+			}
+		} elseif ( $is_media ) {
+			if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+				return self::permission_error(
+					__( 'Polylang Media translation is not enabled.', 'translatesense' ),
+					'translatesense_media_translation_disabled',
+					400
+				);
+			}
+			if ( ! Media_Parser::is_valid_attachment( $source_post_id ) ) {
+				return self::permission_error(
+					__( 'The translation job has no valid source media attachment.', 'translatesense' ),
 					'rest_invalid_job',
 					400
 				);
@@ -1914,9 +2049,13 @@ class Rest_Api {
 			return false;
 		}
 
-		$expected_target_id = ( 'term' === $type )
-			? Taxonomy_Parser::get_translation_id( $source_post_id, $target_language )
-			: self::get_existing_translation_post_id( $source_post_id, $target_language );
+		if ( 'term' === $type ) {
+			$expected_target_id = Taxonomy_Parser::get_translation_id( $source_post_id, $target_language );
+		} elseif ( 'media' === $type ) {
+			$expected_target_id = Media_Parser::get_translation_id( $source_post_id, $target_language );
+		} else {
+			$expected_target_id = self::get_existing_translation_post_id( $source_post_id, $target_language );
+		}
 
 		return $expected_target_id === $target_post_id;
 	}
@@ -2130,6 +2269,48 @@ class Rest_Api {
 		return Taxonomy_Translator::check_terms_permissions(
 			array( $term_id ),
 			$taxonomy,
+			$target_lang,
+			get_current_user_id()
+		);
+	}
+
+	/**
+	 * Permission: POST /bulk-translate-media.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return true|WP_Error
+	 */
+	public static function permission_bulk_translate_media( WP_REST_Request $request ) {
+
+		if ( ! is_user_logged_in() ) {
+			return self::permission_error(
+				__( 'You must be logged in to translate media attachments.', 'translatesense' ),
+				'rest_forbidden',
+				401
+			);
+		}
+
+		if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+			return self::permission_error(
+				__( 'Polylang Media translation is not enabled.', 'translatesense' ),
+				'translatesense_media_translation_disabled',
+				400
+			);
+		}
+
+		$attachment_id = absint( $request->get_param( 'attachment_id' ) );
+		$target_lang   = sanitize_key( (string) $request->get_param( 'target_lang' ) );
+
+		if ( $attachment_id <= 0 || '' === $target_lang ) {
+			return self::permission_error(
+				__( 'A valid media attachment ID and target language are required.', 'translatesense' ),
+				'rest_invalid_params',
+				400
+			);
+		}
+
+		return Media_Translator::check_attachments_permissions(
+			array( $attachment_id ),
 			$target_lang,
 			get_current_user_id()
 		);
@@ -3424,6 +3605,27 @@ class Rest_Api {
 			);
 		}
 
+		if ( 'media' === $type ) {
+			$att_lang      = Media_Parser::get_attachment_language( $post_id );
+			$source_lang   = '' !== $att_lang ? $att_lang : sanitize_key( (string) Polylang_Bridge::get_default_language() );
+			$media_strings = '' !== $target_language
+				? Media_Parser::extract_attachment_strings( array( $post_id ), $target_language, get_current_user_id(), true )
+				: array();
+
+			return rest_ensure_response(
+				array(
+					'success'                     => true,
+					'editor_type'                 => 'media',
+					'type'                        => 'media',
+					'subtype'                     => 'attachment',
+					'source_language'             => $source_lang,
+					'strings'                     => $media_strings,
+					'custom_fields_sync_enabled'  => false,
+					'skipped_custom_fields_count' => 0,
+				)
+			);
+		}
+
 		$post = get_post( $post_id );
 
 		if ( ! $post ) {
@@ -3564,6 +3766,15 @@ class Rest_Api {
 
 		if ( ! empty( $taxonomy_strings ) ) {
 			$package_strings = array_merge( $package_strings, $taxonomy_strings );
+		}
+
+		// Runtime featured-image strings when Polylang Media translation is enabled.
+		$media_strings = ( '' !== $target_language && Polylang_Bridge::is_media_translation_enabled() )
+			? Media_Parser::extract_featured_image_strings( $post_id, $target_language, get_current_user_id(), true )
+			: array();
+
+		if ( ! empty( $media_strings ) ) {
+			$package_strings = array_merge( $package_strings, $media_strings );
 		}
 
 		return rest_ensure_response(
@@ -3864,6 +4075,9 @@ class Rest_Api {
 				}
 			}
 			$clean_post_ids = Taxonomy_Parser::filter_linked_terms( $clean_post_ids, $subtype );
+		} elseif ( 'media' === $type ) {
+			$subtype        = 'attachment';
+			$clean_post_ids = Media_Parser::filter_linked_attachments( $clean_post_ids );
 		} else {
 			$clean_post_ids = Bulk_Process::filter_linked_posts( $clean_post_ids );
 		}
@@ -4446,6 +4660,98 @@ class Rest_Api {
 				'sent_data'        => $sent_values,
 				'edit_url'         => (string) get_edit_term_link( $target_term_id, $taxonomy ),
 				'view_url'         => Bulk_Process::get_safe_term_link( $target_term_id, $taxonomy ),
+			)
+		);
+	}
+
+	/**
+	 * Translate, create, update, and link a media attachment for the bulk media workflow.
+	 *
+	 * Supports both server-side AI providers and browser-based AI (`chrome_ai`).
+	 * Reuses `Media_Translator::translate_attachments()`.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return \WP_REST_Response|WP_Error
+	 */
+	public static function bulk_translate_media( WP_REST_Request $request ) {
+
+		$attachment_id   = absint( $request->get_param( 'attachment_id' ) );
+		$target_lang     = sanitize_key( (string) $request->get_param( 'target_lang' ) );
+		$provider        = sanitize_key( (string) $request->get_param( 'provider' ) );
+		$job_id          = absint( (string) $request->get_param( 'job_id' ) );
+		$raw_memory      = $request->get_param( 'in_memory_translations' );
+		$current_user_id = get_current_user_id();
+
+		if ( '' === Media_Parser::get_attachment_language( $attachment_id ) ) {
+			return new WP_Error(
+				'no_language',
+				__( 'The selected media attachment does not have a language assigned in Polylang.', 'translatesense' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( ! is_array( $raw_memory ) ) {
+			$raw_memory = is_object( $raw_memory ) ? (array) $raw_memory : array();
+		}
+
+		$normalized_translations = self::normalize_translation_value( $raw_memory );
+		if ( ! is_array( $normalized_translations ) ) {
+			return new WP_Error( 'invalid_translations', __( 'Invalid media translation data.', 'translatesense' ), array( 'status' => 400 ) );
+		}
+
+		if ( strlen( (string) wp_json_encode( $normalized_translations ) ) > 1048576 ) {
+			return new WP_Error( 'rest_request_too_large', __( 'The media translation payload is too large.', 'translatesense' ), array( 'status' => 400 ) );
+		}
+
+		$media_strings = Media_Parser::extract_attachment_strings( array( $attachment_id ), $target_lang, $current_user_id, true );
+		$sent_values   = array();
+		$total_chars   = 0;
+		foreach ( $media_strings as $item ) {
+			$val = isset( $item['value'] ) ? (string) $item['value'] : '';
+			if ( '' !== $val ) {
+				$sent_values[] = $val;
+				$total_chars  += function_exists( 'mb_strlen' ) ? mb_strlen( $val, 'UTF-8' ) : strlen( $val );
+			}
+		}
+
+		$translated_map = Media_Translator::translate_attachments(
+			array( $attachment_id ),
+			$job_id,
+			$target_lang,
+			$provider,
+			$normalized_translations,
+			array(
+				'user_id'             => $current_user_id,
+				'enforce_permissions' => true,
+				'extracted_items'     => $media_strings,
+			)
+		);
+
+		if ( is_wp_error( $translated_map ) ) {
+			return $translated_map;
+		}
+
+		$target_attachment_id = isset( $translated_map[ $attachment_id ] ) ? absint( $translated_map[ $attachment_id ] ) : 0;
+		$target_attachment    = $target_attachment_id > 0 ? get_post( $target_attachment_id ) : null;
+		if ( ! $target_attachment instanceof \WP_Post || 'attachment' !== $target_attachment->post_type ) {
+			return new WP_Error( 'translatesense_media_translate_failed', __( 'The translated media attachment could not be saved.', 'translatesense' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response(
+			array(
+				'success'              => true,
+				'type'                 => 'media',
+				'source_attachment_id' => $attachment_id,
+				'target_attachment_id' => $target_attachment_id,
+				'target_post_id'       => $target_attachment_id,
+				'translated_title'     => Dom_Filter::decode_html_string( (string) $target_attachment->post_title ),
+				'subtype'              => 'attachment',
+				'target_lang'          => $target_lang,
+				'total_strings'        => count( $sent_values ),
+				'total_characters'     => $total_chars,
+				'sent_data'            => $sent_values,
+				'edit_url'             => (string) get_edit_post_link( $target_attachment_id, 'raw' ),
+				'view_url'             => (string) get_attachment_link( $target_attachment_id ) ?: (string) wp_get_attachment_url( $target_attachment_id ),
 			)
 		);
 	}
