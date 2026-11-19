@@ -15,11 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 abstract class WC_Base {
 
 	public function __construct( int $priority = 10 ) {
-		add_filter( 'translatesense_after_save_translation', array( $this, 'handle_after_save_translation' ), $priority, 6 );
+		add_filter( 'translatesense_after_save_translated_post', array( $this, 'handle_after_save_translation' ), $priority, 6 );
 	}
 
 	/**
-	 * Filter callback for `translatesense_after_save_translation`.
+	 * Filter callback for `translatesense_after_save_translated_post`.
 	 */
 	public function handle_after_save_translation(
 		int $target_post_id,

@@ -96,7 +96,7 @@ final class WC_Integration {
 	 * Register translation hooks once.
 	 *
 	 * IMPORTANT:
-	 * This implementation assumes translatesense_before_save_translation is
+	 * This implementation assumes translatesense_before_save_translated_post is
 	 * a FILTER whose first argument is target_post_id, followed by source ID,
 	 * language, existing flag, and post data. Keep this aligned with the
 	 * actual apply_filters() call in TranslateSense core.
@@ -111,14 +111,14 @@ final class WC_Integration {
 		}
 
 		add_filter(
-			'translatesense_before_save_translation',
+			'translatesense_before_save_translated_post',
 			array( self::class, 'maybe_create_translated_product' ),
 			10,
 			5
 		);
 
 		add_filter(
-			'translatesense_after_save_translation',
+			'translatesense_after_save_translated_post',
 			array( self::class, 'clear_created_target' ),
 			99,
 			3
