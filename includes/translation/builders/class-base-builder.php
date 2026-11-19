@@ -98,53 +98,6 @@ abstract class Base_Builder {
 		return ! empty( $res['translated'] ) ? (string) $res['translated'] : $excerpt;
 	}
 
-	public function translate_post_name( string $post_name, string $source_lang, string $target_lang, array $custom_opts = array() ): string {
-		if ( empty( trim( $post_name ) ) ) {
-			return $post_name;
-		}
-
-		$res = Translate::translate_string(
-			$post_name,
-			$source_lang,
-			$target_lang,
-			'post_name',
-			$custom_opts
-		);
-
-		return ! empty( $res['translated'] ) ? (string) $res['translated'] : $post_name;
-	}
-
-	/**
-	 * Generate or translate slug for target post.
-	 *
-	 * @param WP_Post $source_post
-	 * @param string  $translated_title
-	 * @param string  $target_lang
-	 * @return string
-	 */
-	public function generate_translated_slug( WP_Post $source_post, string $translated_title, string $target_lang ): string {
-		$base_slug = sanitize_title( $translated_title );
-		if ( empty( $base_slug ) ) {
-			$base_slug = $source_post->post_name . '-' . $target_lang;
-		}
-
-		$target_parent_id = 0;
-		if ( ! empty( $source_post->post_parent ) ) {
-			$target_parent_id = Polylang_Bridge::get_existing_translation_post_id( (int) $source_post->post_parent, $target_lang );
-			if ( $target_parent_id === (int) $source_post->post_parent ) {
-				$target_parent_id = 0;
-			}
-		}
-
-		return wp_unique_post_slug(
-			$base_slug,
-			0,
-			$source_post->post_status,
-			$source_post->post_type,
-			$target_parent_id
-		);
-	}
-
 	/**
 	 * Execute full post translation workflow for this builder.
 	 *
@@ -165,9 +118,7 @@ abstract class Base_Builder {
 		$is_existing      = $existing_post_id > 0 && $existing_post_id !== $post_id;
 		Polylang_Synchronizer::reset_media_tracking();
 
-		$settings  = get_option( 'translatesense_settings', array() );
-		$slug_mode = Utils::get_slug_translation( is_array( $settings ) ? $settings : array() );
-
+		$settings         = get_option( 'translatesense_settings', array() );
 		$raw_post_status  = ! empty( $settings['post_status'] ) ? sanitize_key( (string) $settings['post_status'] ) : 'draft';
 		$bulk_post_status = in_array( $raw_post_status, array( 'publish', 'draft' ), true ) ? $raw_post_status : 'draft';
 
@@ -203,13 +154,6 @@ abstract class Base_Builder {
 		// 1. Translate Title & Excerpt.
 		$translated_title   = $this->translate_title( $source_post->post_title, $source_lang, $target_lang, $custom_opts );
 		$translated_excerpt = $this->translate_excerpt( $source_post->post_excerpt, $source_lang, $target_lang, $custom_opts );
-
-		// Never translate or change the slug of an existing target translation.
-		$translated_post_name = $is_existing
-			? $source_post->post_name
-			: ( 'slug_translate' !== $slug_mode
-				? $source_post->post_name
-				: $this->translate_post_name( $source_post->post_name, $source_lang, $target_lang, $custom_opts ) );
 
 		// Allow style CSS properities temporarily
 		add_filter( 'safe_style_css', array( $this, 'allowed_css_properties' ), 10, 1 );
@@ -263,20 +207,11 @@ abstract class Base_Builder {
 
 		if ( ! $is_existing ) {
 			$create_args['post_status'] = $bulk_post_status;
+			$tranlsated_slug            = sanitize_title( Translate::translate_slug( $source_post->post_name, $translated_title, $source_lang, $target_lang, $custom_opts ) );
 
-			if ( 'keep_orignal' === $slug_mode ) {
-				$create_args['post_name'] = sanitize_title( (string) $source_post->post_name );
-			} elseif ( 'title_based' === $slug_mode ) {
-				$slug_candidate           = sanitize_title( (string) $translated_title );
-				$create_args['post_name'] = ! empty( $slug_candidate ) ? $slug_candidate : sanitize_title( (string) $source_post->post_name );
-			} else {
-				$slug_candidate = ! empty( $translated_post_name ) ? sanitize_title( (string) $translated_post_name ) : '';
-				if ( ! empty( $slug_candidate ) ) {
-					$create_args['post_name'] = $slug_candidate;
-				}
+			if ( ! empty( $tranlsated_slug ) ) {
+				$create_args['post_name'] = $tranlsated_slug;
 			}
-		} elseif ( ! empty( $translated_post_name ) && $translated_post_name !== $source_post->post_name ) {
-			$create_args['post_name'] = sanitize_title( $translated_post_name );
 		}
 
 		$include_taxonomies    = ! array_key_exists( 'include_taxonomies', $options ) || ! empty( $options['include_taxonomies'] );

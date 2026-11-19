@@ -11,6 +11,7 @@ use TranslateSense\Includes\Content\Parser\Builders\Classic_Builder;
 use TranslateSense\Includes\Admin\Editor_Integration;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Database\Hashing_Db;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -236,22 +237,24 @@ class Content_Parser {
 					}
 				}
 
-				// 2. Post Name (Slug)
-				$slug = $post_obj->post_name;
-				if ( ! empty( $slug ) && '' !== trim( (string) $slug ) && ! in_array( 'post_name', $existing_names, true ) ) {
-					$slug_hash   = Hashing_Db::generate_hash( 'post_name', $slug );
-					$string_hash = md5( $slug );
-					$string_id   = Hashing_Db::get_or_create_string_id( $slug, $slug );
-					if ( $string_id > 0 ) {
-						Hashing_Db::record_package( $post_id, $lang, $slug_hash, $builder, 'post_name', 'Post/Page Slug', $slug, $slug, $string_hash );
-						$extracted[] = array(
-							'hash'        => $slug_hash,
-							'name'        => 'post_name',
-							'key'         => 'Post/Page Slug',
-							'source'      => $slug,
-							'value'       => $slug,
-							'string_hash' => $string_hash,
-						);
+				// 2. Post Name (Slug) - Extracted only when slug translation is enabled.
+				if ( 'slug_translate' === Utils::get_slug_translation() ) {
+					$slug = $post_obj->post_name;
+					if ( ! empty( $slug ) && '' !== trim( (string) $slug ) && ! in_array( 'post_name', $existing_names, true ) ) {
+						$slug_hash   = Hashing_Db::generate_hash( 'post_name', $slug );
+						$string_hash = md5( $slug );
+						$string_id   = Hashing_Db::get_or_create_string_id( $slug, $slug );
+						if ( $string_id > 0 ) {
+							Hashing_Db::record_package( $post_id, $lang, $slug_hash, $builder, 'post_name', 'Post/Page Slug', $slug, $slug, $string_hash );
+							$extracted[] = array(
+								'hash'        => $slug_hash,
+								'name'        => 'post_name',
+								'key'         => 'Post/Page Slug',
+								'source'      => $slug,
+								'value'       => $slug,
+								'string_hash' => $string_hash,
+							);
+						}
 					}
 				}
 

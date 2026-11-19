@@ -226,6 +226,9 @@ class Media_Parser {
 					'description' => (string) $attachment->post_content,
 					'title'       => (string) $attachment->post_title,
 				);
+				if ( 'slug_translate' === Utils::get_slug_translation() ) {
+					$fields['post_name'] = (string) $attachment->post_name;
+				}
 
 				foreach ( $fields as $field => $raw_val ) {
 					$item = self::format_string_item( $attachment_id, 'media_attachment', 'media_' . $attachment_id . '_' . $field, $raw_val, $field, $target_lang );

@@ -1203,8 +1203,12 @@ class Bulk_Process {
 			$total_chars      = 0;
 
 			foreach ( $packages as $idx => $pkg ) {
-				$pkg_name = sanitize_key( is_array( $pkg ) ? ( $pkg['name'] ?? ( $pkg['widget_name'] ?? '' ) ) : '' );
-				if ( ( $is_retranslation || 'slug_translate' !== $slug_translation ) && 'post_name' === $pkg_name ) {
+				$pkg_name      = sanitize_key( is_array( $pkg ) ? ( $pkg['name'] ?? ( $pkg['widget_name'] ?? '' ) ) : '' );
+				$is_slug_field = 'post_name' === $pkg_name
+					|| ( isset( $pkg['term_field'] ) && 'slug' === $pkg['term_field'] )
+					|| ( isset( $pkg['media_field'] ) && 'post_name' === $pkg['media_field'] );
+
+				if ( ( $is_retranslation || 'slug_translate' !== $slug_translation ) && $is_slug_field ) {
 					continue;
 				}
 				if ( isset( $pkg['value'] ) && ! empty( $pkg['value'] ) ) {

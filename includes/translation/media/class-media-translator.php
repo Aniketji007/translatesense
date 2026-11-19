@@ -754,20 +754,30 @@ class Media_Translator {
 			$translated_title   = self::translate_field( (string) $source_attachment->post_title, $actual_source_lang, $target_lang, $custom_opts );
 			$is_translatable    = ( $translated_alt !== $raw_alt || $translated_caption !== (string) $source_attachment->post_excerpt || $translated_desc !== (string) $source_attachment->post_content || $translated_title !== (string) $source_attachment->post_title );
 
+			$post_data = array(
+				'ID'           => $target_id,
+				'post_excerpt' => $translated_caption,
+				'post_content' => $translated_desc,
+				'post_title'   => $translated_title,
+			);
+
 			$target_post = get_post( $target_id );
-			if ( $target_post instanceof WP_Post && $is_translatable ) {
+
+			$unique_slug = $target_post->post_name;
+
+			$target_slug = sanitize_title( Translate::translate_slug( $source_attachment->post_name, $translated_title, $actual_source_lang, $target_lang, $custom_opts, 'media_attachment' ) );
+
+			if ( ! empty( $target_slug ) ) {
+				$post_data['post_name'] = $target_slug;
+				$unique_slug            = $target_slug;
+			}
+
+			$slug_changed = ( $target_post instanceof WP_Post && $target_post->post_name !== $unique_slug );
+
+			if ( $target_post instanceof WP_Post && ( $is_translatable || $slug_changed ) ) {
 				add_filter( 'pll_enable_duplicate_media', '__return_false', 99 );
 				try {
-					wp_update_post(
-						wp_slash(
-							array(
-								'ID'           => $target_id,
-								'post_excerpt' => $translated_caption,
-								'post_content' => $translated_desc,
-								'post_title'   => $translated_title,
-							)
-						)
-					);
+					wp_update_post( wp_slash( $post_data ) );
 				} finally {
 					remove_filter( 'pll_enable_duplicate_media', '__return_false', 99 );
 				}

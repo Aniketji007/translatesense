@@ -502,10 +502,15 @@ class Taxonomy_Parser {
 				return array();
 			}
 
-			foreach ( array(
+			$fields = array(
 				'name'        => (string) $term->name,
 				'description' => (string) $term->description,
-			) as $field => $raw_val ) {
+			);
+			if ( 'slug_translate' === Utils::get_slug_translation() ) {
+				$fields['slug'] = (string) $term->slug;
+			}
+
+			foreach ( $fields as $field => $raw_val ) {
 				$item = self::format_string_item( $term, 'taxonomy_term', 'term_' . (int) $term->term_id . '_' . $field, $raw_val, $field );
 				if ( null !== $item ) {
 					$strings[] = $item;

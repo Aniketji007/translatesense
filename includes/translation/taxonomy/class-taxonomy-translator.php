@@ -332,7 +332,7 @@ class Taxonomy_Translator {
 		}
 
 		global $wpdb;
-		$table        = Bulk_Process::get_table_name();
+		$table = Bulk_Process::get_table_name();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$valid_job_id = ( $job_id > 0 && $term_id > 0 ) ? absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $term_id ) ) ) : 0; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
@@ -1227,9 +1227,9 @@ class Taxonomy_Translator {
 
 		if ( ! Utils::acquire_lock( $lock_key ) ) {
 			$existing_id = Taxonomy_Parser::get_translation_id( $source_term_id, $target_lang );
-			return $existing_id > 0
-				? $existing_id
-				: new WP_Error( 'translatesense_taxonomy_translation_locked', __( 'This taxonomy term is already being translated. Please retry shortly.', 'translatesense' ) );
+			// return $existing_id > 0
+			// ? $existing_id
+			// : new WP_Error( 'translatesense_taxonomy_translation_locked', __( 'This taxonomy term is already being translated. Please retry shortly.', 'translatesense' ) );
 		}
 
 		try {
@@ -1260,6 +1260,7 @@ class Taxonomy_Translator {
 				$target_parent_id,
 				$actual_source_lang,
 				$target_lang,
+				$custom_opts,
 				$model
 			);
 
@@ -1312,6 +1313,7 @@ class Taxonomy_Translator {
 	 * @param int     $target_parent_id   Resolved target parent term ID.
 	 * @param string  $actual_source_lang Source language slug.
 	 * @param string  $target_lang        Target language slug.
+	 * @param array   $custom_opts        Custom options for translation.
 	 * @param object  $model              Polylang term model.
 	 * @return int|WP_Error Inserted or reused term ID, or error.
 	 */
@@ -1322,11 +1324,13 @@ class Taxonomy_Translator {
 		int $target_parent_id,
 		string $actual_source_lang,
 		string $target_lang,
+		array $custom_opts,
 		object $model
 	) {
-		$slug = sanitize_title( $translated_name );
-		if ( '' === $slug ) {
-			$slug = sanitize_title( $source_term->slug . '-' . $target_lang );
+		$slug = sanitize_title( Translate::translate_slug( $source_term->slug, $translated_name, $actual_source_lang, $target_lang, $custom_opts, 'taxonomy_term' ) );
+
+		if ( empty( $slug ) ) {
+			$slug = sanitize_title( $source_term->slug );
 		}
 
 		$inserted = wp_insert_term(
