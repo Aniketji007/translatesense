@@ -309,13 +309,24 @@ class Polylang_Bridge {
 
 		// Existing translations retain their editorial status. Bulk status
 		// preferences apply only to newly inserted target posts.
+		$post_status = 'draft';
+
 		if ( $is_existing ) {
 			$post_status = $target_post->post_status;
 		} else {
-			$requested_status = isset( $args['post_status'] ) ? sanitize_key( (string) $args['post_status'] ) : '';
-			$post_status      = in_array( $requested_status, $allowed_statuses, true )
-				? $requested_status
-				: ( in_array( $source_post->post_status, $allowed_statuses, true ) ? $source_post->post_status : 'draft' );
+			$requested_status = isset( $args['post_status'] )
+				? sanitize_key( (string) $args['post_status'] )
+				: '';
+
+			if ( 'publish' === $source_post->post_status ) {
+				$post_status = in_array( $requested_status, array( 'publish', 'draft' ), true )
+					? $requested_status
+					: 'publish';
+			} else {
+				$post_status = in_array( $source_post->post_status, $allowed_statuses, true )
+					? $source_post->post_status
+					: 'draft';
+			}
 		}
 
 		$translated_excerpt = isset( $args['post_excerpt'] ) && is_string( $args['post_excerpt'] )
@@ -357,17 +368,19 @@ class Polylang_Bridge {
 		// for an existing translation, even if a caller accidentally passes it.
 		if ( ! $is_existing ) {
 			$requested_slug = isset( $args['post_name'] ) ? sanitize_title( (string) $args['post_name'] ) : '';
-			if ( '' === $requested_slug ) {
-				$requested_slug = sanitize_title( $source_post->post_name . '-' . $target_lang );
+			if ( '' === $requested_slug && isset( $args['post_title'] ) && ! empty( $args['post_title'] ) ) {
+				$requested_slug = sanitize_title( $args['post_title'] );
 			}
 
-			$post_data['post_name'] = wp_unique_post_slug(
-				$requested_slug,
-				0,
-				$post_status,
-				$source_post->post_type,
-				$target_parent_id
-			);
+			if ( ! empty( $requested_slug ) ) {
+				$post_data['post_name'] = wp_unique_post_slug(
+					$requested_slug,
+					0,
+					$post_status,
+					$source_post->post_type,
+					$target_parent_id
+				);
+			}
 
 			// New target post: honor Polylang's post-field synchronization filter.
 			$sync_fields = array_keys( $post_data );
