@@ -1403,14 +1403,14 @@ button.ts-error-detail-btn:hover {
   align-items: stretch;
   overflow: visible;
   position: relative;
-  margin-top: 13px;
+  margin-top: 11px;
 }
 
 .ts-bulk-panel {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #2563eb;
   border-radius: 0 12px 12px;
-  padding: 20px 18px 16px;
+  padding: 22px 18px 16px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
@@ -1418,46 +1418,27 @@ button.ts-error-detail-btn:hover {
   overflow: visible;
 }
 
-.ts-bulk-languages-panel {
-  border-color: #2563eb;
-}
-
-.ts-bulk-provider-panel {
-  border-color: #7c3aed;
-}
-
-.ts-bulk-provider-panel .ts-provider-icon-circle {
-  background: #f5f3ff;
-  border-color: #ede9fe;
-  color: #7c3aed;
-}
-
 .ts-bulk-step-badge {
   border-radius: 9999px;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0,0,0,.08);
   display: inline-flex;
-  height: 20px;
+  height: 16px;
   padding: 3px 12px 3px 4px;
   position: absolute;
   left: -1px;
-  top: -13px;
+  top: -11px;
   user-select: none;
 }
 
-.ts-bulk-step-badge.ts-bulk-step-1 {
+.ts-bulk-step-badge {
   background: #2563eb;
   color: #ffffff;
 }
 
-.ts-bulk-step-badge.ts-bulk-step-2 {
-  background: #7c3aed;
-  color: #ffffff;
-}
-
 .ts-bulk-step-badge .ts-step-number {
-  width: 19px;
-  height: 19px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: #ffffff;
   display: inline-flex;
@@ -1469,12 +1450,8 @@ button.ts-error-detail-btn:hover {
   flex-shrink: 0;
 }
 
-.ts-bulk-step-badge.ts-bulk-step-1 .ts-step-number {
+.ts-bulk-step-badge .ts-step-number {
   color: #2563eb;
-}
-
-.ts-bulk-step-badge.ts-bulk-step-2 .ts-step-number {
-  color: #7c3aed;
 }
 
 .ts-bulk-step-badge .ts-step-text {

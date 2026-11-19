@@ -540,7 +540,7 @@ export function UnifiedBulkSelection({
             <div className="ts-bulk-panel-header">
               <div className="ts-panel-title-group">
                 <div className="ts-panel-icon-circle ts-provider-icon-circle">
-                  <SparklesIcon size={18} color="#7c3aed" />
+                  <SparklesIcon size={18} color="#2563eb" />
                 </div>
                 <div>
                   <h3 className="ts-panel-title">AI Provider</h3>
