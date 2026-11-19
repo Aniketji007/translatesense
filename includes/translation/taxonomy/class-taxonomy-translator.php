@@ -1227,9 +1227,9 @@ class Taxonomy_Translator {
 
 		if ( ! Utils::acquire_lock( $lock_key ) ) {
 			$existing_id = Taxonomy_Parser::get_translation_id( $source_term_id, $target_lang );
-			// return $existing_id > 0
-			// ? $existing_id
-			// : new WP_Error( 'translatesense_taxonomy_translation_locked', __( 'This taxonomy term is already being translated. Please retry shortly.', 'translatesense' ) );
+			return $existing_id > 0
+			? $existing_id
+			: new WP_Error( 'translatesense_taxonomy_translation_locked', __( 'This taxonomy term is already being translated. Please retry shortly.', 'translatesense' ) );
 		}
 
 		try {
