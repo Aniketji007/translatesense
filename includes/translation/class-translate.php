@@ -43,7 +43,7 @@ class Translate {
 	/**
 	 * Default prompt template for AI batch translation.
 	 */
-	public const DEFAULT_PROMPT = "You are a professional multilingual translator. Translate the provided JSON array from `{source_lang}` to `{target_lang}`.\n\n### Translation Rules\n\n1. **Hyphenated Text:** Translate all human-readable hyphenated content naturally. This includes values containing `[TS_HYPEN_PROTECTED]`. Never treat human-readable content as a technical identifier or URL slug simply because it contains hyphens or placeholders. Preserve the hyphen-separated format using the protected placeholders. Never leave human-readable hyphenated content untranslated or replace its hyphens with spaces. Only preserve genuinely technical elements covered by Rule 3.\n\n2. **Natural Translation:** Translate all human-readable content accurately and naturally while preserving its original meaning, tone, and context. Translate every item fully, even if it already appears in the target language.\n\n3. **Technical Preservation:** Preserve actual technical elements exactly as provided, including URLs, domains, hostnames, query parameters, URL fragments, endpoints, file paths, filenames, email addresses, WordPress shortcodes, PHP, JavaScript, CSS, code, comments, programming identifiers, and structural HTML attributes such as `class`, `id`, `data-*`, `href`, and `src`. Also preserve dynamic placeholders and variables such as `%s`, `" . '%1$s' . "`, `{name}`, `{{name}}`, `:name`, `{0}`, and similar patterns. Translate surrounding human-readable content without modifying protected technical elements.\n\n4. **Protected Placeholders:** Preserve every `[TS_HYPEN_PROTECTED]` placeholder exactly as provided. Never translate, remove, duplicate, modify, or omit it. Translate the surrounding content naturally and contextually.\n\n5. **HTML & Formatting:** Preserve HTML tags, nesting, and structure exactly. Translate visible text and user-facing attribute values such as `alt`, `title`, `placeholder`, and `aria-label`. Preserve numbers, symbols, HTML entities, whitespace, line breaks, and original formatting without changing the structure or syntax.\n\n6. **Strict Parity:** Translate each input string independently. Do not invent, summarize, omit, merge, split, duplicate, or reorder content. Each translated string must correspond to its original input string at the same index.\n\n### Output Format\n\nReturn ONLY a valid JSON object matching this structure:\n\n{\"translations\":[\"translated string 1\",\"translated string 2\"]}\n\nThe `translations` array MUST contain exactly `{count}` items, matching the input array count. Never return fewer or more items. Preserve the original input order and ensure all JSON strings are properly escaped.\n\nStrings to translate:\n\n{json_strings}";
+	public const DEFAULT_PROMPT = "You are a professional multilingual translator..\n\n### Translation Rules\n\n1. Instruction 1: Translate each provided string semantically from `{source_lang}` to `{target_lang}`. Provide accurate, natural, meaning-based translations without assuming the content type.\n\nInstruction 2: Do not translate or modify content inside square brackets [], including shortcodes and dynamic placeholders. Preserve actual URLs containing recognizable domains or hostnames unchanged. However, translate standalone human-readable paths and slugs such as `hello/word/` and `about-us`. Do not treat every slash-separated or hyphenated string as a URL.\n\nInstruction 3: Preserve all HTML tags, structure and technical attributes such as class, id, data-*, href and src. Translate visible text and user-facing attribute values without altering the HTML structure.\n\nInstruction 4: Return a JSON object using the original numeric keys and their translated strings as values. Preserve all keys and entries exactly.\n\nInstruction 5: Do not unnecessarily escape double quotes. Return valid JSON with escaping only where required by JSON syntax.\n\nInstruction 6: Translate every input string, even if its value is already in the target language. Ensure the JSON is complete and well-formed.\n\nInstruction 7: Decode &lt; and &gt; into < and > where they represent encoded HTML markup. Preserve other entities, whitespace and line breaks.Instruction 8: If a string contains `[TS_HYPEN_PROTECTED]`, translate all surrounding human-readable content naturally while preserving the placeholder exactly in its original position. Never translate, remove, modify, duplicate or generate this placeholder if it is absent from the original string.\n\n### Output Format\n\nReturn ONLY a valid JSON object:\n\n{\"translations\":[\"translated string 1\",\"translated string 2\"]}\n\nThe `translations` array MUST contain exactly {count} items. Return valid JSON only, without explanations or additional text.\n\nStrings to translate:\n\n{json_strings}";
 
 
 	/**
@@ -477,7 +477,7 @@ class Translate {
 	/**
 	 * Split HTML into tags and text nodes while recording byte offsets.
 	 *
-	 * This scanner recognizes quoted attributes containing ">" characters.
+	 * This scanner recognizes quoted attributes containing " > " characters.
 	 *
 	 * @param string $html HTML fragment.
 	 * @return array
@@ -608,9 +608,8 @@ class Translate {
 	 * @return array|\WP_Error
 	 */
 	public static function translate_batch( $strings_array, $source_lang, $target_lang, $custom_options = array() ) {
-		$results     = array();
-		$hashes      = array();
-		$hyphen_data = array();
+		$results = array();
+		$hashes  = array();
 
 		// Validate provider.
 		$provider = isset( $custom_options['provider'] )
@@ -696,10 +695,6 @@ class Translate {
 				$protected = self::protect_hyphenated_value( $str );
 
 				$to_translate[ $idx ] = $protected['text'];
-
-				if ( $protected['count'] > 0 ) {
-					$hyphen_data[ $idx ] = $protected['count'];
-				}
 			}
 		}
 
@@ -739,20 +734,10 @@ class Translate {
 			}
 
 			// Restore protected hyphens.
-			if ( isset( $hyphen_data[ $idx ] ) ) {
-				$token = '[TS_HYPEN_PROTECTED]';
-				$count = $hyphen_data[ $idx ];
+			$trans = str_replace( '[TS_HYPEN_PROTECTED]', '-', $trans );
 
-				if ( substr_count( $trans, $token ) === $count ) {
-					$trans = str_replace( $token, '-', $trans );
-				} else {
-					$trans = $original_str;
-					$valid = false;
-				}
-			}
-
-			// Save valid translations to cache.
-			if ( $valid && '' !== trim( $trans ) && self::should_cache_provider( $provider ) ) {
+			// Save translations to cache.
+			if ( '' !== trim( $trans ) && self::should_cache_provider( $provider ) ) {
 				if ( md5( $trans ) !== $hash ) {
 					Hashing_Db::save_translation_result( $hash, $target_lang, $trans );
 				}
