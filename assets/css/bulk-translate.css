@@ -1399,20 +1399,113 @@ button.ts-error-detail-btn:hover {
 .ts-bulk-columns {
   display: grid;
   grid-template-columns: 1.34fr 1fr;
-  gap: 16px;
+  gap: 32px;
   align-items: stretch;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
+  margin-top: 13px;
 }
 
 .ts-bulk-panel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px 18px;
+  border-radius: 0 12px 12px;
+  padding: 20px 18px 16px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-  overflow: hidden;
+  position: relative;
+  overflow: visible;
+}
+
+.ts-bulk-languages-panel {
+  border-color: #2563eb;
+}
+
+.ts-bulk-provider-panel {
+  border-color: #7c3aed;
+}
+
+.ts-bulk-provider-panel .ts-provider-icon-circle {
+  background: #f5f3ff;
+  border-color: #ede9fe;
+  color: #7c3aed;
+}
+
+.ts-bulk-step-badge {
+  border-radius: 9999px;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+  display: inline-flex;
+  height: 20px;
+  padding: 3px 12px 3px 4px;
+  position: absolute;
+  left: -1px;
+  top: -13px;
+  user-select: none;
+}
+
+.ts-bulk-step-badge.ts-bulk-step-1 {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.ts-bulk-step-badge.ts-bulk-step-2 {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.ts-bulk-step-badge .ts-step-number {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ts-bulk-step-badge.ts-bulk-step-1 .ts-step-number {
+  color: #2563eb;
+}
+
+.ts-bulk-step-badge.ts-bulk-step-2 .ts-step-number {
+  color: #7c3aed;
+}
+
+.ts-bulk-step-badge .ts-step-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-left: 6px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* Arrow between Language Selection and Provider Selection */
+.ts-bulk-step-arrow {
+  position: absolute;
+  right: -29px;
+  pointer-events: none;
+  top: calc(50% - 14px);
+  z-index: 5;
+}
+
+.ts-bulk-step-arrow-circle {
+  align-items: center;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(37,99,235,.12);
+  color: #2563eb;
+  display: flex;
+  height: 23px;
+  justify-content: center;
+  width: 23px;
 }
 
 .ts-bulk-panel-header {
@@ -1876,6 +1969,13 @@ button.ts-error-detail-btn:hover {
 @media (max-width: 768px) {
   .ts-bulk-columns {
     grid-template-columns: 1fr;
+  }
+  .ts-bulk-step-arrow {
+    right: auto;
+    left: 50%;
+    bottom: -8px;
+    top: auto;
+    transform: translate(-50%, 50%) rotate(90deg);
   }
   .ts-bulk-summary-bar {
     flex-direction: column;

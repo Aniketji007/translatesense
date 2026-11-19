@@ -118,6 +118,25 @@ function CheckIcon({ size = 10, color = '#ffffff' }) {
   );
 }
 
+function ArrowRightIcon({ size = 14, color = 'currentColor' }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
+
 export function UnifiedBulkSelection({
   isOpen = true,
   onClose,
@@ -282,6 +301,25 @@ export function UnifiedBulkSelection({
     !isProviderAvailable ||
     isTranslating;
 
+  const getDisableBtnTitle = () => {
+    if (targetLangsCount === 0) {
+      return 'Select at least one target language';
+    }
+
+    if (!selectedProvider) {
+      return 'Please select a translation provider';
+    }
+    if (!isProviderAvailable) {
+      return 'Selected provider is not available';
+    }
+
+    if (isTranslating) {
+      return 'Bulk translation is already in progress';
+    }
+
+    return '';
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -311,6 +349,7 @@ export function UnifiedBulkSelection({
             className="ts-btn ts-btn-primary button-primary"
             disabled={isStartDisabled}
             onClick={onStartTranslation}
+            title={getDisableBtnTitle()}
           >
             <span className="ts-start-icon">
               <TranslateIcon size={16} />
@@ -379,6 +418,11 @@ export function UnifiedBulkSelection({
         <div className="ts-bulk-columns">
           {/* Left Column: Target Languages */}
           <div className="ts-bulk-panel ts-bulk-languages-panel">
+            <div className="ts-bulk-step-badge ts-bulk-step-1" aria-label="Step 1">
+              <span className="ts-step-number">1</span>
+              <span className="ts-step-text">Step</span>
+            </div>
+
             <div className="ts-bulk-panel-header">
               <div className="ts-panel-title-group">
                 <div className="ts-panel-icon-circle">
@@ -477,14 +521,26 @@ export function UnifiedBulkSelection({
                 })
               )}
             </div>
+
+            {/* Arrow connecting Language Selection to Provider Selection */}
+            <div className="ts-bulk-step-arrow" aria-hidden="true">
+              <div className="ts-bulk-step-arrow-circle">
+                <ArrowRightIcon size={14} color="#2563eb" />
+              </div>
+            </div>
           </div>
 
           {/* Right Column: AI Provider */}
           <div className="ts-bulk-panel ts-bulk-provider-panel">
+            <div className="ts-bulk-step-badge ts-bulk-step-2" aria-label="Step 2">
+              <span className="ts-step-number">2</span>
+              <span className="ts-step-text">Step</span>
+            </div>
+
             <div className="ts-bulk-panel-header">
               <div className="ts-panel-title-group">
-                <div className="ts-panel-icon-circle">
-                  <SparklesIcon size={18} color="#2563eb" />
+                <div className="ts-panel-icon-circle ts-provider-icon-circle">
+                  <SparklesIcon size={18} color="#7c3aed" />
                 </div>
                 <div>
                   <h3 className="ts-panel-title">AI Provider</h3>
