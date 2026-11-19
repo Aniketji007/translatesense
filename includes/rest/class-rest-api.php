@@ -2258,11 +2258,44 @@ class Rest_Api {
 		$term_id     = absint( $request->get_param( 'term_id' ) );
 		$taxonomy    = sanitize_key( (string) $request->get_param( 'taxonomy' ) );
 		$target_lang = sanitize_key( (string) $request->get_param( 'target_lang' ) );
+		$job_id      = absint( $request->get_param( 'job_id' ) );
 
-		if ( $term_id <= 0 || '' === $taxonomy || '' === $target_lang ) {
+		if ( ! $job_id ) {
+			$params = $request->get_json_params();
+			if ( is_array( $params ) && ! empty( $params['job_id'] ) ) {
+				$job_id = absint( $params['job_id'] );
+			}
+		}
+
+		if ( $term_id <= 0 || '' === $taxonomy || '' === $target_lang || $job_id <= 0 ) {
 			return self::permission_error(
-				__( 'A valid taxonomy term ID, taxonomy slug, and target language are required.', 'translatesense' ),
+				__( 'A valid taxonomy term ID, taxonomy slug, target language, and job ID are required.', 'translatesense' ),
 				'rest_invalid_params',
+				400
+			);
+		}
+
+		$job = Bulk_Process::get_job( $job_id );
+		if ( ! $job ) {
+			return self::permission_error(
+				__( 'The requested translation job could not be found.', 'translatesense' ),
+				'rest_job_not_found',
+				404
+			);
+		}
+
+		if ( 'taxonomy' !== ( $job->item_type ?? '' ) || absint( $job->post_id ?? 0 ) !== $term_id ) {
+			return self::permission_error(
+				__( 'The provided job ID does not match the requested taxonomy term.', 'translatesense' ),
+				'rest_job_mismatch',
+				400
+			);
+		}
+
+		if ( ! empty( $job->target_language ) && $job->target_language !== $target_lang ) {
+			return self::permission_error(
+				__( 'The target language does not match the translation job.', 'translatesense' ),
+				'rest_job_language_mismatch',
 				400
 			);
 		}
@@ -2301,11 +2334,44 @@ class Rest_Api {
 
 		$attachment_id = absint( $request->get_param( 'attachment_id' ) );
 		$target_lang   = sanitize_key( (string) $request->get_param( 'target_lang' ) );
+		$job_id        = absint( $request->get_param( 'job_id' ) );
 
-		if ( $attachment_id <= 0 || '' === $target_lang ) {
+		if ( ! $job_id ) {
+			$params = $request->get_json_params();
+			if ( is_array( $params ) && ! empty( $params['job_id'] ) ) {
+				$job_id = absint( $params['job_id'] );
+			}
+		}
+
+		if ( $attachment_id <= 0 || '' === $target_lang || $job_id <= 0 ) {
 			return self::permission_error(
-				__( 'A valid media attachment ID and target language are required.', 'translatesense' ),
+				__( 'A valid media attachment ID, target language, and job ID are required.', 'translatesense' ),
 				'rest_invalid_params',
+				400
+			);
+		}
+
+		$job = Bulk_Process::get_job( $job_id );
+		if ( ! $job ) {
+			return self::permission_error(
+				__( 'The requested translation job could not be found.', 'translatesense' ),
+				'rest_job_not_found',
+				404
+			);
+		}
+
+		if ( 'media' !== ( $job->item_type ?? '' ) || absint( $job->post_id ?? 0 ) !== $attachment_id ) {
+			return self::permission_error(
+				__( 'The provided job ID does not match the requested media attachment.', 'translatesense' ),
+				'rest_job_mismatch',
+				400
+			);
+		}
+
+		if ( ! empty( $job->target_language ) && $job->target_language !== $target_lang ) {
+			return self::permission_error(
+				__( 'The target language does not match the translation job.', 'translatesense' ),
+				'rest_job_language_mismatch',
 				400
 			);
 		}

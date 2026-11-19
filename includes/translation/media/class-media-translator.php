@@ -280,9 +280,20 @@ class Media_Translator {
 		$user_id             = ( array_key_exists( 'user_id', $options ) && null !== $options['user_id'] ) ? (int) $options['user_id'] : null;
 		$enforce_permissions = array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true;
 
+		$primary_id   = (int) ( ! empty( $attachment_ids ) ? reset( $attachment_ids ) : 0 );
+		$valid_job_id = 0;
+		if ( $job_id > 0 && $primary_id > 0 ) {
+			global $wpdb;
+			$table = Bulk_Process::get_table_name();
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'media'", $job_id, $primary_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+
 		$authorized = self::authorize_attachments( $attachment_ids, $target_lang, $user_id, $enforce_permissions );
 		if ( is_wp_error( $authorized ) ) {
-			return Bulk_Process::fail_job( $job_id, __( 'Error occurred during authorization check', 'translatesense' ), $authorized );
+			return $valid_job_id > 0
+				? Bulk_Process::fail_job( $valid_job_id, __( 'Error occurred during authorization check', 'translatesense' ), $authorized )
+				: $authorized;
 		}
 
 		$source_lang = sanitize_key( (string) ( $options['source_lang'] ?? '' ) );
@@ -301,28 +312,34 @@ class Media_Translator {
 			: Media_Parser::extract_attachment_strings( array_keys( $authorized ), $target_lang, $user_id, $enforce_permissions );
 
 		if ( empty( $items ) ) {
-			return Bulk_Process::fail_job( $job_id, __( 'No text found in the media files', 'translatesense' ), new WP_Error( 'no_text_found', __( 'No text found in the media files', 'translatesense' ), $items ) );
+			$no_text_err = new WP_Error( 'no_text_found', __( 'No text found in the media files', 'translatesense' ), $items );
+			return $valid_job_id > 0
+				? Bulk_Process::fail_job( $valid_job_id, __( 'No text found in the media files', 'translatesense' ), $no_text_err )
+				: $no_text_err;
 		}
 
-		$primary_id = (int) array_key_first( $authorized );
-		$preloaded  = self::ensure_items_translated( $items, $authorized, $job_id, $primary_id, $source_lang, $target_lang, $provider, $in_memory_translations );
+		$preloaded = self::ensure_items_translated( $items, $authorized, $valid_job_id, $primary_id, $source_lang, $target_lang, $provider, $in_memory_translations );
 
 		if ( is_wp_error( $preloaded ) ) {
-			return Bulk_Process::fail_job( $job_id, __( 'Error occurred during AI Translation', 'translatesense' ), $preloaded );
+			return $valid_job_id > 0
+				? Bulk_Process::fail_job( $valid_job_id, __( 'Error occurred during AI Translation', 'translatesense' ), $preloaded )
+				: $preloaded;
 		}
 
 		$resolved_map = array();
 		foreach ( $authorized as $source_att_id => $source_attachment ) {
 			$resolved_id = self::resolve_attachment( $source_attachment, $target_lang, $provider, $in_memory_translations, $user_id, $enforce_permissions );
 			if ( is_wp_error( $resolved_id ) ) {
-				return Bulk_Process::fail_job( $job_id, __( 'Failed to save translated media', 'translatesense' ), $resolved_id );
+				return $valid_job_id > 0
+					? Bulk_Process::fail_job( $valid_job_id, __( 'Failed to save translated media', 'translatesense' ), $resolved_id )
+					: $resolved_id;
 			}
 			$resolved_map[ (int) $source_att_id ] = absint( $resolved_id );
 		}
 
-		if ( $job_id > 0 ) {
+		if ( $valid_job_id > 0 ) {
 			Bulk_Process::update_job(
-				$job_id,
+				$valid_job_id,
 				array(
 					'status'          => 'completed',
 					'progress_status' => __( 'Media Translation completed', 'translatesense' ),

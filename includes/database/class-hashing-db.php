@@ -676,7 +676,7 @@ class Hashing_Db {
 				break;
 
 			case 'translations':
-				$wpdb->query( "TRUNCATE TABLE {$table_translations}" ); // phpcs:ignore 
+				$wpdb->query( "TRUNCATE TABLE {$table_translations}" );
 				break;
 
 			case 'packages':

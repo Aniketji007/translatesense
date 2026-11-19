@@ -332,7 +332,9 @@ class Taxonomy_Translator {
 		}
 
 		global $wpdb;
-		$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}translatesense_queue WHERE id = %d AND post_id = %d", $job_id, $term_id ) ) );
+		$table        = Bulk_Process::get_table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$valid_job_id = ( $job_id > 0 && $term_id > 0 ) ? absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $term_id ) ) ) : 0; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( $valid_job_id && $valid_job_id > 0 ) {
 			Bulk_Process::update_job(
@@ -533,6 +535,15 @@ class Taxonomy_Translator {
 		$enforce_permissions = array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true;
 		$skip_unauthorized   = ! empty( $options['skip_unauthorized'] );
 
+		$primary_term_id = (int) ( ! empty( $term_ids ) ? reset( $term_ids ) : 0 );
+		$valid_job_id    = 0;
+		if ( $job_id > 0 && $primary_term_id > 0 ) {
+			global $wpdb;
+			$table = Bulk_Process::get_table_name();
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $primary_term_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+
 		$authorized_terms = self::build_authorized_terms_list(
 			$term_ids,
 			$taxonomy,
@@ -543,7 +554,9 @@ class Taxonomy_Translator {
 		);
 
 		if ( is_wp_error( $authorized_terms ) ) {
-			return Bulk_Process::fail_job( $job_id, __( 'Error occured authorization check', 'translatesense' ), $authorized_terms );
+			return $valid_job_id > 0
+				? Bulk_Process::fail_job( $valid_job_id, __( 'Error occurred during authorization check', 'translatesense' ), $authorized_terms )
+				: $authorized_terms;
 		}
 
 		$source_lang = sanitize_key( (string) ( $options['source_lang'] ?? '' ) );
@@ -564,8 +577,8 @@ class Taxonomy_Translator {
 		$preloaded = self::ensure_items_translated(
 			$items,
 			array( $taxonomy => $authorized_terms ),
-			$job_id,
-			$term_ids[0] ?? 0,
+			$valid_job_id,
+			$primary_term_id,
 			$source_lang,
 			$target_lang,
 			$provider,
@@ -573,7 +586,9 @@ class Taxonomy_Translator {
 		);
 
 		if ( is_wp_error( $preloaded ) ) {
-			return Bulk_Process::fail_job( $job_id, __( 'Error occured during AI Translation', 'translatesense' ), $preloaded );
+			return $valid_job_id > 0
+				? Bulk_Process::fail_job( $valid_job_id, __( 'Error occurred during AI Translation', 'translatesense' ), $preloaded )
+				: $preloaded;
 		}
 
 		$resolved_map = array();
@@ -588,21 +603,25 @@ class Taxonomy_Translator {
 				$enforce_permissions
 			);
 			if ( is_wp_error( $resolved_id ) ) {
-				return $resolved_id;
+				return $valid_job_id > 0
+					? Bulk_Process::fail_job( $valid_job_id, __( 'Failed to save translated taxonomy term', 'translatesense' ), $resolved_id )
+					: $resolved_id;
 			}
 			$resolved_map[ (int) $source_term_id ] = absint( $resolved_id );
 		}
 
-		Bulk_Process::update_job(
-			$job_id,
-			array(
-				'status'          => 'completed',
-				'progress_status' => __( 'Taxonomy Translation completed', 'translatesense' ),
-				'error_message'   => null,
-				'target_post_id'  => (int) isset( $resolved_map[ $term_ids[0] ] ) ? absint( $resolved_map[ $term_ids[0] ] ) : 0,
-				'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
-			)
-		);
+		if ( $valid_job_id > 0 ) {
+			Bulk_Process::update_job(
+				$valid_job_id,
+				array(
+					'status'          => 'completed',
+					'progress_status' => __( 'Taxonomy Translation completed', 'translatesense' ),
+					'error_message'   => null,
+					'target_post_id'  => ( $primary_term_id > 0 && isset( $resolved_map[ $primary_term_id ] ) ) ? absint( $resolved_map[ $primary_term_id ] ) : 0,
+					'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
+				)
+			);
+		}
 
 		return $resolved_map;
 	}

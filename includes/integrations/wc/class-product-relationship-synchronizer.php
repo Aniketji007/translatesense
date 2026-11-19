@@ -324,54 +324,81 @@ class Product_Relationship_Synchronizer extends WC_Base {
 	 * @param string $target_lang    Target language slug.
 	 */
 	private static function sync_reverse_relationships( int $source_post_id, int $target_post_id, string $target_lang ): void {
-		// Find products referencing source_post_id in upsells, cross-sells, or grouped children
-		$candidate_ids = get_posts(
-			array(
-				'post_type'              => 'product',
-				'post_status'            => array( 'publish', 'draft', 'pending', 'private', 'future' ),
-				'posts_per_page'         => -1,
-				'fields'                 => 'ids',
-				'lang'                   => '',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'meta_query'             => array(
-					'relation' => 'OR',
-					array(
-						'key'     => '_upsell_ids',
-						'value'   => ':' . $source_post_id . ';',
-						'compare' => 'LIKE',
-					),
-					array(
-						'key'     => '_crosssell_ids',
-						'value'   => ':' . $source_post_id . ';',
-						'compare' => 'LIKE',
-					),
-					array(
-						'key'     => '_children',
-						'value'   => ':' . $source_post_id . ';',
-						'compare' => 'LIKE',
-					),
-					array(
-						'key'     => '_upsell_ids',
-						'value'   => '"' . $source_post_id . '"',
-						'compare' => 'LIKE',
-					),
-					array(
-						'key'     => '_crosssell_ids',
-						'value'   => '"' . $source_post_id . '"',
-						'compare' => 'LIKE',
-					),
-					array(
-						'key'     => '_children',
-						'value'   => '"' . $source_post_id . '"',
-						'compare' => 'LIKE',
-					),
-				),
-			)
-		);
+		if ( $source_post_id <= 0 || $target_post_id <= 0 || '' === $target_lang ) {
+			return;
+		}
 
-		if ( empty( $candidate_ids ) || ! is_array( $candidate_ids ) ) {
+		// Find products referencing source_post_id in upsells, cross-sells, or grouped children in manageable batches
+		$candidate_ids = array();
+		$batch_size    = (int) apply_filters( 'translatesense_reverse_relationships_batch_size', 100 );
+		$batch_size    = max( 10, min( 500, $batch_size ) );
+		$page          = 1;
+		$max_pages     = (int) apply_filters( 'translatesense_reverse_relationships_max_pages', 20 );
+
+		do {
+			$batch = get_posts(
+				array(
+					'post_type'              => 'product',
+					'post_status'            => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+					'posts_per_page'         => $batch_size,
+					'paged'                  => $page,
+					'fields'                 => 'ids',
+					'lang'                   => '',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'meta_query'             => array(
+						'relation' => 'OR',
+						array(
+							'key'     => '_upsell_ids',
+							'value'   => ':' . $source_post_id . ';',
+							'compare' => 'LIKE',
+						),
+						array(
+							'key'     => '_crosssell_ids',
+							'value'   => ':' . $source_post_id . ';',
+							'compare' => 'LIKE',
+						),
+						array(
+							'key'     => '_children',
+							'value'   => ':' . $source_post_id . ';',
+							'compare' => 'LIKE',
+						),
+						array(
+							'key'     => '_upsell_ids',
+							'value'   => '"' . $source_post_id . '"',
+							'compare' => 'LIKE',
+						),
+						array(
+							'key'     => '_crosssell_ids',
+							'value'   => '"' . $source_post_id . '"',
+							'compare' => 'LIKE',
+						),
+						array(
+							'key'     => '_children',
+							'value'   => '"' . $source_post_id . '"',
+							'compare' => 'LIKE',
+						),
+					),
+				)
+			);
+
+			if ( empty( $batch ) || ! is_array( $batch ) ) {
+				break;
+			}
+
+			foreach ( $batch as $bid ) {
+				$candidate_ids[] = (int) $bid;
+			}
+
+			if ( count( $batch ) < $batch_size ) {
+				break;
+			}
+
+			$page++;
+		} while ( $page <= $max_pages );
+
+		if ( empty( $candidate_ids ) ) {
 			return;
 		}
 
@@ -614,6 +641,11 @@ class Product_Relationship_Synchronizer extends WC_Base {
 	 * @param int $deleted_product_id Deleted translated product ID.
 	 */
 	public static function recover_relationships_for_deleted_product( int $deleted_product_id ): void {
+		$deleted_product_id = absint( $deleted_product_id );
+		if ( $deleted_product_id <= 0 ) {
+			return;
+		}
+
 		foreach ( self::RELATIONSHIP_CONFIGS as $type => $config ) {
 			$meta_key = $config['meta_key'];
 			$getter   = $config['getter'];
@@ -728,20 +760,43 @@ class Product_Relationship_Synchronizer extends WC_Base {
 			);
 		}
 
-		$ids = get_posts(
-			array(
-				'post_type'              => 'product',
-				'post_status'            => 'any',
-				'posts_per_page'         => -1,
-				'fields'                 => 'ids',
-				'lang'                   => '',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'meta_query'             => $meta_query,
-			)
-		);
+		$all_ids    = array();
+		$batch_size = (int) apply_filters( 'translatesense_recovery_products_batch_size', 100 );
+		$batch_size = max( 10, min( 500, $batch_size ) );
+		$page       = 1;
+		$max_pages  = (int) apply_filters( 'translatesense_recovery_products_max_pages', 20 );
 
-		return is_array( $ids ) ? array_map( 'absint', $ids ) : array();
+		do {
+			$batch = get_posts(
+				array(
+					'post_type'              => 'product',
+					'post_status'            => 'any',
+					'posts_per_page'         => $batch_size,
+					'paged'                  => $page,
+					'fields'                 => 'ids',
+					'lang'                   => '',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'meta_query'             => $meta_query,
+				)
+			);
+
+			if ( empty( $batch ) || ! is_array( $batch ) ) {
+				break;
+			}
+
+			foreach ( $batch as $id ) {
+				$all_ids[] = absint( $id );
+			}
+
+			if ( count( $batch ) < $batch_size ) {
+				break;
+			}
+
+			$page++;
+		} while ( $page <= $max_pages );
+
+		return $all_ids;
 	}
 }
