@@ -12,6 +12,7 @@ use TranslateSense\Includes\Integrations\Polylang\Polylang_Synchronizer;
 use TranslateSense\Includes\Translation\Media\Media_Translator;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 use TranslateSense\Includes\Admin\Editor_Integration;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\WC\WC_Integration;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
@@ -164,9 +165,8 @@ abstract class Base_Builder {
 		$is_existing      = $existing_post_id > 0 && $existing_post_id !== $post_id;
 		Polylang_Synchronizer::reset_media_tracking();
 
-		$settings      = get_option( 'translatesense_settings', array() );
-		$raw_slug_mode = ! empty( $settings['slug_translation'] ) ? sanitize_key( (string) $settings['slug_translation'] ) : 'slug_translate';
-		$slug_mode     = in_array( $raw_slug_mode, array( 'keep_orignal', 'title_based', 'slug_translate' ), true ) ? $raw_slug_mode : 'slug_translate';
+		$settings  = get_option( 'translatesense_settings', array() );
+		$slug_mode = Utils::get_slug_translation( is_array( $settings ) ? $settings : array() );
 
 		$raw_post_status  = ! empty( $settings['post_status'] ) ? sanitize_key( (string) $settings['post_status'] ) : 'draft';
 		$bulk_post_status = in_array( $raw_post_status, array( 'publish', 'draft' ), true ) ? $raw_post_status : 'draft';

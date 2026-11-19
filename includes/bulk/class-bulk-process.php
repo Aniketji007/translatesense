@@ -1198,9 +1198,7 @@ class Bulk_Process {
 			}
 
 			// Extract pure strings indexed by array index
-			$settings         = get_option( 'translatesense_settings', array() );
-			$raw_slug_trans   = ! empty( $settings['slug_translation'] ) ? sanitize_key( (string) $settings['slug_translation'] ) : 'slug_translate';
-			$slug_translation = in_array( $raw_slug_trans, array( 'keep_orignal', 'title_based', 'slug_translate' ), true ) ? $raw_slug_trans : 'slug_translate';
+			$slug_translation = Utils::get_slug_translation();
 			$strings_to_send  = array();
 			$total_chars      = 0;
 

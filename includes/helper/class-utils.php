@@ -25,6 +25,20 @@ class Utils {
 	const BROWSER_PROVIDERS = array( 'chrome_ai', 'chrome_local_ai', 'edge_ai' );
 
 	/**
+	 * Supported slug translation modes.
+	 *
+	 * @var string[]
+	 */
+	const SLUG_TRANSLATION_MODES = array( 'keep_orignal', 'title_based', 'slug_translate' );
+
+	/**
+	 * Default slug translation mode.
+	 *
+	 * @var string
+	 */
+	const DEFAULT_SLUG_TRANSLATION = 'slug_translate';
+
+	/**
 	 * Check whether a provider executes on the client/browser side.
 	 *
 	 * @param string $provider Provider slug.
@@ -52,6 +66,25 @@ class Utils {
 			: '';
 
 		return '' !== $saved ? $saved : 'openai';
+	}
+
+	/**
+	 * Retrieve and validate the slug translation setting.
+	 *
+	 * @param array $settings Optional settings array.
+	 * @return string Sanitized slug translation mode ('keep_orignal', 'title_based', or 'slug_translate').
+	 */
+	public static function get_slug_translation( array $settings = array() ): string {
+		if ( empty( $settings ) ) {
+			$saved    = get_option( 'translatesense_settings', array() );
+			$settings = is_array( $saved ) ? $saved : array();
+		}
+
+		$raw = isset( $settings['slug_translation'] ) && ! empty( $settings['slug_translation'] )
+			? sanitize_key( (string) $settings['slug_translation'] )
+			: self::DEFAULT_SLUG_TRANSLATION;
+
+		return in_array( $raw, self::SLUG_TRANSLATION_MODES, true ) ? $raw : self::DEFAULT_SLUG_TRANSLATION;
 	}
 
 	/**

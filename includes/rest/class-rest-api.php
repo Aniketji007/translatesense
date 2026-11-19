@@ -3250,9 +3250,7 @@ class Rest_Api {
 
 		$settings['default_prompt'] = Translate::DEFAULT_PROMPT;
 
-		$settings['slug_translation'] = ( isset( $settings['slug_translation'] ) && in_array( sanitize_key( (string) $settings['slug_translation'] ), array( 'keep_orignal', 'title_based', 'slug_translate' ), true ) )
-			? sanitize_key( (string) $settings['slug_translation'] )
-			: 'slug_translate';
+		$settings['slug_translation'] = Utils::get_slug_translation( $settings );
 
 		$settings['post_status'] = ( isset( $settings['post_status'] ) && in_array( sanitize_key( (string) $settings['post_status'] ), array( 'publish', 'draft' ), true ) )
 			? sanitize_key( (string) $settings['post_status'] )
@@ -3593,9 +3591,7 @@ class Rest_Api {
 		}
 
 		if ( isset( $input['slug_translation'] ) ) {
-			$allowed_slug_trans          = array( 'keep_orignal', 'title_based', 'slug_translate' );
-			$val                         = sanitize_key( (string) $input['slug_translation'] );
-			$updated['slug_translation'] = in_array( $val, $allowed_slug_trans, true ) ? $val : 'slug_translate';
+			$updated['slug_translation'] = Utils::get_slug_translation( array( 'slug_translation' => $input['slug_translation'] ) );
 		}
 
 		if ( isset( $input['post_status'] ) ) {
