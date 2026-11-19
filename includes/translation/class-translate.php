@@ -885,4 +885,43 @@ class Translate {
 
 		return str_replace( array_keys( $replacements ), array_values( $replacements ), $template );
 	}
+
+	/**
+	 * Translate slug based on the slug translation setting.
+	 *
+	 * @param string $slug        Original post, taxonomy, or media slug.
+	 * @param string $title       Translated post title, taxonomy name, or media title.
+	 * @param string $source_lang Source language of the post, taxonomy, or media.
+	 * @param string $target_lang Target language to translate slug to.
+	 * @param array  $custom_opts Custom options for translation.
+	 * @param string $key         Type of the field to translate.
+	 * @return string
+	 */
+	public static function translate_slug( string $slug, string $title, string $source_lang, string $target_lang, array $custom_opts = array(), string $key = 'post_name' ): string {
+		$mode = Utils::get_slug_translation();
+
+		if ( 'keep_orignal' === $mode ) {
+			return empty( trim( $slug ) ) ? $title : $slug;
+		} elseif ( 'title_based' === $mode ) {
+			return empty( trim( $title ) ) ? $slug : $title;
+		} elseif ( 'slug_translate' === $mode ) {
+			if ( empty( trim( $slug ) ) ) {
+				return '';
+			}
+
+			$res = self::translate_string(
+				$slug,
+				$source_lang,
+				$target_lang,
+				$key,
+				$custom_opts
+			);
+
+			$slug = ! empty( $res['translated'] ) ? (string) $res['translated'] : $slug;
+
+			return $slug;
+		}
+
+		return '';
+	}
 }
