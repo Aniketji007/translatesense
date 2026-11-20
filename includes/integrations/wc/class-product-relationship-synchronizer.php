@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TranslateSense\Includes\Integrations\WC;
 
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use WC_Product;
 
@@ -112,7 +113,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 			self::sync_target_product_relationships( $source_product, $target_product, $target_lang );
 
 			// B. Reverse relationship synchronization: update existing translated products referencing this source product.
-			self::sync_reverse_relationships( $source_post_id, $target_post_id, $target_lang );
+			self::sync_reverse_relationships( $source_post_id, $target_post_id, $target_lang, $context );
 		} finally {
 			self::$syncing = false;
 		}
@@ -322,11 +323,15 @@ class Product_Relationship_Synchronizer extends WC_Base {
 	 * @param int    $source_post_id Source product ID.
 	 * @param int    $target_post_id Target translated product ID.
 	 * @param string $target_lang    Target language slug.
+	 * @param array  $context        Execution context including user_id and enforce_permissions.
 	 */
-	private static function sync_reverse_relationships( int $source_post_id, int $target_post_id, string $target_lang ): void {
+	private static function sync_reverse_relationships( int $source_post_id, int $target_post_id, string $target_lang, array $context = array() ): void {
 		if ( $source_post_id <= 0 || $target_post_id <= 0 || '' === $target_lang ) {
 			return;
 		}
+
+		$user_id             = ( array_key_exists( 'user_id', $context ) && null !== $context['user_id'] ) ? (int) $context['user_id'] : null;
+		$enforce_permissions = array_key_exists( 'enforce_permissions', $context ) ? (bool) $context['enforce_permissions'] : true;
 
 		// Find products referencing source_post_id in upsells, cross-sells, or grouped children in manageable batches
 		$candidate_ids = array();
@@ -395,7 +400,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 				break;
 			}
 
-			$page++;
+			++$page;
 		} while ( $page <= $max_pages );
 
 		if ( empty( $candidate_ids ) ) {
@@ -440,6 +445,22 @@ class Product_Relationship_Synchronizer extends WC_Base {
 
 			// Confirm that the target product belongs to the target language
 			if ( Polylang_Bridge::get_post_language( $target_to_update_id ) !== $target_lang ) {
+				continue;
+			}
+
+			// Check object-level edit permissions on the referencing product.
+			$can_edit = ! $enforce_permissions || Utils::user_has_cap( $user_id, 'edit_post', $target_to_update_id );
+
+			/**
+			 * Filters whether the user has permission to update reverse relationships on a product.
+			 *
+			 * @param bool     $can_edit            Whether the update is permitted.
+			 * @param int      $target_to_update_id Referencing product ID being updated.
+			 * @param int      $source_post_id      Source product ID being referenced.
+			 * @param int|null $user_id             Acting user ID.
+			 */
+			$can_edit = (bool) apply_filters( 'translatesense_reverse_relationship_can_edit', $can_edit, $target_to_update_id, $source_post_id, $user_id );
+			if ( ! $can_edit ) {
 				continue;
 			}
 
@@ -794,7 +815,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 				break;
 			}
 
-			$page++;
+			++$page;
 		} while ( $page <= $max_pages );
 
 		return $all_ids;

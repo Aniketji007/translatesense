@@ -404,6 +404,15 @@ class Media_Translator {
 		if ( '' === $att_lang ) {
 			$default_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
 			if ( '' !== $post_lang && $post_lang === $default_lang ) {
+				$user_id             = ( array_key_exists( 'user_id', $options ) && null !== $options['user_id'] ) ? (int) $options['user_id'] : null;
+				$enforce_permissions = array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true;
+
+				if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'edit_post', $source_thumbnail_id ) ) {
+					/* translators: %d: attachment ID */
+					$result['warning'] = sprintf( __( 'Featured image %d skipped: insufficient permissions to update attachment language.', 'translatesense' ), $source_thumbnail_id );
+					return $result;
+				}
+
 				Polylang_Bridge::set_post_language( $source_thumbnail_id, $default_lang );
 				$att_lang = $default_lang;
 			} else {
@@ -495,6 +504,9 @@ class Media_Translator {
 		$post_lang    = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) ) ?: sanitize_key( $source_lang );
 		$default_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
 
+		$user_id             = ( array_key_exists( 'user_id', $options ) && null !== $options['user_id'] ) ? (int) $options['user_id'] : null;
+		$enforce_permissions = array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true;
+
 		$resolved_map     = array();
 		$to_translate_ids = array();
 		$warnings         = array();
@@ -521,6 +533,11 @@ class Media_Translator {
 			// 3. Ensure language is assigned in Polylang
 			if ( '' === $att_lang ) {
 				if ( '' !== $post_lang && $post_lang === $default_lang ) {
+					if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'edit_post', $attachment_id ) ) {
+						/* translators: %d: attachment ID */
+						$warnings[] = sprintf( __( 'Gallery image %d skipped: insufficient permissions to update attachment language.', 'translatesense' ), $attachment_id );
+						continue;
+					}
 					Polylang_Bridge::set_post_language( $attachment_id, $default_lang );
 					$att_lang = $default_lang;
 				} else {
@@ -763,7 +780,7 @@ class Media_Translator {
 
 			$target_post = get_post( $target_id );
 
-			$unique_slug = $target_post->post_name;
+			$unique_slug = ( $target_post instanceof WP_Post ) ? $target_post->post_name : '';
 
 			$target_slug = sanitize_title( Translate::translate_slug( $source_attachment->post_name, $translated_title, $actual_source_lang, $target_lang, $custom_opts, 'media_attachment' ) );
 
