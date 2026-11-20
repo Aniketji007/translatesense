@@ -646,7 +646,7 @@ class Ai_Connector_Bridge {
 	 * @param array  $keys
 	 * @return array<string|int, string>|null
 	 */
-	private function parse_batch_json_response( string $raw_json, array $keys ): ?array {
+	private function parse_batch_json_response( string $raw_json, array $keys ) {
 		$clean_json = trim( $raw_json );
 
 		// Strip markdown code fences (```json ... ```)
@@ -663,6 +663,14 @@ class Ai_Connector_Bridge {
 
 		$translations_seq = array_values( $decoded['translations'] );
 		$mapped           = array();
+
+		if ( count( $keys ) !== count( $translations_seq ) ) {
+			return new WP_Error(
+				'wp_ai_json_parse_error',
+				sprintf( /* translators: %1$d: Number of translations, %2$d: Number of keys, %3$s: Response */ __( 'Number of translations (%1$d) does not match the number of input keys (%2$d). Returned response: %3$s', 'translatesense' ), count( $translations_seq ), count( $keys ), $clean_json ),
+				array( 'status' => 422 )
+			);
+		}
 
 		foreach ( $keys as $i => $orig_key ) {
 			if ( isset( $translations_seq[ $i ] ) ) {
