@@ -212,15 +212,6 @@ export function BulkApp() {
           setIsPrevRunningMode(true);
           setSelectedPostIds([]);
           setIsOpen(true);
-          translationState.openBatchMonitor(
-            null,
-            null,
-            null,
-            {
-              sessionType: 'existing_queue',
-              modalSource: 'bulk_button',
-            }
-          );
           return;
         }
 

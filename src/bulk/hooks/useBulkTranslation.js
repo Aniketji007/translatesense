@@ -139,20 +139,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       }
     });
 
-    if (!isStandaloneRuntime) {
-      getActiveBatches()
-        .then((res) => {
-          if (!mounted) return;
-          const batches = (res && res.batches) || [];
-          setActiveBatches(batches);
-          if (batches.length > 0 && !currentBatchId) {
-            setCurrentBatchId(batches[0].batch_id);
-            setCurrentBatch(batches[0]);
-          }
-        })
-        .catch(() => { });
-    }
-
     return () => {
       mounted = false;
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
