@@ -261,6 +261,12 @@ class Translate {
 		 */
 		if ( ! self::contains_html_markup( $source_string ) ) {
 
+			$sanitized_value = sanitize_text_field( $translated_string );
+
+			if ( $sanitized_value === $translated_string ) {
+				return $sanitized_value;
+			}
+
 			$filtered_string = wp_strip_all_tags(
 				$translated_string,
 				false
