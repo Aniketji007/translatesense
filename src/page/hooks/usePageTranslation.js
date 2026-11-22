@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from '@wordpress/element';
 import { getEvaluatedProviders } from '../../services/providers/providerService';
-import { extractPostStrings, markPostTranslated, translatePostServer } from '../services/pageTranslationService';
+import { extractPostStrings, markPostTranslated } from '../services/pageTranslationService';
 import { getCoreInstance } from '../../services/core/coreService';
 import { parseHideReviewNotice } from '../../services/api/reviewService';
 import { isEmailOrUrl } from '../../utils/validation';
