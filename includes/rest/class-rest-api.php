@@ -768,7 +768,7 @@ class Rest_Api {
 				'callback'            => array( __CLASS__, 'mark_translated' ),
 				'permission_callback' => array( __CLASS__, 'permission_mark_translated' ),
 				'args'                => array(
-					'post_id'          => array(
+					'post_id'               => array(
 						'required'          => true,
 						'type'              => 'integer',
 						'sanitize_callback' => 'absint',
@@ -776,35 +776,39 @@ class Rest_Api {
 							return absint( $value ) > 0;
 						},
 					),
-					'status'           => array(
+					'status'                => array(
 						'required'          => false,
 						'type'              => 'string',
 						'default'           => 'success',
 						'sanitize_callback' => 'sanitize_key',
 					),
-					'total_characters' => array(
+					'total_characters'      => array(
 						'required'          => false,
 						'type'              => 'integer',
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
 					),
-					'total_strings'    => array(
+					'total_strings'         => array(
 						'required'          => false,
 						'type'              => 'integer',
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
 					),
-					'provider'         => array(
+					'provider'              => array(
 						'required'          => false,
 						'type'              => 'string',
 						'default'           => '',
 						'sanitize_callback' => 'sanitize_key',
 					),
-					'time_take'        => array(
+					'time_take'             => array(
 						'required'          => false,
 						'type'              => 'integer',
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
+					),
+					'in_memory_translation' => array(
+						'required' => false,
+						'default'  => array(),
 					),
 				),
 			)
@@ -4572,10 +4576,76 @@ class Rest_Api {
 			);
 		}
 
+		// Receive and validate in_memory_translation parameter.
+		$raw_in_memory             = $request->get_param( 'in_memory_translation' );
+		$in_memory_translation     = is_array( $raw_in_memory ) ? $raw_in_memory : array();
+		$filter_memory_translation = array();
+
+		// Use $source_id from '_translatesense_source_id' if available, falling back to $post_id.
+		$source_id      = absint( get_post_meta( $post_id, '_translatesense_source_id', true ) );
+		$source_post_id = $source_id > 0 ? $source_id : $post_id;
+		$source_post    = get_post( $source_post_id );
+
+		if ( ! empty( $in_memory_translation ) && $source_post instanceof \WP_Post ) {
+			$editor_type    = Content_Parser::detect_builder( $source_post->post_content, $source_post_id );
+			$user_rules     = Xml_Engine::get_user_custom_field_rules( $editor_type );
+			$fields         = Custom_Field_Parser::get_post_fields( $source_post_id, $editor_type );
+			$resolved_rules = Custom_Field_Rule_Resolver::resolve_all_rules( $fields, $user_rules );
+			$strings        = Custom_Field_Parser::extract_strings(
+				$source_post_id,
+				$fields,
+				$resolved_rules
+			);
+
+			foreach ( $strings as $cf_item ) {
+				$path          = (string) ( $cf_item['path'] ?? '' );
+				$value         = (string) ( $cf_item['value'] ?? ( $cf_item['raw_value'] ?? '' ) );
+				$source_string = (string) ( $cf_item['source_value'] ?? ( $cf_item['value'] ?? ( $cf_item['raw_value'] ?? '' ) ) );
+
+				$package_hash = Hashing_Db::generate_hash(
+					'custom_field_' . $path,
+					$value
+				);
+
+				if ( isset( $in_memory_translation[ $package_hash ] ) ) {
+					$translated_value = (string) $in_memory_translation[ $package_hash ];
+					$filtered_value   = Translate::sanitize_translated_text(
+						$source_string,
+						$translated_value
+					);
+
+					if ( '' !== trim( $filtered_value ) && $filtered_value !== $source_string ) {
+						$filter_memory_translation[ $package_hash ] = $filtered_value;
+					}
+				}
+			}
+
+			// Handle Translated Post Name.
+			$post_name = (string) $source_post->post_name;
+			if ( '' !== trim( $post_name ) ) {
+				$slug_hash = Hashing_Db::generate_hash(
+					'post_name',
+					$post_name
+				);
+
+				if ( isset( $in_memory_translation[ $slug_hash ] ) ) {
+					$translated_slug = (string) $in_memory_translation[ $slug_hash ];
+					$filtered_value  = sanitize_title( (string) $translated_slug );
+
+					if ( '' !== trim( $filtered_value ) && $filtered_value !== $post_name ) {
+						$filter_memory_translation[ $slug_hash ] = $filtered_value;
+					}
+				}
+			}
+		}
+
 		update_post_meta(
 			$post_id,
 			'_translatesense_translation_update_pending',
-			$post_id
+			array(
+				'post_id'               => $post_id,
+				'in_memory_translation' => $filter_memory_translation,
+			)
 		);
 
 		// Extract and sanitize translation statistics parameters.
