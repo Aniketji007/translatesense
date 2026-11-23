@@ -211,19 +211,13 @@ class Translate {
 	/**
 	 * Sanitize translated text.
 	 *
-	 * @param string $text
+	 * @param string $source_string - source string.
+	 * @param string $translated_string - translated string.
 	 * @return string
 	 */
-
-	/**
-	 * Sanitize translated text nodes and replace them in the original HTML.
-	 *
-	 * Original HTML tags and attributes are preserved.
-	 *
-	 * @param string $source_string     Original HTML.
-	 * @param string $translated_string Translated HTML with matching structure.
-	 * @return string
-	 */
+	public static function sanitize_translated_text( string $source_string, string $translated_string ) {
+		return self::sanitize_string( $source_string, $translated_string );
+	}
 
 	/**
 	 * Sanitize translated content while preserving source formatting.
