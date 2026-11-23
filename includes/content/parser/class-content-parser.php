@@ -13,6 +13,7 @@ use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
+use TranslateSense\Includes\Translation\Custom_Fields\Custom_Field_Translator;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -53,13 +54,18 @@ class Content_Parser {
 	private static $finalized_posts = array();
 
 	/**
+	 * Private clean updated post ids cache
+	 *
+	 * @var array<int, bool>
+	 */
+	private static $clean_updated_ids = array();
+
+	/**
 	 * Initialize the Content Parser subsystem and register hooks.
 	 */
 	public static function init(): void {
 		self::init_builders();
-
 		// Hook before post update to capture existing post_content before it is overwritten in DB
-		add_action( 'pre_post_update', array( __CLASS__, 'capture_pre_post_content' ), 10, 2 );
 		add_action( 'post_updated', array( __CLASS__, 'capture_post_updated' ), 10, 3 );
 
 		// Hook into post save lifecycle to check for content modifications
@@ -67,25 +73,9 @@ class Content_Parser {
 
 		// Hook into elementor post save lifecycle to check for element modifications
 		add_action( 'elementor/document/before_save', array( __CLASS__, 'handle_elementor_save_post' ), 10, 2 );
-		add_action( 'elementor/document/after_save', array( __CLASS__, 'handle_elementor_after_save_post' ), 10, 2 );
 
 		// Hook into permanent post deletion lifecycle to purge package data
 		add_action( 'before_delete_post', array( __CLASS__, 'handle_delete_post' ), 10, 1 );
-	}
-
-	/**
-	 * Capture existing post_content before WordPress updates the database record.
-	 *
-	 * @param int   $post_id Post ID being updated.
-	 * @param array $data    Array of post data (optional).
-	 */
-	public static function capture_pre_post_content( int $post_id, array $data = array() ): void {
-		if ( ! isset( self::$existing_post_content[ $post_id ] ) ) {
-			$post = get_post( $post_id );
-			if ( $post && isset( $post->post_content ) ) {
-				self::$existing_post_content[ $post_id ] = (string) $post->post_content;
-			}
-		}
 	}
 
 	/**
@@ -360,7 +350,6 @@ class Content_Parser {
 	 * @param array                                                            $data     Post data
 	 */
 	public static function handle_elementor_save_post( $document, $data ): void {
-
 		if ( ! isset( $data ) || ! is_array( $data ) || count( $data ) === 0 ) {
 			return;
 		}
@@ -370,6 +359,8 @@ class Content_Parser {
 		}
 
 		$post_id = (int) $document->get_id();
+
+		self::finalize_pending_translation( $post_id );
 
 		if ( ! self::is_save_package( $post_id ) ) {
 			return;
@@ -429,34 +420,6 @@ class Content_Parser {
 	}
 
 	/**
-	 * Handle Elementor document after save action.
-	 * Finalizes pending translation metadata only after Elementor has successfully persisted the document.
-	 *
-	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document|mixed $document Elementor document.
-	 * @param array|null                                                             $data     Post data.
-	 */
-	public static function handle_elementor_after_save_post( $document, $data = null ): void {
-		if ( ! $document || ! is_object( $document ) || ! method_exists( $document, 'get_id' ) ) {
-			return;
-		}
-
-		if ( method_exists( $document, 'is_autosave' ) && $document->is_autosave() ) {
-			return;
-		}
-
-		if ( method_exists( $document, 'is_revision' ) && $document->is_revision() ) {
-			return;
-		}
-
-		$post_id = (int) $document->get_id();
-		if ( $post_id <= 0 ) {
-			return;
-		}
-
-		self::finalize_pending_translation( $post_id );
-	}
-
-	/**
 	 * Finalize pending translation metadata if pending flag is set.
 	 *
 	 * @param int $post_id Post ID.
@@ -465,6 +428,10 @@ class Content_Parser {
 	private static function finalize_pending_translation( int $post_id ): bool {
 		if ( $post_id <= 0 ) {
 			return false;
+		}
+
+		if ( isset( self::$clean_updated_ids[ $post_id ] ) ) {
+			return self::$clean_updated_ids[ $post_id ];
 		}
 
 		// 3. Exclude autosaves and revisions.
@@ -477,20 +444,55 @@ class Content_Parser {
 			return false;
 		}
 
-		// 2. Check whether _translatesense_translation_update_pending exists and has the value 1.
+		// 2. Check whether _translatesense_translation_update_pending exists.
 		if ( ! metadata_exists( 'post', $post_id, '_translatesense_translation_update_pending' ) ) {
 			return false;
 		}
 
 		$pending = get_post_meta( $post_id, '_translatesense_translation_update_pending', true );
-		if ( $post_id !== (int) $pending ) {
-			return false;
+		if ( empty( $pending ) ) {
+			return self::clean_pending_meta_key( false, $post_id );
 		}
 
-		// 4. Confirm that the post exists.
+		// 3. Confirm that the post exists.
 		$post = get_post( $post_id );
 		if ( ! $post || ! ( $post instanceof \WP_Post ) ) {
-			return false;
+			return self::clean_pending_meta_key( false, $post_id );
+		}
+
+		$pending_memory_translations = array();
+		if ( is_array( $pending ) ) {
+			if ( ! isset( $pending['post_id'] ) || $post_id !== (int) $pending['post_id'] ) {
+				return self::clean_pending_meta_key( false, $post_id );
+			}
+			$pending_memory_translations = isset( $pending['in_memory_translation'] ) && is_array( $pending['in_memory_translation'] ) ? $pending['in_memory_translation'] : array();
+		} elseif ( ! is_int( $pending ) || $post_id !== (int) $pending ) {
+			return self::clean_pending_meta_key( false, $post_id );
+		}
+
+		// Identify the source and target posts:
+		$source_id   = absint( get_post_meta( $post_id, '_translatesense_source_id', true ) );
+		$source_post = $source_id > 0 ? get_post( $source_id ) : null;
+
+		if ( $source_id > 0 && $source_post instanceof \WP_Post ) {
+			$source_lang = Polylang_Bridge::get_post_language( $source_id );
+			$target_lang = Polylang_Bridge::get_post_language( $post_id );
+
+			if ( ! empty( $target_lang ) ) {
+				$is_existing = true;
+				$custom_opts = array(
+					'in_memory_translations' => $pending_memory_translations,
+				);
+
+				Custom_Field_Translator::apply_target_metadata(
+					$source_id,
+					$post_id,
+					$source_lang,
+					$target_lang,
+					$is_existing,
+					$custom_opts
+				);
+			}
 		}
 
 		// 5. Update _translatesense_translated to 1.
@@ -499,12 +501,26 @@ class Content_Parser {
 		// 6. Delete _translatesense_translation_update_pending only after the translated status has been successfully persisted.
 		$stored_translated = get_post_meta( $post_id, '_translatesense_translated', true );
 		if ( $post_id === (int) $stored_translated ) {
-			delete_post_meta( $post_id, '_translatesense_translation_update_pending' );
-			self::$finalized_posts[ $post_id ] = true;
-			return true;
+			$status                            = self::clean_pending_meta_key( true, $post_id );
+			self::$finalized_posts[ $post_id ] = $status;
+			return $status;
 		}
 
-		return false;
+		return self::clean_pending_meta_key( false, $post_id );
+	}
+
+	/**
+	 * Clean pending translation metadata.
+	 *
+	 * @param bool $status True if cleaned, false otherwise.
+	 * @param int  $post_id Post ID.
+	 *
+	 * @return bool True if cleaned, false otherwise.
+	 */
+	private static function clean_pending_meta_key( bool $status, int $post_id ): bool {
+		self::$clean_updated_ids[ $post_id ] = $status;
+		delete_post_meta( $post_id, '_translatesense_translation_update_pending' );
+		return $status;
 	}
 
 	/**
