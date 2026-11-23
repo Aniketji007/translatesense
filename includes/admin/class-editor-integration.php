@@ -203,7 +203,7 @@ class Editor_Integration {
 
 		if ( metadata_exists( 'post', $post_id, '_translatesense_translation_update_pending' ) ) {
 			$pending = get_post_meta( $post_id, '_translatesense_translation_update_pending', true );
-			if ( $post_id === (int) $pending ) {
+			if ( isset( $pending ) && ! empty( $pending ) ) {
 				delete_post_meta( $post_id, '_translatesense_translation_update_pending' );
 			}
 		}
