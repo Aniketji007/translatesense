@@ -14,6 +14,8 @@ use TranslateSense\Includes\Content\Parser\Dom_Filter;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\AI\Ai_Connector_Bridge;
 use TranslateSense\Includes\Helper\Utils;
+use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
+use TranslateSense\Includes\Translation\Custom_Fields\Custom_Field_Translator;
 use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -886,9 +888,9 @@ class Translate {
 		$mode = Utils::get_slug_translation();
 
 		if ( 'keep_orignal' === $mode ) {
-			return empty( trim( $slug ) ) ? $title : $slug;
+			return empty( trim( $slug ) ) ? Dom_Filter::decode_html_string( $title ) : Dom_Filter::decode_html_string( $slug );
 		} elseif ( 'title_based' === $mode ) {
-			return empty( trim( $title ) ) ? $slug : $title;
+			return empty( trim( $title ) ) ? Dom_Filter::decode_html_string( $slug ) : Dom_Filter::decode_html_string( $title );
 		} elseif ( 'slug_translate' === $mode ) {
 			if ( empty( trim( $slug ) ) ) {
 				return '';
@@ -904,9 +906,51 @@ class Translate {
 
 			$slug = ! empty( $res['translated'] ) ? (string) $res['translated'] : $slug;
 
-			return $slug;
+			return Dom_Filter::decode_html_string( $slug );
 		}
 
 		return '';
+	}
+
+	public static function update_pending_translation( int $source_id, int $post_id, array $custom_opts ) {
+		$source_lang = Polylang_Bridge::get_post_language( $source_id );
+		$target_lang = Polylang_Bridge::get_post_language( $post_id );
+		$is_existing = true;
+
+		$front_page_id = absint( get_option( 'page_on_front' ) );
+
+		if ( $front_page_id && in_array( $front_page_id, array( $source_id, $post_id ) ) ) {
+			$post_name           = get_post_field( 'post_name', $post_id );
+			$elementor_post_name = 'elementor-' . $post_id;
+
+			if ( $post_name === $elementor_post_name ) {
+				$source_post_title = get_the_title( $source_id );
+				$source_title_hash = Hashing_Db::generate_hash( 'post_title', $source_post_title );
+
+				if ( isset( $custom_opts['in_memory_translations'][ $source_title_hash ] ) ) {
+					$translated_title = $custom_opts['in_memory_translations'][ $source_title_hash ];
+
+					if ( ! empty( $translated_title ) ) {
+						wp_update_post(
+							array(
+								'ID'        => $post_id,
+								'post_name' => sanitize_title( $translated_title ),
+							)
+						);
+					}
+				}
+
+				Polylang_Bridge::clear_static_page_cache();
+			}
+		}
+
+		Custom_Field_Translator::apply_target_metadata(
+			$source_id,
+			$post_id,
+			$source_lang,
+			$target_lang,
+			$is_existing,
+			$custom_opts
+		);
 	}
 }
