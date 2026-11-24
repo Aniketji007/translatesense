@@ -124,7 +124,12 @@ class Detector {
 			if ( $post && self::POST_TYPE === $post->post_type && 'trash' !== $post->post_status ) {
 
 				if ( 'elementor' === $builder && 'publish' !== $post->post_status ) {
-					wp_update_post( array( 'ID' => $post->ID, 'post_status' => 'publish' ) );
+					wp_update_post(
+						array(
+							'ID'          => $post->ID,
+							'post_status' => 'publish',
+						)
+					);
 				}
 				return (int) $post->ID;
 			}
@@ -148,7 +153,12 @@ class Detector {
 			$post = get_post( (int) $builder_ids[ $builder ] );
 			if ( $post && self::POST_TYPE === $post->post_type && 'trash' !== $post->post_status ) {
 				if ( 'elementor' === $builder && 'publish' !== $post->post_status ) {
-					wp_update_post( array( 'ID' => $post->ID, 'post_status' => 'publish' ) );
+					wp_update_post(
+						array(
+							'ID'          => $post->ID,
+							'post_status' => 'publish',
+						)
+					);
 				}
 				return (int) $post->ID;
 			}
@@ -168,7 +178,12 @@ class Detector {
 		if ( ! empty( $existing_sandbox ) ) {
 			$sandbox_id = (int) $existing_sandbox[0]->ID;
 			if ( 'elementor' === $builder && 'publish' !== $existing_sandbox[0]->post_status ) {
-				wp_update_post( array( 'ID' => $sandbox_id, 'post_status' => 'publish' ) );
+				wp_update_post(
+					array(
+						'ID'          => $sandbox_id,
+						'post_status' => 'publish',
+					)
+				);
 			}
 		} else {
 			$inserted_id = wp_insert_post(
@@ -368,7 +383,7 @@ class Detector {
 					continue;
 				}
 
-				$attrs = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
+				$attrs     = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
 				$extracted = self::extract_translatable_gutenberg_attrs( $attrs, false );
 				if ( ! empty( $extracted ) ) {
 					if ( ! isset( $found_items[ $block_name ] ) ) {

@@ -304,4 +304,3 @@ class Reference_Collector {
 		}
 	}
 }
-

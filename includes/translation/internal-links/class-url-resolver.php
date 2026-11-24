@@ -30,7 +30,7 @@ class URL_Resolver {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$home = home_url();
+		$home             = home_url();
 		$this->home_parts = (array) wp_parse_url( $home );
 	}
 
@@ -134,8 +134,8 @@ class URL_Resolver {
 		$translated_url = null;
 
 		if ( 'post' === $object['type'] || 'media' === $object['type'] ) {
-			$post_id        = (int) $object['id'];
-			$translated_id  = 0;
+			$post_id       = (int) $object['id'];
+			$translated_id = 0;
 
 			if ( $cache->has_post( $post_id, $target_language ) ) {
 				$translated_id = $cache->get_post( $post_id, $target_language );
@@ -419,13 +419,13 @@ class URL_Resolver {
 			$scheme = $parts['scheme'] . '://';
 		}
 
-		$host     = $parts['host'] ?? '';
-		$port     = isset( $parts['port'] ) ? ':' . $parts['port'] : '';
-		$user     = $parts['user'] ?? '';
-		$pass     = isset( $parts['pass'] ) ? ':' . $parts['pass'] : '';
-		$auth     = ( '' !== $user || '' !== $pass ) ? $user . $pass . '@' : '';
-		$path     = isset( $parts['path'] ) ? implode( '/', array_map( 'rawurldecode', explode( '/', (string) $parts['path'] ) ) ) : '';
-		$query    = '';
+		$host  = $parts['host'] ?? '';
+		$port  = isset( $parts['port'] ) ? ':' . $parts['port'] : '';
+		$user  = $parts['user'] ?? '';
+		$pass  = isset( $parts['pass'] ) ? ':' . $parts['pass'] : '';
+		$auth  = ( '' !== $user || '' !== $pass ) ? $user . $pass . '@' : '';
+		$path  = isset( $parts['path'] ) ? implode( '/', array_map( 'rawurldecode', explode( '/', (string) $parts['path'] ) ) ) : '';
+		$query = '';
 		if ( isset( $parts['query'] ) ) {
 			$decoded_query = preg_replace_callback(
 				'/%[0-9a-fA-F]{2}/',
@@ -439,7 +439,7 @@ class URL_Resolver {
 				},
 				(string) $parts['query']
 			);
-			$query = '?' . $decoded_query;
+			$query         = '?' . $decoded_query;
 		}
 		$fragment = isset( $parts['fragment'] ) ? '#' . rawurldecode( (string) $parts['fragment'] ) : '';
 

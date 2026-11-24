@@ -286,4 +286,3 @@ class Reference_Cache {
 		$this->image_cache     = array();
 	}
 }
-
