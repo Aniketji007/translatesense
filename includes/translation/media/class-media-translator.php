@@ -229,9 +229,8 @@ class Media_Translator {
 
 		if ( $job_id > 0 && $attachment_id > 0 ) {
 			global $wpdb;
-			$table = Bulk_Process::get_table_name();
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'media'", $job_id, $attachment_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$table        = Bulk_Process::get_table_name();
+			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'media'", $job_id, $attachment_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 			if ( $valid_job_id > 0 ) {
 				$total_str = count( $batch_values );
@@ -284,9 +283,8 @@ class Media_Translator {
 		$valid_job_id = 0;
 		if ( $job_id > 0 && $primary_id > 0 ) {
 			global $wpdb;
-			$table = Bulk_Process::get_table_name();
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'media'", $job_id, $primary_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$table        = Bulk_Process::get_table_name();
+			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'media'", $job_id, $primary_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		}
 
 		$authorized = self::authorize_attachments( $attachment_ids, $target_lang, $user_id, $enforce_permissions );

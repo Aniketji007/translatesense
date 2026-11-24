@@ -29,6 +29,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 	 * Relationship configurations mapping type to meta key, getter, and setter.
 	 */
 	private const RELATIONSHIP_CONFIGS = array(
+		// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 		'upsell'    => array(
 			'meta_key' => self::META_UPSELL_RECOVERY,
 			'getter'   => 'get_upsell_ids',
@@ -44,6 +45,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 			'getter'   => 'get_children',
 			'setter'   => 'set_children',
 		),
+		// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 	);
 
 	/**
@@ -352,7 +354,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 					'no_found_rows'          => true,
 					'update_post_meta_cache' => false,
 					'update_post_term_cache' => false,
-					'meta_query'             => array(
+					'meta_query'             => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 						'relation' => 'OR',
 						array(
 							'key'     => '_upsell_ids',
@@ -799,7 +801,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 					'no_found_rows'          => true,
 					'update_post_meta_cache' => false,
 					'update_post_term_cache' => false,
-					'meta_query'             => $meta_query,
+					'meta_query'             => $meta_query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				)
 			);
 

@@ -639,8 +639,7 @@ class Bulk_Process {
 				: array( 'id' => $job_id );
 			$retry_where_format = $is_client_driven ? array( '%d', '%s' ) : array( '%d' );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$updated = $wpdb->update(
+			$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$table,
 				$update_data,
 				$retry_where,

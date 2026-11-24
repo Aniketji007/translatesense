@@ -507,7 +507,7 @@ class Ai_Connector_Bridge {
 					return new WP_Error( 'missing_api_key', __( 'OpenAI API key is missing. Please configure it in TranslateSense Settings.', 'translatesense' ), array( 'status' => 401 ) );
 				}
 
-				$url  = 'https://api.openai.com/v1/chat/completions'; // phpcs:ignore fallback if connector not found and for older wp version compatibility.
+				$url  = 'https://api.openai.com/v1/chat/completions'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 				$body = array(
 					'model'           => $model,
 					'messages'        => array(
@@ -572,7 +572,7 @@ class Ai_Connector_Bridge {
 					return new WP_Error( 'missing_api_key', __( 'Google Gemini API key is missing. Please configure it in TranslateSense Settings.', 'translatesense' ), array( 'status' => 401 ) );
 				}
 
-				$url  = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent'; // phpcs:ignore fallback if connector not found and for older wp version compatibility.
+				$url  = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 				$body = array(
 					'contents'         => array(
 						array(
@@ -1104,7 +1104,7 @@ class Ai_Connector_Bridge {
 				}
 
 				$response = wp_remote_get(
-					'https://api.openai.com/v1/models', // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration only for fetch ai models
+					'https://api.openai.com/v1/models', // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 					array(
 						'headers' => array(
 							'Authorization' => 'Bearer ' . $api_key,
@@ -1159,7 +1159,7 @@ class Ai_Connector_Bridge {
 					return array();
 				}
 
-				$url      = 'https://generativelanguage.googleapis.com/v1beta/models'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration only for fetch ai models
+				$url      = 'https://generativelanguage.googleapis.com/v1beta/models'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 				$response = wp_remote_get(
 					$url,
 					array(

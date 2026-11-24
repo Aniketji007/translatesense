@@ -332,9 +332,8 @@ class Taxonomy_Translator {
 		}
 
 		global $wpdb;
-		$table = Bulk_Process::get_table_name();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		$valid_job_id = ( $job_id > 0 && $term_id > 0 ) ? absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $term_id ) ) ) : 0; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table        = Bulk_Process::get_table_name();
+		$valid_job_id = ( $job_id > 0 && $term_id > 0 ) ? absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $term_id ) ) ) : 0; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		if ( $valid_job_id && $valid_job_id > 0 ) {
 			Bulk_Process::update_job(
@@ -539,9 +538,8 @@ class Taxonomy_Translator {
 		$valid_job_id    = 0;
 		if ( $job_id > 0 && $primary_term_id > 0 ) {
 			global $wpdb;
-			$table = Bulk_Process::get_table_name();
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $primary_term_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$table        = Bulk_Process::get_table_name();
+			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $primary_term_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		}
 
 		$authorized_terms = self::build_authorized_terms_list(

@@ -278,7 +278,7 @@ class Product_Attribute_Translator extends WC_Base {
 							'type'         => 'woocommerce',
 							'wc_type'      => 'variation_meta',
 							'variation_id' => $var_id,
-							'meta_key'     => $meta_key,
+							'meta_key'     => $meta_key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 						);
 					}
 				}
