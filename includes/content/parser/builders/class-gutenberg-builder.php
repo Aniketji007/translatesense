@@ -178,7 +178,7 @@ class Gutenberg_Builder extends Base_Builder {
 		$dom = new DOMDocument();
 		libxml_use_internal_errors( true );
 		$wrapped = '<?xml encoding="UTF-8"><body>' . $html . '</body>';
-		$loaded  = $dom->loadHTML( $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+		$loaded  = $dom->loadHTML( $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET );
 		libxml_clear_errors();
 
 		if ( ! $loaded ) {

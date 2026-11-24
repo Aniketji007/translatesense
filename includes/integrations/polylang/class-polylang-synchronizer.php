@@ -418,7 +418,7 @@ class Polylang_Synchronizer {
 				update_post_meta(
 					$target_post_id,
 					sanitize_text_field( $meta_key ),
-					maybe_unserialize( $source_meta[ $meta_key ][0] )
+					self::safe_unserialize_meta( $source_meta[ $meta_key ][0] )
 				);
 			}
 
@@ -1029,5 +1029,33 @@ class Polylang_Synchronizer {
 		return ! empty( self::$context )
 			&& absint( $from ) === (int) self::$context['source_post_id']
 			&& absint( $to ) === (int) self::$context['target_post_id'];
+	}
+
+	/**
+	 * Unserialize metadata values safely without instantiating PHP objects.
+	 *
+	 * @param mixed $value Raw metadata value.
+	 * @return mixed Unserialized value, or the original value when it is not serialized data.
+	 */
+	private static function safe_unserialize_meta( $value ) {
+		if ( ! is_string( $value ) || ! is_serialized( $value ) ) {
+			return $value;
+		}
+
+		$trimmed = trim( $value );
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize, WordPress.PHP.NoSilencedErrors.Discouraged -- Required to safely decode serialized metadata without instantiating PHP objects; malformed data is handled by the return check below.
+		$unserialized = @unserialize(
+			$trimmed,
+			array(
+				'allowed_classes' => false,
+			)
+		);
+
+		if ( false !== $unserialized || 'b:0;' === $trimmed ) {
+			return $unserialized;
+		}
+
+		return $value;
 	}
 }
