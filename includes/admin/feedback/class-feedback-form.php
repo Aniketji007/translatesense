@@ -55,6 +55,13 @@ if ( ! class_exists( 'Feedback_Form' ) ) {
 		private $plugin_version;
 
 		/**
+		 * Temporary feedback payload for the deactivate request.
+		 *
+		 * @var array
+		 */
+		private $feedback_data = array();
+
+		/**
 		 * Get instance.
 		 *
 		 * @return self
