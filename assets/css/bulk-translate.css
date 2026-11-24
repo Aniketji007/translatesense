@@ -1866,13 +1866,6 @@ button.ts-error-detail-btn:hover {
   gap: 6px;
 }
 
-.ts-info-icon-small {
-  color: #94a3b8;
-  font-size: 14px;
-  cursor: help;
-  display: inline-flex;
-}
-
 .ts-bulk-summary-bar {
   align-items: center;
   background: #f8fafc;
@@ -1920,14 +1913,6 @@ button.ts-error-detail-btn:hover {
   width: 1px;
   height: 24px;
   background: #e2e8f0;
-}
-
-.ts-summary-info-tooltip {
-  color: #94a3b8;
-  font-size: 13.5px;
-  cursor: help;
-  margin-left: 2px;
-  display: inline-flex;
 }
 
 .ts-bulk-footer {

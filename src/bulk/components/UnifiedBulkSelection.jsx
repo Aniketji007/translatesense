@@ -273,12 +273,6 @@ export function UnifiedBulkSelection({
       return (
         <div className="ts-badge-with-info">
           <span className="ts-provider-badge on-device-badge">On Device</span>
-          <span
-            className="ts-info-icon-small"
-            title="Runs on-device via Chrome Built-in AI"
-          >
-            ⓘ
-          </span>
         </div>
       );
     }
@@ -622,12 +616,6 @@ export function UnifiedBulkSelection({
             <div className="ts-summary-text">
               <span className="ts-summary-num">{totalJobs}</span>
               <span className="ts-summary-lbl">Translation Jobs</span>
-              <span
-                className="ts-summary-info-tooltip"
-                title={`${postsCount} ${itemPlural} × ${targetLangsCount} target languages = ${totalJobs} jobs`}
-              >
-                ⓘ
-              </span>
             </div>
           </div>
         </div>
