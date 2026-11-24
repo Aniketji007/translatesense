@@ -34,6 +34,7 @@
       if (clean === 'he') return 'iw';
       if (clean === 'nb' || clean === 'nn') return 'no';
       if (clean === 'zh-cn' || clean === 'zh-hans') return 'zh';
+      if (clean === 'zh-hant' || clean === 'zh-tw' || clean === 'zh-hk') return 'zh-hant';
       return clean.split('-')[0];
     },
 
