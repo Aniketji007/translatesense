@@ -5,219 +5,220 @@
 import { useState } from '@wordpress/element';
 import { GuideMethodSelector } from './GuideMethodSelector';
 import { GuideStep } from './GuideStep';
+import { __ } from '@wordpress/i18n';
 
 export const GUIDES_DATA = {
   gutenberg: {
     id: 'gutenberg',
-    title: 'Gutenberg Block Editor Translation',
-    description: 'Follow these simple steps to translate your Gutenberg posts and pages while preserving all blocks and formatting.',
-    importantNote: 'The generated translation is not applied to the page until you click Apply To Page.',
+    title: __( 'Gutenberg Block Editor Translation', 'translatesense' ),
+    description: __( 'Follow these simple steps to translate your Gutenberg posts and pages while preserving all blocks and formatting.', 'translatesense' ),
+    importantNote: __( 'The generated translation is not applied to the page until you click Apply To Page.', 'translatesense' ),
     steps: [
       {
         number: 1,
-        title: 'Open Language Creation',
-        description: 'Navigate to Pages → All Pages and click the + (Add Language) icon in the page row.',
-        screenshot: 'Pages list showing the + (Add Language) icon in Polylang columns',
+        title: __( 'Open Language Creation', 'translatesense' ),
+        description: __( 'Navigate to Pages → All Pages and click the + (Add Language) icon in the page row.', 'translatesense' ),
+        screenshot: __( 'Pages list showing the + (Add Language) icon in Polylang columns', 'translatesense' ),
       },
       {
         number: 2,
-        title: 'Automatic Translation Popup',
-        description: 'Continue using the Automatic Translation – Translate Page Content popup by clicking Continue to Translate.',
-        screenshot: 'Automatic Translation dialog with Continue to Translate button',
+        title: __( 'Automatic Translation Popup', 'translatesense' ),
+        description: __( 'Continue using the Automatic Translation – Translate Page Content popup by clicking Continue to Translate.', 'translatesense' ),
+        screenshot: __( 'Automatic Translation dialog with Continue to Translate button', 'translatesense' ),
       },
       {
         number: 3,
-        title: 'Open Page in Gutenberg',
-        description: 'If the popup does not appear or was closed, open the translated page in Gutenberg.',
+        title: __( 'Open Page in Gutenberg', 'translatesense' ),
+        description: __( 'If the popup does not appear or was closed, open the translated page in Gutenberg.', 'translatesense' ),
       },
       {
         number: 4,
-        title: 'Locate TranslateSense Metabox',
-        description: 'Locate the TranslateSense metabox in the right sidebar, above the Polylang language metabox.',
-        screenshot: 'Right editor sidebar with TranslateSense metabox above Polylang',
+        title: __( 'Locate TranslateSense Metabox', 'translatesense' ),
+        description: __( 'Locate the TranslateSense metabox in the right sidebar, above the Polylang language metabox.', 'translatesense' ),
+        screenshot: __( 'Right editor sidebar with TranslateSense metabox above Polylang', 'translatesense' ),
       },
       {
         number: 5,
-        title: 'Click Auto Translate',
-        description: 'Click Auto Translate to initialize content block extraction.',
+        title: __( 'Click Auto Translate', 'translatesense' ),
+        description: __( 'Click Auto Translate to initialize content block extraction.', 'translatesense' ),
       },
       {
         number: 6,
-        title: 'Select AI Provider & Start',
-        description: 'Select an AI provider and click Start Translation.',
+        title: __( 'Select AI Provider & Start', 'translatesense' ),
+        description: __( 'Select an AI provider and click Start Translation.', 'translatesense' ),
       },
       {
         number: 7,
-        title: 'Wait for Translation',
-        description: 'Wait for translation to finish. Translatable content is mapped and cached strings are reused.',
+        title: __( 'Wait for Translation', 'translatesense' ),
+        description: __( 'Wait for translation to finish. Translatable content is mapped and cached strings are reused.', 'translatesense' ),
       },
       {
         number: 8,
-        title: 'Apply Generated Translation',
-        description: 'Click Apply To Page to apply the generated translation.',
-        note: 'The generated translation is not applied to the page until you click Apply To Page.',
+        title: __( 'Apply Generated Translation', 'translatesense' ),
+        description: __( 'Click Apply To Page to apply the generated translation.', 'translatesense' ),
+        note: __( 'The generated translation is not applied to the page until you click Apply To Page.', 'translatesense' ),
       },
     ],
   },
   classic: {
     id: 'classic',
-    title: 'Classic Editor Translation',
-    description: 'Translate traditional WordPress content, WooCommerce descriptions, and custom post types using the Classic Editor.',
-    importantNote: 'Classic Editor support includes WooCommerce content and supported custom post types.',
+    title: __( 'Classic Editor Translation', 'translatesense' ),
+    description: __( 'Translate traditional WordPress content, WooCommerce descriptions, and custom post types using the Classic Editor.', 'translatesense' ),
+    importantNote: __( 'Classic Editor support includes WooCommerce content and supported custom post types.', 'translatesense' ),
     steps: [
       {
         number: 1,
-        title: 'Open Language Creation',
-        description: 'Navigate to the Pages, Products, or relevant custom post type listing where the content you want to translate is located, then click the + (Add Language) icon in the Polylang columns.',
-        screenshot: 'WordPress content list showing the + (Add Language) icon in Polylang columns',
+        title: __( 'Open Language Creation', 'translatesense' ),
+        description: __( 'Navigate to the Pages, Products, or relevant custom post type listing where the content you want to translate is located, then click the + (Add Language) icon in the Polylang columns.', 'translatesense' ),
+        screenshot: __( 'WordPress content list showing the + (Add Language) icon in Polylang columns', 'translatesense' ),
       },
       {
         number: 2,
-        title: 'Automatic Translation Popup',
-        description: 'Continue using the Automatic Translation popup by clicking Continue to Translate.',
-        screenshot: 'Automatic Translation dialog with Continue to Translate button',
+        title: __( 'Automatic Translation Popup', 'translatesense' ),
+        description: __( 'Continue using the Automatic Translation popup by clicking Continue to Translate.', 'translatesense' ),
+        screenshot: __( 'Automatic Translation dialog with Continue to Translate button', 'translatesense' ),
       },
       {
         number: 3,
-        title: 'Open Content in Classic Editor',
-        description: 'If the popup does not appear or was closed, open the translated content in the Classic Editor.',
+        title: __( 'Open Content in Classic Editor', 'translatesense' ),
+        description: __( 'If the popup does not appear or was closed, open the translated content in the Classic Editor.', 'translatesense' ),
       },
       {
         number: 4,
-        title: 'Locate Auto Translate Button',
-        description: 'Find the TranslateSense Auto Translate button above the Add Media button in the WYSIWYG editor.',
-        screenshot: 'Classic Editor showing the Auto Translate button above Add Media',
+        title: __( 'Locate Auto Translate Button', 'translatesense' ),
+        description: __( 'Find the TranslateSense Auto Translate button above the Add Media button in the WYSIWYG editor.', 'translatesense' ),
+        screenshot: __( 'Classic Editor showing the Auto Translate button above Add Media', 'translatesense' ),
       },
       {
         number: 5,
-        title: 'Click Auto Translate',
-        description: 'Click Auto Translate to initialize content extraction.',
+        title: __( 'Click Auto Translate', 'translatesense' ),
+        description: __( 'Click Auto Translate to initialize content extraction.', 'translatesense' ),
       },
       {
         number: 6,
-        title: 'Select AI Provider & Start',
-        description: 'Select an AI provider and click Start Translation.',
+        title: __( 'Select AI Provider & Start', 'translatesense' ),
+        description: __( 'Select an AI provider and click Start Translation.', 'translatesense' ),
       },
       {
         number: 7,
-        title: 'Wait for Translation',
-        description: 'Wait for translation to finish. Translatable content is mapped and cached strings are reused.',
+        title: __( 'Wait for Translation', 'translatesense' ),
+        description: __( 'Wait for translation to finish. Translatable content is mapped and cached strings are reused.', 'translatesense' ),
       },
       {
         number: 8,
-        title: 'Apply Generated Translation',
-        description: 'Click Apply To Page to apply the generated translation.',
-        note: 'The generated translation is not applied to the page until you click Apply To Page.',
+        title: __( 'Apply Generated Translation', 'translatesense' ),
+        description: __( 'Click Apply To Page to apply the generated translation.', 'translatesense' ),
+        note: __( 'The generated translation is not applied to the page until you click Apply To Page.', 'translatesense' ),
       },
     ],
   },
   elementor: {
     id: 'elementor',
-    title: 'Elementor Page Builder Translation',
-    description: 'Translate visual Elementor layouts, custom widgets, and styled sections seamlessly without losing design hierarchy.',
-    importantNote: 'The generated translation is not applied to the page until you click Apply To Page.',
+    title: __( 'Elementor Page Builder Translation', 'translatesense' ),
+    description: __( 'Translate visual Elementor layouts, custom widgets, and styled sections seamlessly without losing design hierarchy.', 'translatesense' ),
+    importantNote: __( 'The generated translation is not applied to the page until you click Apply To Page.', 'translatesense' ),
     steps: [
       {
         number: 1,
-        title: 'Navigate to Pages',
-        description: 'Navigate to Pages → All Pages and click + (Add Language).',
+        title: __( 'Navigate to Pages', 'translatesense' ),
+        description: __( 'Navigate to Pages → All Pages and click + (Add Language).', 'translatesense' ),
       },
       {
         number: 2,
-        title: 'Continue via Popup',
-        description: 'Continue using the initial automatic translation popup.',
+        title: __( 'Continue via Popup', 'translatesense' ),
+        description: __( 'Continue using the initial automatic translation popup.', 'translatesense' ),
       },
       {
         number: 3,
-        title: 'Open Page in Elementor',
-        description: 'If the popup does not appear or was closed, open page in Elementor Editor.',
+        title: __( 'Open Page in Elementor', 'translatesense' ),
+        description: __( 'If the popup does not appear or was closed, open page in Elementor Editor.', 'translatesense' ),
       },
       {
         number: 4,
-        title: 'Locate Header Button',
-        description: 'Locate Auto Translate in the Elementor editor header.',
-        screenshot: 'Elementor header panel with TranslateSense Auto Translate button',
+        title: __( 'Locate Header Button', 'translatesense' ),
+        description: __( 'Locate Auto Translate in the Elementor editor header.', 'translatesense' ),
+        screenshot: __( 'Elementor header panel with TranslateSense Auto Translate button', 'translatesense' ),
       },
       {
         number: 5,
-        title: 'Click Auto Translate',
-        description: 'Click Auto Translate.',
+        title: __( 'Click Auto Translate', 'translatesense' ),
+        description: __( 'Click Auto Translate.', 'translatesense' ),
       },
       {
         number: 6,
-        title: 'Select AI Provider & Start',
-        description: 'Select an AI provider and click Start Translation.',
+        title: __( 'Select AI Provider & Start', 'translatesense' ),
+        description: __( 'Select an AI provider and click Start Translation.', 'translatesense' ),
       },
       {
         number: 7,
-        title: 'Wait for Translation',
-        description: 'Wait for translation to finish.',
+        title: __( 'Wait for Translation', 'translatesense' ),
+        description: __( 'Wait for translation to finish.', 'translatesense' ),
       },
       {
         number: 8,
-        title: 'Apply Generated Translation',
-        description: 'Click Apply To Page.',
-        note: 'The generated translation is not applied to the page until you click Apply To Page.',
+        title: __( 'Apply Generated Translation', 'translatesense' ),
+        description: __( 'Click Apply To Page.', 'translatesense' ),
+        note: __( 'The generated translation is not applied to the page until you click Apply To Page.', 'translatesense' ),
       },
     ],
   },
   bulk: {
     id: 'bulk',
-    title: 'Bulk Translation (Batch Queue)',
-    description: 'Translate multiple posts and pages in a single batch with real-time background progress monitoring.',
-    importantNote: 'Translations are queued and processed safely in the background. You can monitor live progress and cancel or skip at any time.',
+    title: __( 'Bulk Translation (Batch Queue)', 'translatesense' ),
+    description: __( 'Translate multiple posts and pages in a single batch with real-time background progress monitoring.', 'translatesense' ),
+    importantNote: __( 'Translations are queued and processed safely in the background. You can monitor live progress and cancel or skip at any time.', 'translatesense' ),
     steps: [
       {
         number: 1,
-        title: 'Navigate to Content Listing',
-        description: 'Navigate to Pages → All Pages or Posts → All Posts.',
+        title: __( 'Navigate to Content Listing', 'translatesense' ),
+        description: __( 'Navigate to Pages → All Pages or Posts → All Posts.', 'translatesense' ),
       },
       {
         number: 2,
-        title: 'Select Multiple Items',
-        description: 'Select multiple pages or posts using the table checkboxes.',
+        title: __( 'Select Multiple Items', 'translatesense' ),
+        description: __( 'Select multiple pages or posts using the table checkboxes.', 'translatesense' ),
       },
       {
         number: 3,
-        title: 'Click Bulk Translation Button',
-        description: 'Click Bulk Translation, available above and below the list table after the page filter options.',
-        screenshot: 'List table navigation showing the Translate button',
+        title: __( 'Click Bulk Translation Button', 'translatesense' ),
+        description: __( 'Click Bulk Translation, available above and below the list table after the page filter options.', 'translatesense' ),
+        screenshot: __( 'List table navigation showing the Translate button', 'translatesense' ),
       },
       {
         number: 4,
-        title: 'Select Target Languages',
-        description: 'Select one or more target languages.',
+        title: __( 'Select Target Languages', 'translatesense' ),
+        description: __( 'Select one or more target languages.', 'translatesense' ),
       },
       {
         number: 5,
-        title: 'Choose Provider Step',
-        description: 'Click Next: Choose Provider.',
+        title: __( 'Choose Provider Step', 'translatesense' ),
+        description: __( 'Click Next: Choose Provider.', 'translatesense' ),
       },
       {
         number: 6,
-        title: 'Select AI Provider',
-        description: 'Select an AI provider in the provider modal.',
+        title: __( 'Select AI Provider', 'translatesense' ),
+        description: __( 'Select an AI provider in the provider modal.', 'translatesense' ),
       },
       {
         number: 7,
-        title: 'Start Bulk Translation',
-        description: 'Click Start Bulk Translation.',
+        title: __( 'Start Bulk Translation', 'translatesense' ),
+        description: __( 'Click Start Bulk Translation.', 'translatesense' ),
       },
       {
         number: 8,
-        title: 'Progress Modal Appears',
-        description: 'The bulk translation progress modal appears.',
+        title: __( 'Progress Modal Appears', 'translatesense' ),
+        description: __( 'The bulk translation progress modal appears.', 'translatesense' ),
       },
       {
         number: 9,
-        title: 'Monitor Live Progress',
-        description: 'Monitor live translation progress in the modal.',
+        title: __( 'Monitor Live Progress', 'translatesense' ),
+        description: __( 'Monitor live translation progress in the modal.', 'translatesense' ),
       },
       {
         number: 10,
-        title: 'Review Summary Breakdown',
-        description: 'Review successful, failed and incomplete translations after completion.',
-        note: 'Translations are linked in Polylang automatically. Taxonomies, categories, and post meta are synchronized.',
+        title: __( 'Review Summary Breakdown', 'translatesense' ),
+        description: __( 'Review successful, failed and incomplete translations after completion.', 'translatesense' ),
+        note: __( 'Translations are linked in Polylang automatically. Taxonomies, categories, and post meta are synchronized.', 'translatesense' ),
       },
     ],
   },
@@ -228,11 +229,11 @@ export function TranslationGuide() {
   const guide = GUIDES_DATA[activeMethod] || GUIDES_DATA.gutenberg;
 
   return (
-    <section className="translatesense-guide" aria-label="Translation Workflow Guides">
+    <section className="translatesense-guide" aria-label={ __( 'Translation Workflow Guides', 'translatesense' ) }>
       <div className="ts-guide-section-header">
-        <h3 className="ts-guide-main-heading">How to Translate</h3>
+        <h3 className="ts-guide-main-heading">{ __( 'How to Translate', 'translatesense' ) }</h3>
         <p className="ts-guide-main-desc">
-          Choose a translation method to view its step-by-step guide.
+          { __( 'Choose a translation method to view its step-by-step guide.', 'translatesense' ) }
         </p>
       </div>
 
@@ -265,7 +266,7 @@ export function TranslationGuide() {
 
         {guide.importantNote && (
           <div className="ts-guide-footer-note">
-            <span className="ts-footer-note-badge">NOTE: </span>
+            <span className="ts-footer-note-badge">{ __( 'NOTE:', 'translatesense' ) } </span>
             <span className="ts-footer-note-text">{guide.importantNote}</span>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from '@wordpress/element';
 import { checkAndConsumeEditorOpenFlag } from '../../utils/editorStorage';
 import { dismissInitialPrompt } from '../../services/api/promptService';
+import { __ } from '@wordpress/i18n';
 
 const ALL_TRANSLATE_BUTTON_SELECTORS =
   '.ts-open-translate-btn, #ts-metabox-translate-btn, #ts-media-translate-btn, #ts-elementor-translate-btn, #ts-classic-translate-btn';
@@ -19,15 +20,9 @@ function disableTranslateButton(button) {
   button.classList.add('disabled', 'ts-btn-disabled');
   button.classList.remove('ts-btn-loading', 'is-loading');
 
-  const appliedText =
-    typeof window !== 'undefined' &&
-      window.wp &&
-      window.wp.i18n &&
-      typeof window.wp.i18n.__ === 'function'
-      ? window.wp.i18n.__('Translations Applied', 'translatesense')
-      : 'Translations Applied';
+  const appliedText = __( 'Translations Applied', 'translatesense' );
 
-  button.innerHTML = `${appliedText}`;
+  button.textContent = appliedText;
   button.title = appliedText;
 }
 
@@ -173,7 +168,8 @@ export function usePageEditor({ onOpenProviderModal, onShowInitialPrompt, transl
         translateBtn.id = 'ts-elementor-translate-btn';
         translateBtn.className =
           'elementor-button elementor-button-default ts-open-translate-btn';
-        translateBtn.innerHTML = '<span class="dashicons dashicons-translation"></span>Auto Translate';
+        translateBtn.innerHTML = '<span class="dashicons dashicons-translation"></span>';
+        translateBtn.appendChild( document.createTextNode( __( 'Auto Translate', 'translatesense' ) ) );
 
         btnContainer.prepend(translateBtn);
       }

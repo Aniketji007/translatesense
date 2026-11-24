@@ -12,6 +12,7 @@ import { ProviderModal } from './components/ProviderModal';
 import { ReviewModal } from './components/ReviewModal';
 import { ErrorModal } from '../components/ErrorModal';
 import { dismissInitialPrompt } from '../services/api/promptService';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function PageApp() {
   const config =
@@ -96,7 +97,7 @@ export function PageApp() {
   const selectedProviderObj = translation.providers.find(
     (p) => p.id === translation.selectedProvider
   );
-  const providerTitle = selectedProviderObj?.title || 'AI Provider';
+  const providerTitle = selectedProviderObj?.title || __( 'AI Provider', 'translatesense' );
   const allLanguages = Object.values(config.languages || {});
 
   const isAnyModalOpen = Boolean(
@@ -212,7 +213,7 @@ export function PageApp() {
               onViewError={(p) =>
                 translation.setErrorModal({
                   isOpen: true,
-                  title: `${p.title} Notice`,
+                  title: sprintf( /* translators: %s: Title. */ __( '%s Notice', 'translatesense' ), p.title ),
                   message: '',
                   reasonHTML: p.isSupported?.reasonHTML || p.isSupported?.reason,
                   icon: p.logo,

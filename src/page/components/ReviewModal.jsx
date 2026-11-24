@@ -11,6 +11,7 @@ import { ReviewNotice } from '../../components/ReviewNotice';
 import { TranslationStats } from './TranslationStats';
 import { ReviewTable } from './ReviewTable';
 import { TranslationProgress } from './TranslationProgress';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function ReviewModal({
   isOpen,
@@ -74,8 +75,8 @@ export function ReviewModal({
       className="ts-review-container"
       header={
         <ModalHeader
-          title="Review Translations"
-          subtitle="Review and edit translations before applying to the page."
+          title={ __( 'Review Translations', 'translatesense' ) }
+          subtitle={ __( 'Review and edit translations before applying to the page.', 'translatesense' ) }
           onClose={onClose}
           closeId="ts-review-modal-close"
         />
@@ -85,7 +86,12 @@ export function ReviewModal({
           align="space-between"
           customHtml={
             <span className="ts-footer-string-counter">
-              {translatedCount} of {strings.length} strings translated
+              {sprintf(
+                /* translators: 1: Number of translated strings, 2: Total number of strings. */
+                __( '%1$s of %2$s strings translated', 'translatesense' ),
+                translatedCount,
+                strings.length
+              )}
             </span>
           }
         >
@@ -96,13 +102,13 @@ export function ReviewModal({
                 onClick={onReTranslateAll}
                 loading={isRetrying}
                 disabled={applying || isRetrying}
-                title="Re-Translate only failed or untranslated strings"
+                title={ __( 'Re-Translate only failed or untranslated strings', 'translatesense' ) }
               >
-                Re-Translate
+                { __( 'Re-Translate', 'translatesense' ) }
               </Button>
             )}
             <Button variant="secondary" onClick={onClose} disabled={isRetrying || applying}>
-              Cancel
+              { __( 'Cancel', 'translatesense' ) }
             </Button>
             <Button
               variant="primary"
@@ -110,7 +116,7 @@ export function ReviewModal({
               loading={applying}
               disabled={applying || isRetrying || strings.length === 0}
             >
-              Apply to Page
+              { __( 'Apply to Page', 'translatesense' ) }
             </Button>
           </div>
         </ModalFooter>
@@ -135,7 +141,11 @@ export function ReviewModal({
         >
           <span style={{ fontSize: '14px', flexShrink: 0 }}>ℹ️</span>
           <span>
-            <strong>{skippedCustomFieldsCount} custom fields found:</strong> Not translated because Polylang Custom Fields Synchronization is enabled.
+            <strong>{sprintf(
+              /* translators: %s: Number of skipped custom fields. */
+              __( '%s custom fields found:', 'translatesense' ),
+              skippedCustomFieldsCount
+            )}</strong> { __( 'Not translated because Polylang Custom Fields Synchronization is enabled.', 'translatesense' ) }
           </span>
         </div>
       )}
@@ -152,7 +162,7 @@ export function ReviewModal({
           <SearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search source or translation..."
+            placeholder={ __( 'Search source or translation...', 'translatesense' ) }
           />
           <TranslationStats stats={translationStats} />
         </div>

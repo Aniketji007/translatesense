@@ -5,6 +5,7 @@
 
 import { useRef, useLayoutEffect } from '@wordpress/element';
 import { cleanContentEditable } from '../../utils/html';
+import { __ } from '@wordpress/i18n';
 
 export function ReviewRow({
   item,
@@ -111,14 +112,14 @@ export function ReviewRow({
               onInput={handleInput}
               onBlur={handleBlur}
               onPaste={handlePaste}
-              data-placeholder="Enter translation..."
+              data-placeholder={ __( 'Enter translation...', 'translatesense' ) }
             />
             {hasChanged && (
               <button
                 type="button"
                 className="ts-trans-reset-btn"
                 onClick={handleReset}
-                title="Reset to provider translation"
+                title={ __( 'Reset to provider translation', 'translatesense' ) }
               >
                 <svg
                   width="12"
@@ -140,7 +141,7 @@ export function ReviewRow({
             type="button"
             className="ts-row-edit-btn"
             onClick={handleFocusClick}
-            title="Edit translation"
+            title={ __( 'Edit translation', 'translatesense' ) }
           >
             <svg
               width="14"

@@ -6,6 +6,7 @@
 import { useState } from '@wordpress/element';
 import { getLanguageFlag } from '../../utils/language';
 import { getBulkItemLabels, getDisplayTitle } from '../utils/bulkFormatters';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function PostResultItem({
   postId,
@@ -82,15 +83,19 @@ export function PostResultItem({
               type="button"
               className="ts-post-skip-btn button button-small"
               onClick={handleSkipClick}
-              title={`Skip remaining translations for this ${itemSingular}`}
+              title={sprintf( /* translators: %s: Item singular. */ __( 'Skip remaining translations for this %s', 'translatesense' ), itemSingular )}
             >
-              Skip Translations
+              { __( 'Skip Translations', 'translatesense' ) }
             </button>
           )}
 
           {failCount > 0 && (
             <span className="ts-post-status-pill failed">
-              Failed ({failCount})
+              {sprintf(
+                /* translators: %s: Number of failed translations. */
+                __( 'Failed (%s)', 'translatesense' ),
+                failCount
+              )}
             </span>
           )}
 
@@ -110,8 +115,8 @@ export function PostResultItem({
                   translations[k]?.error === 'no_language' ||
                   translations[k]?.progressStatus === 'No Language'
               )
-                ? 'No Language'
-                : 'Skipped'}
+                ? __( 'No Language', 'translatesense' )
+                : __( 'Skipped', 'translatesense' )}
             </span>
           )}
 
@@ -142,7 +147,7 @@ export function PostResultItem({
             const isUnsupported =
               trans.error &&
               trans.error.toLowerCase().includes('not supported');
-            const failText = isUnsupported ? 'Language not supported' : 'Failed';
+            const failText = isUnsupported ? __( 'Language not supported', 'translatesense' ) : __( 'Failed', 'translatesense' );
 
             return (
               <div key={langSlug} className={`ts-translation-item ${trans.status}`}>
@@ -168,25 +173,25 @@ export function PostResultItem({
                         onClick={() =>
                           onErrorDetail &&
                           onErrorDetail({
-                            title: `${flagInfo.name} (${flagInfo.code}) — Already Exists`,
+                            title: sprintf( /* translators: %1$s: Name, %2$s: Code. */ __( '%1$s (%2$s) — Already Exists', 'translatesense' ), flagInfo.name, flagInfo.code ),
                             message: trans.error,
                             icon: flagInfo.hasFlag ? (
                               <img src={flagInfo.flagUrl} alt="" className="ts-lang-flag-img" />
                             ) : null
                           })
                         }
-                        title="Click to view details"
+                        title={ __( 'Click to view details', 'translatesense' ) }
                       >
-                        <span className="dashicons dashicons-warning" /> Already exist In Trash
+                        <span className="dashicons dashicons-warning" /> { __( 'Already exist In Trash', 'translatesense' ) }
                       </button>
                     ) : (
                       <span className="ts-row-status already-exists">
-                        <span className="dashicons dashicons-yes-alt" /> Already exist
+                        <span className="dashicons dashicons-yes-alt" /> { __( 'Already exist', 'translatesense' ) }
                       </span>
                     )
                   ) : trans.status === 'completed' ? (
                     <span className="ts-row-status completed">
-                      <span className="dashicons dashicons-yes-alt" /> Completed
+                      <span className="dashicons dashicons-yes-alt" /> { __( 'Completed', 'translatesense' ) }
                     </span>
                   ) : isSkipped ? (
                     trans.error === 'no_language' || trans.progressStatus === 'No Language' ? (
@@ -200,29 +205,29 @@ export function PostResultItem({
                           if (onErrorDetail) {
                             onErrorDetail({
                               type: 'no_language',
-                              title: 'Language Not Assigned',
+                              title: __( 'Language Not Assigned', 'translatesense' ),
                               subtitle: `${flagInfo.name} (${flagInfo.code}) — ${displayTitle || postTitle}`,
-                              heading: `This ${targetLabel} doesn't have a language assigned in Polylang.`,
-                              message: 'Assign a language before translating it. Open the editor to select the default language or choose another language.',
-                              stepTip: 'After assigning a language, click Translate Again in the progress modal to translate only failed items.',
+                              heading: sprintf( /* translators: %s: Target label. */ __( 'This %s doesn\'t have a language assigned in Polylang.', 'translatesense' ), targetLabel ),
+                              message: __( 'Assign a language before translating it. Open the editor to select the default language or choose another language.', 'translatesense' ),
+                              stepTip: __( 'After assigning a language, click Translate Again in the progress modal to translate only failed items.', 'translatesense' ),
                               actionUrl: sourceUrl,
-                              actionLabel: `Edit ${capitalizedTarget}`,
+                              actionLabel: sprintf( /* translators: %s: Capitalized target. */ __( 'Edit %s', 'translatesense' ), capitalizedTarget ),
                               icon: 'dashicons-warning',
                             });
                           }
                         }}
-                        title="Click to view details and assign a language"
+                        title={ __( 'Click to view details and assign a language', 'translatesense' ) }
                       >
-                        <span className="dashicons dashicons-warning" /> No Language
+                        <span className="dashicons dashicons-warning" /> { __( 'No Language', 'translatesense' ) }
                       </button>
                     ) : (
                       <span className="ts-row-status skipped">
-                        Skipped
+                        { __( 'Skipped', 'translatesense' ) }
                       </span>
                     )
                   ) : isCancelling ? (
                     <span className="ts-row-status cancelling">
-                      <span className="ts-spinner-circle" /> Cancelling...
+                      <span className="ts-spinner-circle" /> { __( 'Cancelling...', 'translatesense' ) }
                     </span>
                   ) : isFail ? (
                     <button
@@ -231,19 +236,19 @@ export function PostResultItem({
                       onClick={() =>
                         onErrorDetail &&
                         onErrorDetail({
-                          title: `${flagInfo.name} (${flagInfo.code}) Error`,
-                          message: trans.error || 'Translation failed.',
+                          title: sprintf( /* translators: %1$s: Name, %2$s: Code. */ __( '%1$s (%2$s) Error', 'translatesense' ), flagInfo.name, flagInfo.code ),
+                          message: trans.error || __( 'Translation failed.', 'translatesense' ),
                           errorObj: trans.errorObj,
                         })
                       }
-                      title="Click to view error details"
+                      title={ __( 'Click to view error details', 'translatesense' ) }
                     >
                       <span className="dashicons dashicons-dismiss" /> {failText}
                     </button>
                   ) : isRunning ? (
                     <span className="ts-row-status translating">
                       <span className="ts-spinner-circle" />
-                      <span className="ts-translating-label">Translating</span>
+                      <span className="ts-translating-label">{ __( 'Translating', 'translatesense' ) }</span>
                       <span className="ts-ellipsis-dots">
                         <span className="ts-dot" />
                         <span className="ts-dot" />
@@ -252,7 +257,7 @@ export function PostResultItem({
                     </span>
                   ) : (
                     <span className="ts-row-status pending">
-                      <span className="dashicons dashicons-clock" /> Pending...
+                      <span className="dashicons dashicons-clock" /> { __( 'Pending...', 'translatesense' ) }
                     </span>
                   )}
                 </div>
@@ -266,9 +271,9 @@ export function PostResultItem({
                           target="_blank"
                           rel="noopener noreferrer"
                           className="ts-row-action-btn view"
-                          title={`View translated ${itemSingular} on site`}
+                          title={sprintf( /* translators: %s: Item singular. */ __( 'View translated %s on site', 'translatesense' ), itemSingular )}
                         >
-                          <span className="dashicons dashicons-visibility" /> View
+                          <span className="dashicons dashicons-visibility" /> { __( 'View', 'translatesense' ) }
                         </a>
                       )}
                       {editUrl && editUrl !== '#' && (
@@ -277,9 +282,9 @@ export function PostResultItem({
                           target="_blank"
                           rel="noopener noreferrer"
                           className="ts-row-action-btn edit"
-                          title={`Edit translated ${itemSingular}`}
+                          title={sprintf( /* translators: %s: Item singular. */ __( 'Edit translated %s', 'translatesense' ), itemSingular )}
                         >
-                          <span className="dashicons dashicons-edit" /> Edit
+                          <span className="dashicons dashicons-edit" /> { __( 'Edit', 'translatesense' ) }
                         </a>
                       )}
                     </>
@@ -290,18 +295,18 @@ export function PostResultItem({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="ts-row-action-btn edit"
-                        title={`Edit source ${itemSingular} to assign language`}
+                        title={sprintf( /* translators: %s: Item singular. */ __( 'Edit source %s to assign language', 'translatesense' ), itemSingular )}
                       >
-                        <span className="dashicons dashicons-edit" /> Edit
+                        <span className="dashicons dashicons-edit" /> { __( 'Edit', 'translatesense' ) }
                       </a>
                     ) : null
                   ) : !isFail && !isSkipped ? (
                     <>
                       <span className="ts-row-action-btn view disabled">
-                        <span className="dashicons dashicons-visibility" /> View
+                        <span className="dashicons dashicons-visibility" /> { __( 'View', 'translatesense' ) }
                       </span>
                       <span className="ts-row-action-btn edit disabled">
-                        <span className="dashicons dashicons-edit" /> Edit
+                        <span className="dashicons dashicons-edit" /> { __( 'Edit', 'translatesense' ) }
                       </span>
                     </>
                   ) : null}

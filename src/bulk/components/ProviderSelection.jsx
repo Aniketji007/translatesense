@@ -7,7 +7,9 @@ import { Button } from '../../components/Button';
 import { ProviderCard } from '../../components/ProviderCard';
 import { getLanguageFlag } from '../../utils/language';
 import { getBulkItemLabels } from '../utils/bulkFormatters';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
+import { createInterpolateElement } from '@wordpress/element';
 export function ProviderSelection({
   isOpen = true,
   onClose,
@@ -38,8 +40,8 @@ export function ProviderSelection({
       maxWidth="530px"
       header={
         <ModalHeader
-          title="Bulk Translation"
-          subtitle="Choose a translation provider"
+          title={ __( 'Bulk Translation', 'translatesense' ) }
+          subtitle={ __( 'Choose a translation provider', 'translatesense' ) }
           onClose={onClose}
           closeClass="ts-bulk-close"
         />
@@ -48,14 +50,14 @@ export function ProviderSelection({
         <ModalFooter align="right">
           <div style={{ display: 'flex', gap: '10px' }}>
             <Button variant="secondary" onClick={onBack}>
-              &larr; Back
+              { __( '← Back', 'translatesense' ) }
             </Button>
             <Button
               variant="primary"
               onClick={onStartTranslation}
               disabled={isTranslateDisabled}
             >
-              Start Bulk Translation
+              { __( 'Start Bulk Translation', 'translatesense' ) }
             </Button>
           </div>
         </ModalFooter>
@@ -64,7 +66,19 @@ export function ProviderSelection({
       <div className="ts-summary-box">
         <div className="ts-summary-info">
           <span>
-            Targeting <strong>{postsCount} {postsCount === 1 ? itemSingular : itemPlural}</strong> across <strong>{selectedLanguages.length} languages</strong>:
+            {createInterpolateElement(
+              sprintf(
+                /* translators: 1: Number of items followed by the item type, 2: Number of target languages. */
+                __( 'Targeting <strong>%1$s</strong> across <strong>%2$s</strong>:', 'translatesense' ),
+                `${postsCount} ${postsCount === 1 ? itemSingular : itemPlural}`,
+                sprintf(
+                  /* translators: %s: Number of languages. */
+                  _n( '%s language', '%s languages', selectedLanguages.length, 'translatesense' ),
+                  selectedLanguages.length
+                )
+              ),
+              { strong: <strong /> }
+            )}
           </span>
           <div className="ts-summary-langs-tags">
             {selectedLanguages.map((slug) => {

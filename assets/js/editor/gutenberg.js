@@ -13,6 +13,8 @@
 (function (window) {
   'use strict';
 
+  const { __ } = window.wp.i18n;
+
   const GutenbergUpdater = {
     /**
      * Current translation provider ID (e.g. 'openai', 'gemini', 'chrome_ai').
@@ -647,7 +649,7 @@
 
       // 4. Create Success Notice
       if (window.wp.data.dispatch('core/notices')) {
-        window.wp.data.dispatch('core/notices').createSuccessNotice('✨ Source post content translated and inserted into Gutenberg successfully!', {
+        window.wp.data.dispatch('core/notices').createSuccessNotice(__( '✨ Source post content translated and inserted into Gutenberg successfully!', 'translatesense' ), {
           type: 'snackbar',
           isDismissible: true,
         });

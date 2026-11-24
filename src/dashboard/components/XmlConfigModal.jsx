@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from '@wordpress/element';
 import { DashboardIcons } from './DashboardIcons';
+import { __, sprintf } from '@wordpress/i18n';
 
 function injectXpathsIntoXml(xmlStr, xpathsText, builderType) {
   if (!xmlStr || builderType !== 'gutenberg') return xmlStr;
@@ -98,10 +99,10 @@ export function XmlConfigModal({ widget, builder = 'gutenberg', xmlCode = '', on
         <div className="ts-modal-header">
           <h3>
             {widget
-              ? `Configure XML: ${widget.name} (${builder.toUpperCase()})`
-              : `Edit ${builder.toUpperCase()} Custom XML Configuration`}
+              ? sprintf( /* translators: %1$s: Name, %2$s: Dynamic value. */ __( 'Configure XML: %1$s (%2$s)', 'translatesense' ), widget.name, builder.toUpperCase() )
+              : sprintf( /* translators: %s: Dynamic value. */ __( 'Edit %s Custom XML Configuration', 'translatesense' ), builder.toUpperCase() )}
           </h3>
-          <button className="ts-modal-close" onClick={onClose} aria-label="Close">
+          <button className="ts-modal-close" onClick={onClose} aria-label={ __( 'Close', 'translatesense' ) }>
             {DashboardIcons.close({ size: 16 })}
           </button>
         </div>
@@ -109,8 +110,8 @@ export function XmlConfigModal({ widget, builder = 'gutenberg', xmlCode = '', on
         <div className="ts-modal-body">
           <p style={{ fontSize: '13px', color: '#64748b', marginTop: 0 }}>
             {isGutenberg
-              ? 'Specify translation mappings and child <xpath> tags for GUTENBERG. When saved, this updates the active configuration.'
-              : `Specify translation mappings for ${builder.toUpperCase()}. When saved, this updates the active configuration.`}
+              ? __( 'Specify translation mappings and child <xpath> tags for GUTENBERG. When saved, this updates the active configuration.', 'translatesense' )
+              : sprintf( /* translators: %s: Dynamic value. */ __( 'Specify translation mappings for %s. When saved, this updates the active configuration.', 'translatesense' ), builder.toUpperCase() )}
           </p>
           <textarea
             className="ts-xml-editor"
@@ -123,14 +124,14 @@ export function XmlConfigModal({ widget, builder = 'gutenberg', xmlCode = '', on
 
         <div className="ts-modal-footer">
           <button type="button" className="ts-btn ts-btn-secondary" onClick={onClose}>
-            Cancel
+            { __( 'Cancel', 'translatesense' ) }
           </button>
           <button
             type="button"
             className="ts-btn ts-btn-primary button-primary"
             onClick={() => onSave(editorCode)}
           >
-            Save Config
+            { __( 'Save Config', 'translatesense' ) }
           </button>
         </div>
       </div>

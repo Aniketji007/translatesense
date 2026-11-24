@@ -210,6 +210,7 @@ class Admin_Menu {
 			$asset['version'],
 			true
 		);
+		wp_set_script_translations( 'translatesense-admin-js', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		$admin_url          = admin_url();
 		$review_data        = self::get_review_notice_data();

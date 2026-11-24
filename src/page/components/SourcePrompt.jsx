@@ -6,6 +6,7 @@
 import { Modal, ModalHeader, ModalFooter } from '../../components/Modal';
 import { Button } from '../../components/Button';
 import { getLanguageFlag } from '../../utils/language';
+import { __ } from '@wordpress/i18n';
 
 export function SourcePrompt({
   isOpen,
@@ -27,26 +28,26 @@ export function SourcePrompt({
       size="md"
       header={
         <ModalHeader
-          title="Translate Page Content"
-          subtitle="Automatic Page Translation"
+          title={ __( 'Translate Page Content', 'translatesense' ) }
+          subtitle={ __( 'Automatic Page Translation', 'translatesense' ) }
           onClose={onClose}
         />
       }
       footer={
         <ModalFooter align="right">
           <Button variant="secondary" onClick={onClose}>
-            Close
+            { __( 'Close', 'translatesense' ) }
           </Button>
           <Button variant="primary" data-ad="ad-testing" onClick={onConfirm}>
             <span className="dashicons dashicons-translation" />
-            Continue to Translation
+            { __( 'Continue to Translation', 'translatesense' ) }
           </Button>
         </ModalFooter>
       }
     >
       <div className="ts-source-guidance-content">
         <p className="ts-prompt-intro-text">
-          Automatically translate this page with AI while keeping your design and formatting intact.
+          { __( 'Automatically translate this page with AI while keeping your design and formatting intact.', 'translatesense' ) }
         </p>
 
         <div className="ts-prompt-languages-row">
@@ -73,17 +74,17 @@ export function SourcePrompt({
           <div className="ts-prompt-steps-list">
             <span className="ts-prompt-step-item">
               <span className="ts-prompt-step-num">1</span>
-              <span>Select Provider</span>
+              <span>{ __( 'Select Provider', 'translatesense' ) }</span>
             </span>
             <span className="ts-prompt-step-separator">&gt;</span>
             <span className="ts-prompt-step-item">
               <span className="ts-prompt-step-num">2</span>
-              <span>Start Translation</span>
+              <span>{ __( 'Start Translation', 'translatesense' ) }</span>
             </span>
             <span className="ts-prompt-step-separator">&gt;</span>
             <span className="ts-prompt-step-item">
               <span className="ts-prompt-step-num">3</span>
-              <span>Apply to Page</span>
+              <span>{ __( 'Apply to Page', 'translatesense' ) }</span>
             </span>
           </div>
         </div>

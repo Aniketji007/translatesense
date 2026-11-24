@@ -250,10 +250,11 @@ class Editor_Integration {
 		wp_enqueue_script(
 			'translatesense-editor-modal',
 			esc_url( $script_url ),
-			array(),
+			array( 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-editor-modal', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		$show_initial_prompt_modal = get_post_meta( $post_id, '_show_initial_prompt_modal', true );
 		$source_language           = Polylang_Bridge::get_post_language( $source_post_id );
@@ -375,6 +376,7 @@ class Editor_Integration {
 			$asset['version'],
 			true
 		);
+		wp_set_script_translations( 'translatesense-editor', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 3. Chrome Built-in Translate Provider & Languages
 		wp_enqueue_script(
@@ -388,19 +390,21 @@ class Editor_Integration {
 		wp_enqueue_script(
 			'translatesense-chrome-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/chrome-ai/chrome-built-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-chrome-languages' ),
+			array( 'translatesense-chrome-languages', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-chrome-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 4. AI Translate Provider (OpenAI & Gemini)
 		wp_enqueue_script(
 			'translatesense-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/ai-services/ai-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-editor' ),
+			array( 'translatesense-editor', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 5. Providers Aggregator / Register
 		wp_enqueue_script(
@@ -415,17 +419,19 @@ class Editor_Integration {
 		wp_enqueue_script(
 			'translatesense-live-meta-fields',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/editor/meta-fields' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array(),
+			array( 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-live-meta-fields', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 		wp_enqueue_script(
 			'translatesense-live-' . esc_attr( $editor_type ),
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/editor/' . esc_attr( $editor_type ) . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-live-meta-fields' ),
+			array( 'translatesense-live-meta-fields', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-live-' . esc_attr( $editor_type ), 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		wp_enqueue_script(
 			'translatesense-page-editor',

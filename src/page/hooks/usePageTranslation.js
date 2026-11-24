@@ -6,6 +6,7 @@ import { parseHideReviewNotice } from '../../services/api/reviewService';
 import { isEmailOrUrl } from '../../utils/validation';
 import { formatMs } from '../../utils/formatting';
 
+import { __, _n, sprintf } from '@wordpress/i18n';
 function isTranslatedStringValid(item) {
   return Boolean(
     item &&
@@ -64,7 +65,7 @@ function applyTranslationResult(list, result, core, providerId, options = {}) {
         providerTranslated: prevValid ? item.providerTranslated : '',
         translated: prevValid ? item.translated : '',
         status: prevValid ? item.status : 'Failed',
-        error: result?.error || 'Translation failed or empty',
+        error: result?.error || __( 'Translation failed or empty', 'translatesense' ),
       };
     }
     return item;
@@ -202,8 +203,8 @@ export function usePageTranslation(config = {}) {
       setProgress({
         isOpen: forceRetranslate,
         percent: 0,
-        status: forceRetranslate ? 'Preparing strings for re-translation...' : 'Extracting strings...',
-        subText: 'Initializing translation...',
+        status: forceRetranslate ? __( 'Preparing strings for re-translation...', 'translatesense' ) : __( 'Extracting strings...', 'translatesense' ),
+        subText: __( 'Initializing translation...', 'translatesense' ),
         isExtracting: !forceRetranslate,
       });
 
@@ -256,7 +257,7 @@ export function usePageTranslation(config = {}) {
         } catch (err) {
           setProgress({ isOpen: false, percent: 0, status: '', subText: '', isExtracting: false });
           setIsReviewModalOpen(false);
-          alert('Extraction Error: ' + (err.message || 'Unknown error'));
+          alert(sprintf( /* translators: %s: Error message. */ __( 'Extraction Error: %s', 'translatesense' ), err.message || __( 'Unknown error', 'translatesense' ) ));
           return;
         }
       }
@@ -312,8 +313,8 @@ export function usePageTranslation(config = {}) {
       setProgress({
         isOpen: true,
         percent: 0,
-        status: 'Translating strings...',
-        subText: `0 of ${total} strings translated`,
+        status: __( 'Translating strings...', 'translatesense' ),
+        subText: sprintf( /* translators: %s: Total number of strings. */ __( '0 of %s strings translated', 'translatesense' ), total ),
         isExtracting: false,
       });
 
@@ -345,7 +346,7 @@ export function usePageTranslation(config = {}) {
               });
 
               const completedCountNow = trackedStrings.filter(isTranslatedStringValid).length;
-              const pct = Math.min(100, Math.max(0, Math.round((completedCountNow / total) * 100)));
+              const percentage = Math.min(100, Math.max(0, Math.round((completedCountNow / total) * 100)));
 
               setStrings((prevList) =>
                 applyTranslationResult(prevList, result, core, prov, {
@@ -356,9 +357,9 @@ export function usePageTranslation(config = {}) {
 
               setProgress({
                 isOpen: true,
-                percent: pct,
-                status: `Translating strings... (${pct}%)`,
-                subText: `${completedCountNow} of ${total} strings translated`,
+                percent: percentage,
+                status: sprintf( /* translators: %s: Progress percentage. */ __( 'Translating strings... (%s%%)', 'translatesense' ), percentage ),
+                subText: sprintf( /* translators: 1: Number of translated strings, 2: Total number of strings. */ __( '%1$s of %2$s strings translated', 'translatesense' ), completedCountNow, total ),
                 isExtracting: false,
               });
             }
@@ -395,8 +396,8 @@ export function usePageTranslation(config = {}) {
           setProgress({
             isOpen: true,
             percent: 100,
-            status: '✓ Translation Completed (100%)',
-            subText: `All ${total} strings translated successfully!`,
+            status: __( '✓ Translation Completed (100%)', 'translatesense' ),
+            subText: sprintf( /* translators: %s: Total number of strings. */ __( 'All %s strings translated successfully!', 'translatesense' ), total ),
             isExtracting: false,
           });
           lastCompletedProviderRef.current = prov;
@@ -406,7 +407,7 @@ export function usePageTranslation(config = {}) {
           setProgress({
             isOpen: true,
             percent: finalPct,
-            status: `Translation Completed (${completedCount}/${total})`,
+            status: sprintf( /* translators: %1$s: Completed count, %2$s: Total number of strings. */ __( 'Translation Completed (%1$s/%2$s)', 'translatesense' ), completedCount, total ),
             subText: `${completedCount} translated, ${failedCount} untranslated`,
             isExtracting: false,
           });
@@ -463,7 +464,11 @@ export function usePageTranslation(config = {}) {
     setProgress({
       isOpen: true,
       percent: 0,
-      status: `Re-translating ${totalFailed} untranslated string${totalFailed > 1 ? 's' : ''}...`,
+      status: sprintf(
+        /* translators: %s: Number of untranslated strings. */
+        _n( 'Re-translating %s untranslated string...', 'Re-translating %s untranslated strings...', totalFailed, 'translatesense' ),
+        totalFailed
+      ),
       subText: `0 of ${totalFailed} retried`,
       isExtracting: false,
     });
@@ -515,11 +520,11 @@ export function usePageTranslation(config = {}) {
               })
             );
 
-            const pct = Math.min(100, Math.max(0, Math.round((retriedCount / totalFailed) * 100)));
+            const percentage = Math.min(100, Math.max(0, Math.round((retriedCount / totalFailed) * 100)));
             setProgress((p) => ({
               ...p,
               isOpen: true,
-              percent: pct,
+              percent: percentage,
               subText: `${retriedCount} of ${totalFailed} retried (${successfulRetryCount} succeeded)`,
             }));
           }
@@ -543,8 +548,8 @@ export function usePageTranslation(config = {}) {
       setProgress({
         isOpen: true,
         percent: 100,
-        status: allSuccess ? '✓ All Strings Translated' : 'Retry Completed',
-        subText: `${successfulRetryCount} of ${totalFailed} strings translated successfully`,
+        status: allSuccess ? __( '✓ All Strings Translated', 'translatesense' ) : __( 'Retry Completed', 'translatesense' ),
+        subText: sprintf( /* translators: %1$s: Successful retry count, %2$s: Total failed. */ __( '%1$s of %2$s strings translated successfully', 'translatesense' ), successfulRetryCount, totalFailed ),
         isExtracting: false,
       });
 

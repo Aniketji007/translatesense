@@ -1,3 +1,4 @@
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * PaginationBar Component - Controls for Gutenberg Blocks & Elementor Widgets
  */
@@ -27,7 +28,7 @@ export function PaginationBar({ currentPage, totalPages, totalItems, pageSize, a
   return (
     <div className="ts-pagination-bar">
       <div className="ts-pagination-info">
-        {`Showing ${startIdx}–${endIdx} of ${totalItems} ${unit}`}
+        {sprintf( /* translators: %1$s: Start idx, %2$s: End idx, %3$s: Total items, %4$s: Unit. */ __( 'Showing %1$s–%2$s of %3$s %4$s', 'translatesense' ), startIdx, endIdx, totalItems, unit )}
       </div>
       <div className="ts-pagination-controls">
         <button
@@ -36,7 +37,7 @@ export function PaginationBar({ currentPage, totalPages, totalItems, pageSize, a
           disabled={currentPage <= 1}
           onClick={() => onPageChange(currentPage - 1)}
         >
-          &lt; Prev
+          { __( '< Prev', 'translatesense' ) }
         </button>
         {pages.map((p, idx) =>
           p === '...' ? (
@@ -60,7 +61,7 @@ export function PaginationBar({ currentPage, totalPages, totalItems, pageSize, a
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(currentPage + 1)}
         >
-          Next &gt;
+          { __( 'Next >', 'translatesense' ) }
         </button>
       </div>
     </div>

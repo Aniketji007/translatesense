@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Get status badge CSS class and dashicon for a translation status
  * @param {string} status
@@ -7,22 +8,22 @@ export function getStatusBadgeInfo(status) {
   const s = String(status || 'pending').toLowerCase();
   switch (s) {
     case 'completed':
-      return { className: 'completed', icon: 'dashicons-yes-alt', label: 'Completed' };
+      return { className: 'completed', icon: 'dashicons-yes-alt', label: __( 'Completed', 'translatesense' ) };
     case 'already_exists':
-      return { className: 'completed already-exists', icon: 'dashicons-yes-alt', label: 'Already exists' };
+      return { className: 'completed already-exists', icon: 'dashicons-yes-alt', label: __( 'Already exists', 'translatesense' ) };
     case 'skipped':
-      return { className: 'skipped', icon: 'dashicons-controls-skipforward', label: 'Skipped' };
+      return { className: 'skipped', icon: 'dashicons-controls-skipforward', label: __( 'Skipped', 'translatesense' ) };
     case 'cancelling':
-      return { className: 'cancelling', icon: 'ts-spinner-circle', label: 'Cancelling...' };
+      return { className: 'cancelling', icon: 'ts-spinner-circle', label: __( 'Cancelling...', 'translatesense' ) };
     case 'failed':
-      return { className: 'failed', icon: 'dashicons-dismiss', label: 'Failed' };
+      return { className: 'failed', icon: 'dashicons-dismiss', label: __( 'Failed', 'translatesense' ) };
     case 'running':
     case 'processing':
     case 'translating':
-      return { className: 'translating', icon: 'ts-spinner-circle', label: 'Translating' };
+      return { className: 'translating', icon: 'ts-spinner-circle', label: __( 'Translating', 'translatesense' ) };
     case 'pending':
     default:
-      return { className: 'pending', icon: 'dashicons-clock', label: 'Pending...' };
+      return { className: 'pending', icon: 'dashicons-clock', label: __( 'Pending...', 'translatesense' ) };
   }
 }
 
@@ -62,13 +63,13 @@ export function getDisplayTitle(trans, postTitle, postId, isTaxonomyOrPrefix = f
   const prefix =
     typeof isTaxonomyOrPrefix === 'string' && isTaxonomyOrPrefix
       ? isTaxonomyOrPrefix
-      : (isTaxonomyOrPrefix ? 'Term' : 'Post');
+      : (isTaxonomyOrPrefix ? __( 'Term', 'translatesense' ) : __( 'Post', 'translatesense' ));
   if (trans.targetTitle) return trans.targetTitle;
   if (trans.status === 'already_exists' || trans.status === 'completed') {
     return postTitle || `${prefix} #${postId}`;
   }
   if (trans.status === 'failed') return `${prefix} #${postId}`;
-  if (trans.status === 'running' || trans.status === 'processing') return 'Translating content...';
-  return 'Waiting in queue';
+  if (trans.status === 'running' || trans.status === 'processing') return __( 'Translating content...', 'translatesense' );
+  return __( 'Waiting in queue', 'translatesense' );
 }
 

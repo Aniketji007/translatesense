@@ -151,19 +151,21 @@ class Bulk_Translate {
 		wp_enqueue_script(
 			'translatesense-chrome-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/chrome-ai/chrome-built-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-chrome-languages' ),
+			array( 'translatesense-chrome-languages', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-chrome-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 3. AI Translate Provider (OpenAI & Gemini)
 		wp_enqueue_script(
 			'translatesense-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/ai-services/ai-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array(),
+			array( 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 4. Providers Aggregator / Register
 		wp_enqueue_script(
@@ -187,13 +189,14 @@ class Bulk_Translate {
 			$asset['version'],
 			true
 		);
+		wp_set_script_translations( 'translatesense-bulk', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		$is_taxonomy_screen = ( '' !== $taxonomy );
 		$subtype            = $is_taxonomy_screen ? $taxonomy : $post_type;
 		$label_obj          = $is_taxonomy_screen ? get_taxonomy( $taxonomy ) : get_post_type_object( $post_type );
 
-		$item_label    = ! empty( $label_obj->labels->name ) ? (string) $label_obj->labels->name : ( $is_taxonomy_screen ? 'Terms' : 'Posts' );
-		$item_singular = strtolower( ! empty( $label_obj->labels->singular_name ) ? (string) $label_obj->labels->singular_name : ( $is_taxonomy_screen ? 'term' : 'post' ) );
+		$item_label    = ! empty( $label_obj->labels->name ) ? (string) $label_obj->labels->name : ( $is_taxonomy_screen ? __( 'Terms', 'translatesense' ) : __( 'Posts', 'translatesense' ) );
+		$item_singular = strtolower( ! empty( $label_obj->labels->singular_name ) ? (string) $label_obj->labels->singular_name : ( $is_taxonomy_screen ? __( 'term', 'translatesense' ) : __( 'post', 'translatesense' ) ) );
 		$item_plural   = strtolower( $item_label );
 
 		wp_localize_script(

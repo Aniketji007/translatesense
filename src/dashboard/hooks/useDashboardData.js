@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from '@wordpress/element';
 import * as dashboardService from '../services/dashboardService';
+import { __ } from '@wordpress/i18n';
 
 export function useDashboardData() {
   const localizedData =
@@ -111,7 +112,7 @@ export function useDashboardData() {
         setCacheCounts(cacheRes.value.counts);
       }
     } catch (err) {
-      showNotice('Something went wrong while fetching the data.', 'error');
+      showNotice(__( 'Something went wrong while fetching the data.', 'translatesense' ), 'error');
       console.warn('[TranslateSense] Dashboard data fetch error:', err);
     } finally {
       loading && setLoading(false);

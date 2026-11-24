@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * TopHeader Component - Modern SaaS Header Bar
  */
@@ -15,13 +16,13 @@ export function TopHeader({
         <div className="ts-brand-logo-wrap">
           <img
             src={logoSrc}
-            alt="TranslateSense Logo"
+            alt={ __( 'TranslateSense Logo', 'translatesense' ) }
             onError={(e) => {
               e.target.style.display = 'none';
             }}
           />
         </div>
-        <h1 className="ts-brand-title">TranslateSense</h1>
+        <h1 className="ts-brand-title">{ __( 'TranslateSense', 'translatesense' ) }</h1>
       </div>
       <div className="ts-top-actions">
         <a
@@ -30,7 +31,7 @@ export function TopHeader({
           rel="noopener noreferrer"
           className="ts-header-action-btn"
         >
-          <span className="ts-header-btn-text">Documentation</span>
+          <span className="ts-header-btn-text">{ __( 'Documentation', 'translatesense' ) }</span>
           <span className="ts-external-arrow">↗</span>
         </a>
         <a
@@ -39,7 +40,7 @@ export function TopHeader({
           rel="noopener noreferrer"
           className="ts-header-action-btn"
         >
-          <span className="ts-header-btn-text">Support</span>
+          <span className="ts-header-btn-text">{ __( 'Support', 'translatesense' ) }</span>
           <span className="ts-external-arrow">↗</span>
         </a>
       </div>

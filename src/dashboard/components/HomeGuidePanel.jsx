@@ -4,6 +4,7 @@
 
 import { TranslationGuide } from './TranslationGuide';
 import { DashboardIcons } from './DashboardIcons';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function HomeGuidePanel({
   onNavigateTab,
@@ -22,19 +23,17 @@ export function HomeGuidePanel({
         <div className="ts-guide-hero">
           <div className="ts-guide-hero-content">
             <div className="ts-guide-hero-badge-wrap">
-              <span className="ts-guide-pill primary">Documentation &amp; Workflow Guide</span>
+              <span className="ts-guide-pill primary">{ __( 'Documentation & Workflow Guide', 'translatesense' ) }</span>
               <span className={`ts-guide-pill ${polylangActive ? 'success' : 'warning'}`}>
                 {polylangActive
-                  ? `Polylang Connected (${Object.keys(languages).length} Languages)`
-                  : 'Polylang Inactive'}
+                  ? sprintf( /* translators: %s: Dynamic value. */ __( 'Polylang Connected (%s Languages)', 'translatesense' ), Object.keys(languages).length )
+                  : __( 'Polylang Inactive', 'translatesense' )}
               </span>
             </div>
 
-            <h2 className="ts-guide-hero-title">Welcome to TranslateSense 👋</h2>
+            <h2 className="ts-guide-hero-title">{ __( 'Welcome to TranslateSense 👋', 'translatesense' ) }</h2>
             <p className="ts-guide-hero-desc">
-              TranslateSense is a high-performance automated translation suite built for WordPress &amp; Polylang.
-              It preserves your exact layout and styling across Gutenberg, Classic Editor &amp; Elementor while
-              utilizing a 4-tier database cache to eliminate duplicate AI token costs.
+              { __( 'TranslateSense is a high-performance automated translation suite built for WordPress & Polylang. It preserves your exact layout and styling across Gutenberg, Classic Editor & Elementor while utilizing a 4-tier database cache to eliminate duplicate AI token costs.', 'translatesense' ) }
             </p>
           </div>
         </div>
@@ -47,28 +46,25 @@ export function HomeGuidePanel({
       <div className="ts-guide-tips-card">
         <div className="ts-guide-tips-header">
           <span className="ts-tips-icon">{DashboardIcons.bolt()}</span>
-          <h3 className="ts-tips-title">TranslateSense Architecture &amp; Token Savings</h3>
+          <h3 className="ts-tips-title">{ __( 'TranslateSense Architecture & Token Savings', 'translatesense' ) }</h3>
         </div>
         <div className="ts-guide-tips-grid">
           <div className="ts-tip-box">
-            <h4>Database Translation Memory</h4>
+            <h4>{ __( 'Database Translation Memory', 'translatesense' ) }</h4>
             <p>
-              Every unique sentence is hashed (MD5) and cached in your MySQL database. If the same paragraph
-              appears across 50 posts, AI is called only once, saving thousands of tokens.
+              { __( 'Every unique sentence is hashed (MD5) and cached in your MySQL database. If the same paragraph appears across 50 posts, AI is called only once, saving thousands of tokens.', 'translatesense' ) }
             </p>
           </div>
           <div className="ts-tip-box">
-            <h4>Structural Tag Protection</h4>
+            <h4>{ __( 'Structural Tag Protection', 'translatesense' ) }</h4>
             <p>
-              HTML tags, block comments, and shortcodes are shielded before translation, preventing AI from
-              breaking your styling, links, or Elementor widgets.
+              { __( 'HTML tags, block comments, and shortcodes are shielded before translation, preventing AI from breaking your styling, links, or Elementor widgets.', 'translatesense' ) }
             </p>
           </div>
           <div className="ts-tip-box">
-            <h4>Cache &amp; Memory Management</h4>
+            <h4>{ __( 'Cache & Memory Management', 'translatesense' ) }</h4>
             <p>
-              Use the Cache tab to inspect and clean your translation memory. Note that removing translation cache
-              means repeated text will be sent to AI again.
+              { __( 'Use the Cache tab to inspect and clean your translation memory. Note that removing translation cache means repeated text will be sent to AI again.', 'translatesense' ) }
             </p>
           </div>
         </div>
@@ -81,7 +77,7 @@ export function HomeGuidePanel({
           className="ts-btn ts-btn-secondary"
           onClick={() => onNavigateTab('settings')}
         >
-          Configure AI Settings
+          { __( 'Configure AI Settings', 'translatesense' ) }
         </button>
 
         {activeBuilders.gutenberg && (
@@ -90,7 +86,7 @@ export function HomeGuidePanel({
             className="ts-btn ts-btn-secondary"
             onClick={() => onNavigateTab('gutenberg')}
           >
-            View Gutenberg Blocks
+            { __( 'View Gutenberg Blocks', 'translatesense' ) }
           </button>
         )}
 
@@ -100,7 +96,7 @@ export function HomeGuidePanel({
             className="ts-btn ts-btn-secondary"
             onClick={() => onNavigateTab('elementor')}
           >
-            View Elementor Widgets
+            { __( 'View Elementor Widgets', 'translatesense' ) }
           </button>
         )}
 
@@ -112,11 +108,11 @@ export function HomeGuidePanel({
           <span style={{ display: 'inline-flex', marginRight: '6px' }}>
             {DashboardIcons.database({ size: 14 })}
           </span>
-          Manage Cache &amp; Memory
+          { __( 'Manage Cache & Memory', 'translatesense' ) }
         </button>
 
         <a href={bulkTranslateUrl} className="ts-btn ts-btn-secondary">
-          Go to Posts (Bulk Translate) ↗
+          { __( 'Go to Posts (Bulk Translate) ↗', 'translatesense' ) }
         </a>
       </div>
     </div>

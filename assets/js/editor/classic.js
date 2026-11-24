@@ -14,6 +14,8 @@
 (function (window, document) {
   'use strict';
 
+  const { __ } = window.wp.i18n;
+
   const ClassicUpdater = {
     fieldRulesCache: null,
 
@@ -914,7 +916,7 @@
       // 5. Emit WordPress success notice if notices API is available
       if (window.wp && window.wp.data && window.wp.data.dispatch && window.wp.data.dispatch('core/notices')) {
         window.wp.data.dispatch('core/notices').createSuccessNotice(
-          'Translations applied to Classic Editor successfully!',
+          __( 'Translations applied to Classic Editor successfully!', 'translatesense' ),
           { type: 'snackbar', isDismissible: true }
         );
       }

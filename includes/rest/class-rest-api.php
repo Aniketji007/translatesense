@@ -2402,31 +2402,31 @@ class Rest_Api {
 
 		$fields = array(
 			'post_title'            => array(
-				'title'    => 'Post Title',
+				'title'    => __( 'Post Title', 'translatesense' ),
 				'category' => 'standard',
 			),
 			'post_content'          => array(
-				'title'    => 'Post Body (Classic Editor)',
+				'title'    => __( 'Post Body (Classic Editor)', 'translatesense' ),
 				'category' => 'standard',
 			),
 			'post_excerpt'          => array(
-				'title'    => 'Post Excerpt',
+				'title'    => __( 'Post Excerpt', 'translatesense' ),
 				'category' => 'standard',
 			),
 			'_yoast_wpseo_title'    => array(
-				'title'    => 'Yoast SEO Title',
+				'title'    => __( 'Yoast SEO Title', 'translatesense' ),
 				'category' => 'seo',
 			),
 			'_yoast_wpseo_metadesc' => array(
-				'title'    => 'Yoast Meta Description',
+				'title'    => __( 'Yoast Meta Description', 'translatesense' ),
 				'category' => 'seo',
 			),
 			'rank_math_title'       => array(
-				'title'    => 'Rank Math Title',
+				'title'    => __( 'Rank Math Title', 'translatesense' ),
 				'category' => 'seo',
 			),
 			'rank_math_description' => array(
-				'title'    => 'Rank Math Description',
+				'title'    => __( 'Rank Math Description', 'translatesense' ),
 				'category' => 'seo',
 			),
 		);

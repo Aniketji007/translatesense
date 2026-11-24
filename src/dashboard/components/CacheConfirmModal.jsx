@@ -3,7 +3,9 @@
  */
 
 import { DashboardIcons } from './DashboardIcons';
+import { __, sprintf } from '@wordpress/i18n';
 
+import { createInterpolateElement } from '@wordpress/element';
 export function CacheConfirmModal({ modal, isClearing, onClose, onConfirm }) {
   if (!modal || !modal.isOpen) return null;
 
@@ -20,9 +22,9 @@ export function CacheConfirmModal({ modal, isClearing, onClose, onConfirm }) {
             <span className="ts-modal-header-icon danger">
               {DashboardIcons.trash({ size: 16 })}
             </span>
-            <h3>{modal.title || 'Clear Cache'}</h3>
+            <h3>{modal.title || __( 'Clear Cache', 'translatesense' )}</h3>
           </div>
-          <button className="ts-modal-close" onClick={onClose} aria-label="Close">
+          <button className="ts-modal-close" onClick={onClose} aria-label={ __( 'Close', 'translatesense' ) }>
             {DashboardIcons.close({ size: 16 })}
           </button>
         </div>
@@ -34,7 +36,7 @@ export function CacheConfirmModal({ modal, isClearing, onClose, onConfirm }) {
               {DashboardIcons.alert({ size: 22 })}
             </div>
             <div className="ts-cache-alert-content">
-              <h4 className="ts-cache-alert-title">Required Warning</h4>
+              <h4 className="ts-cache-alert-title">{ __( 'Required Warning', 'translatesense' ) }</h4>
               <p className="ts-cache-alert-text">{modal.warning}</p>
             </div>
           </div>
@@ -42,15 +44,18 @@ export function CacheConfirmModal({ modal, isClearing, onClose, onConfirm }) {
           {/* Count & Details */}
           <div className="ts-cache-impact-box">
             <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>
-              {'You are about to permanently remove '}
-              <strong style={{ color: '#0f172a' }}>
-                {`${(modal.count || 0).toLocaleString()} cached records`}
-              </strong>
-              {' from your database. This action is irreversible.'}
+              {createInterpolateElement(
+                sprintf(
+                  /* translators: %s: Number of cached records. */
+                  __( 'You are about to permanently remove <strong>%s cached records</strong> from your database. This action is irreversible.', 'translatesense' ),
+                  (modal.count || 0).toLocaleString()
+                ),
+                { strong: <strong style={{ color: '#0f172a' }} /> }
+              )}
             </p>
             {isTranslations && (
               <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#b45309', fontWeight: 500 }}>
-                💡 Tip: Keeping your translation cache preserves your API tokens for repeated texts and makes retranslating pages much faster.
+                { __( '💡 Tip: Keeping your translation cache preserves your API tokens for repeated texts and makes retranslating pages much faster.', 'translatesense' ) }
               </p>
             )}
           </div>
@@ -63,7 +68,7 @@ export function CacheConfirmModal({ modal, isClearing, onClose, onConfirm }) {
             disabled={isClearing}
             onClick={onClose}
           >
-            Cancel
+            { __( 'Cancel', 'translatesense' ) }
           </button>
           <button
             type="button"
@@ -71,7 +76,7 @@ export function CacheConfirmModal({ modal, isClearing, onClose, onConfirm }) {
             disabled={isClearing}
             onClick={onConfirm}
           >
-            {isClearing ? 'Clearing Cache...' : 'Yes, Confirm & Clear Cache'}
+            {isClearing ? __( 'Clearing Cache...', 'translatesense' ) : __( 'Yes, Confirm & Clear Cache', 'translatesense' )}
           </button>
         </div>
       </div>

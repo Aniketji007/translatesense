@@ -4,6 +4,7 @@
  */
 
 import { getRegisteredProviders } from './providerRegistry';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Get plugin localized configuration
@@ -91,34 +92,34 @@ export async function getEvaluatedProviders(sourceLang = 'en', targetLang = 'es'
       }
       p.isAvailable = !(p.isSupported && p.isSupported.available === false);
       p.badgeType = p.isAvailable ? 'on-device' : 'error';
-      p.badgeText = p.isAvailable ? 'On-device' : 'View Error';
+      p.badgeText = p.isAvailable ? __( 'On-device', 'translatesense' ) : __( 'View Error', 'translatesense' );
     } else if (statusMeta.connectors && statusMeta.isProviderInstall) {
       if (!statusMeta.isProviderActive) {
         p.isAvailable = false;
         p.badgeType = 'action';
-        p.badgeText = 'Activate Provider';
+        p.badgeText = __( 'Activate Provider', 'translatesense' );
         p.actionUrl = statusMeta.targetUrl;
       } else if (!statusMeta.isConnected) {
         p.isAvailable = false;
         p.badgeType = 'action';
-        p.badgeText = 'API key required';
+        p.badgeText = __( 'API key required', 'translatesense' );
         p.actionUrl = statusMeta.targetUrl;
       } else {
         p.isAvailable = true;
         p.badgeType = 'ready';
-        p.badgeText = 'Available';
+        p.badgeText = __( 'Available', 'translatesense' );
       }
     } else {
       // Direct API
       if (!statusMeta.isConnected) {
         p.isAvailable = false;
         p.badgeType = 'action';
-        p.badgeText = 'API key required';
+        p.badgeText = __( 'API key required', 'translatesense' );
         p.actionUrl = statusMeta.targetUrl;
       } else {
         p.isAvailable = true;
         p.badgeType = 'ready';
-        p.badgeText = 'Available';
+        p.badgeText = __( 'Available', 'translatesense' );
       }
     }
   }

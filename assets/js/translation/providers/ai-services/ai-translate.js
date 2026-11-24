@@ -14,6 +14,8 @@
 (function (window) {
   'use strict';
 
+  const { __, sprintf } = window.wp.i18n;
+
   class AIServiceRunner {
     constructor(providerName, options = {}) {
       this.providerName = providerName;
@@ -95,7 +97,7 @@
         const errorData = await response.json().catch(() => ({}));
         let message = errorData.message || `HTTP ${response.status} ${response.statusText}`;
         if (response.status === 429 || message.toLowerCase().includes('quota') || message.toLowerCase().includes('rate limit')) {
-          message = `API Quota / Rate Limit reached for ${this.providerName.toUpperCase()}. Please check your API account plan.`;
+          message = sprintf( /* translators: %s: Dynamic value */ __( 'API Quota / Rate Limit reached for %s. Please check your API account plan.', 'translatesense' ), this.providerName.toUpperCase() );
         }
         throw new Error(message);
       }
@@ -130,7 +132,7 @@
           translated: isValid ? String(rawTranslated) : '',
           status: isValid ? (isCached ? 'Cached' : 'AI Completed') : 'AI Failed',
           isSuccess: isValid,
-          error: hasError ? transResult.error : (!isValid ? 'Translation missing or empty' : null),
+          error: hasError ? transResult.error : (!isValid ? __( 'Translation missing or empty', 'translatesense' ) : null),
         };
 
         batchResults.push(itemResult);

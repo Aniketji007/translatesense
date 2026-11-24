@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * ModalHeader Component
  */
@@ -44,8 +45,8 @@ export function ModalHeader({
           id={closeId || undefined}
           className={`ts-modal-close-btn ts-bulk-close ${closeClass}`}
           onClick={onClose}
-          aria-label="Close modal"
-          title="Close modal"
+          aria-label={ __( 'Close modal', 'translatesense' ) }
+          title={ __( 'Close modal', 'translatesense' ) }
         >
           &times;
         </button>

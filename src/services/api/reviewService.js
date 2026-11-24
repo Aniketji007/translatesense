@@ -1,3 +1,5 @@
+import { __ } from '@wordpress/i18n';
+
 /**
  * Review Notice Service
  * Shared constants, global visibility helper, and authenticated AJAX dismissal helper.
@@ -5,9 +7,12 @@
 
 export const REVIEW_URL = 'https://wordpress.org/support/plugin/translatesense/reviews/#new-post';
 
-export const REVIEW_NOTICE_BODY = "If <strong class='ts-review-notice-lead'>TranslateSense</strong> making your translation work easier,";
+export const REVIEW_NOTICE_BODY = __(
+  "If <strong class='ts-review-notice-lead'>TranslateSense</strong> making your translation work easier,",
+  'translatesense'
+);
 
-export const REVIEW_NOTICE_LINK_TEXT = 'leave a review on WordPress.org.';
+export const REVIEW_NOTICE_LINK_TEXT = __( 'leave a review on WordPress.org.', 'translatesense' );
 
 const ALLOWED_ACTIONS = new Set(['not_interested', 'already_reviewed']);
 

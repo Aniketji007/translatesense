@@ -5,7 +5,9 @@
 import { useState } from 'react';
 import { DashboardIcons } from './DashboardIcons';
 import { CacheConfirmModal } from './CacheConfirmModal';
+import { __ } from '@wordpress/i18n';
 
+import { createInterpolateElement } from '@wordpress/element';
 export function FooterBar({
   activeTab,
   onSaveSettings,
@@ -28,8 +30,8 @@ export function FooterBar({
   const [isClearing, setIsClearing] = useState(false);
 
   const handleOpenModal = (type) => {
-    const title = 'Clear Entire TranslateSense Cache';
-    const warning = 'Permanently purges ALL translated sentences, extracted source strings, widget mapping packages, and bulk batch logs.';
+    const title = __( 'Clear Entire TranslateSense Cache', 'translatesense' );
+    const warning = __( 'Permanently purges ALL translated sentences, extracted source strings, widget mapping packages, and bulk batch logs.', 'translatesense' );
     const count = (cacheCounts.strings || 0) +
       (cacheCounts.translations || 0) +
       (cacheCounts.packages || 0) +
@@ -68,14 +70,14 @@ export function FooterBar({
             <img
               className="ts-footer-logo-img"
               src={logoSrc}
-              alt="Dragwyb Logo"
+              alt={ __( 'Dragwyb Logo', 'translatesense' ) }
               onError={(e) => {
                 e.target.style.display = 'none';
               }}
             />
-            Dragwyb
+            { __( 'Dragwyb', 'translatesense' ) }
           </span>
-          <span>Built with ❤️ by Dragwyb</span>
+          <span>{ __( 'Built with ❤️ by Dragwyb', 'translatesense' ) }</span>
         </div>
 
         {activeTab === 'cache' &&
@@ -85,7 +87,7 @@ export function FooterBar({
               className="ts-btn ts-btn-secondary ts-btn-md"
               disabled={isRefreshing}
               onClick={onRefreshCache}
-              title="Refresh cache counts from database"
+              title={ __( 'Refresh cache counts from database', 'translatesense' ) }
             >
               <span
                 className={`ts-refresh-icon ${isRefreshing ? 'spinning' : ''}`}
@@ -93,18 +95,18 @@ export function FooterBar({
               >
                 {DashboardIcons.refresh({ size: 14 })}
               </span>
-              {isRefreshing ? 'Refreshing...' : 'Refresh Counts'}
+              {isRefreshing ? __( 'Refreshing...', 'translatesense' ) : __( 'Refresh Counts', 'translatesense' )}
             </button>
             <button
               type="button"
               className="ts-btn ts-btn-danger-outline ts-btn-md"
               onClick={() => handleOpenModal('all')}
-              title="Clear all stored strings, translations, packages, and logs"
+              title={ __( 'Clear all stored strings, translations, packages, and logs', 'translatesense' ) }
             >
               <span style={{ display: 'inline-flex', marginRight: '5px' }}>
                 {DashboardIcons.trash({ size: 13 })}
               </span>
-              Clear All Caches
+              { __( 'Clear All Caches', 'translatesense' ) }
             </button>
           </div>
         }
@@ -112,7 +114,11 @@ export function FooterBar({
         {activeTab === 'settings' && (
           <div className="ts-footer-right">
             <div className="ts-save-status">
-              Tip: Press <kbd className="ts-kbd-shortcut">Ctrl + S</kbd>
+              {createInterpolateElement(
+                /* translators: %s: Keyboard shortcut, wrapped in the kbd tag. */
+                __( 'Tip: Press <kbd>Ctrl + S</kbd>', 'translatesense' ),
+                { kbd: <kbd className="ts-kbd-shortcut" /> }
+              )}
             </div>
             <button
               type="button"
@@ -120,7 +126,7 @@ export function FooterBar({
               onClick={onSaveSettings}
               className="ts-btn ts-btn-primary button-primary"
             >
-              {isSaving ? 'Saving...' : 'Save Settings'}
+              {isSaving ? __( 'Saving...', 'translatesense' ) : __( 'Save Settings', 'translatesense' )}
             </button>
           </div>
         )}

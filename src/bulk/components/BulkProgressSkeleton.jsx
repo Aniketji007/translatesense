@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * BulkProgressSkeleton Component
  * Endpoint-specific skeleton loading for Bulk Translation progress view
@@ -29,8 +30,8 @@ export function BulkProgressSkeleton({
       aria-live="polite"
       aria-label={
         type === 'start_bulk'
-          ? 'Initiating translation batch...'
-          : 'Retrieving active translation batches...'
+          ? __( 'Initiating translation batch...', 'translatesense' )
+          : __( 'Retrieving active translation batches...', 'translatesense' )
       }
     >
       {/* Top Progress Card Skeleton */}
