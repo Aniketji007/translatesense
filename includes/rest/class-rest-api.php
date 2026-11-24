@@ -4620,20 +4620,20 @@ class Rest_Api {
 				}
 			}
 
-			// Handle Translated Post Name.
-			$post_name = (string) $source_post->post_name;
-			if ( '' !== trim( $post_name ) ) {
-				$slug_hash = Hashing_Db::generate_hash(
-					'post_name',
-					$post_name
+			// Handle Translated Post Title.
+			$post_title = (string) $source_post->post_title;
+			if ( '' !== trim( $post_title ) ) {
+				$post_title_hash = Hashing_Db::generate_hash(
+					'post_title',
+					$post_title
 				);
 
-				if ( isset( $in_memory_translation[ $slug_hash ] ) ) {
-					$translated_slug = (string) $in_memory_translation[ $slug_hash ];
-					$filtered_value  = sanitize_title( (string) $translated_slug );
+				if ( isset( $in_memory_translation[ $post_title_hash ] ) ) {
+					$translated_slug = (string) $in_memory_translation[ $post_title_hash ];
+					$filtered_value  = sanitize_text_field( (string) $translated_slug );
 
-					if ( '' !== trim( $filtered_value ) && $filtered_value !== $post_name ) {
-						$filter_memory_translation[ $slug_hash ] = $filtered_value;
+					if ( '' !== trim( $filtered_value ) && $filtered_value !== $post_title ) {
+						$filter_memory_translation[ $post_title_hash ] = $filtered_value;
 					}
 				}
 			}

@@ -13,7 +13,6 @@ use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
-use TranslateSense\Includes\Translation\Custom_Fields\Custom_Field_Translator;
 use TranslateSense\Includes\Translation\Translate;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -454,17 +453,17 @@ class Content_Parser {
 		}
 
 		if ( isset( self::$clean_updated_ids[ $post_id ] ) ) {
-			return self::$clean_updated_ids[ $post_id ];
+			return (bool) self::$clean_updated_ids[ $post_id ];
 		}
 
 		// 3. Exclude autosaves and revisions.
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_autosave( $post_id ) ) {
 			return false;
 		}
 
 		// Prevent duplicate processing during the same request lifecycle.
 		if ( isset( self::$finalized_posts[ $post_id ] ) ) {
-			return false;
+			return (bool) self::$finalized_posts[ $post_id ];
 		}
 
 		// 2. Check whether _translatesense_translation_update_pending exists.
@@ -496,25 +495,15 @@ class Content_Parser {
 		// Identify the source and target posts:
 		$source_id   = absint( get_post_meta( $post_id, '_translatesense_source_id', true ) );
 		$source_post = $source_id > 0 ? get_post( $source_id ) : null;
+		$target_lang = Polylang_Bridge::get_post_language( $post_id );
 
 		if ( $source_id > 0 && $source_post instanceof \WP_Post ) {
-			$source_lang = Polylang_Bridge::get_post_language( $source_id );
-			$target_lang = Polylang_Bridge::get_post_language( $post_id );
-
 			if ( ! empty( $target_lang ) ) {
-				$is_existing = true;
-				$custom_opts = array(
+				self::$finalized_posts[ $post_id ] = false;
+				$custom_opts                       = array(
 					'in_memory_translations' => $pending_memory_translations,
 				);
-
-				Custom_Field_Translator::apply_target_metadata(
-					$source_id,
-					$post_id,
-					$source_lang,
-					$target_lang,
-					$is_existing,
-					$custom_opts
-				);
+				Translate::update_pending_translation( $source_id, $post_id, $custom_opts );
 			}
 		}
 
@@ -526,17 +515,6 @@ class Content_Parser {
 		if ( $post_id === (int) $stored_translated ) {
 			$status                            = self::clean_pending_meta_key( true, $post_id );
 			self::$finalized_posts[ $post_id ] = $status;
-
-			$front_page_id = absint( get_option( 'page_on_front' ) );
-
-			if ( $front_page_id && in_array( $front_page_id, array( $source_id, $post_id ) ) ) {
-				$post_name = get_post_field( 'post_name', $post_id );
-
-				if ( ! empty( $post_name ) ) {
-					Polylang_Bridge::clear_static_page_cache();
-				}
-			}
-
 			return $status;
 		}
 
