@@ -249,12 +249,12 @@ class Xml_Engine {
 	 * Find or create child element under parent.
 	 *
 	 * @param DOMDocument $dom DOM document.
-	 * @param DOMElement  $parent Parent value.
+	 * @param DOMElement  $parent_node Parent value.
 	 * @param string      $tag_name Tag name.
 	 * @return DOMElement
 	 */
-	private static function get_or_create_dom_child( DOMDocument $dom, DOMElement $parent, string $tag_name ): DOMElement {
-		$nodes = $parent->childNodes;
+	private static function get_or_create_dom_child( DOMDocument $dom, DOMElement $parent_node, string $tag_name ): DOMElement {
+		$nodes = $parent_node->childNodes;
 		for ( $i = 0; $i < $nodes->length; $i++ ) {
 			$node = $nodes->item( $i );
 			if ( XML_ELEMENT_NODE === $node->nodeType && $node->nodeName === $tag_name ) {
@@ -262,20 +262,20 @@ class Xml_Engine {
 			}
 		}
 		$new_elem = $dom->createElement( $tag_name );
-		return $parent->appendChild( $new_elem );
+		return $parent_node->appendChild( $new_elem );
 	}
 
 	/**
 	 * Find DOM child element with matching attribute.
 	 *
-	 * @param DOMElement $parent Parent value.
+	 * @param DOMElement $parent_node Parent value.
 	 * @param string     $tag_name Tag name.
 	 * @param string     $attr_name Attribute name.
 	 * @param string     $attr_val Attribute value.
 	 * @return DOMElement|null
 	 */
-	private static function find_dom_child_by_attribute( DOMElement $parent, string $tag_name, string $attr_name, string $attr_val ) {
-		$nodes = $parent->childNodes;
+	private static function find_dom_child_by_attribute( DOMElement $parent_node, string $tag_name, string $attr_name, string $attr_val ) {
+		$nodes = $parent_node->childNodes;
 		for ( $i = 0; $i < $nodes->length; $i++ ) {
 			$node = $nodes->item( $i );
 			if ( XML_ELEMENT_NODE === $node->nodeType && $node->nodeName === $tag_name ) {
@@ -290,13 +290,13 @@ class Xml_Engine {
 	/**
 	 * Find DOM child element with matching text content.
 	 *
-	 * @param DOMElement $parent Parent value.
+	 * @param DOMElement $parent_node Parent value.
 	 * @param string     $tag_name Tag name.
 	 * @param string     $text_val Text value.
 	 * @return DOMElement|null
 	 */
-	private static function find_dom_child_by_text( DOMElement $parent, string $tag_name, string $text_val ) {
-		$nodes = $parent->childNodes;
+	private static function find_dom_child_by_text( DOMElement $parent_node, string $tag_name, string $text_val ) {
+		$nodes = $parent_node->childNodes;
 		for ( $i = 0; $i < $nodes->length; $i++ ) {
 			$node = $nodes->item( $i );
 			if ( XML_ELEMENT_NODE === $node->nodeType && $node->nodeName === $tag_name ) {

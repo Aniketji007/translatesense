@@ -757,11 +757,13 @@ class Classic_Builder extends Base_Builder {
 		$target_tokens = $t_m[0];
 		$t_count       = count( $target_tokens );
 
-		if ( 0 === $t_count || $t_count > count( $tokens ) ) {
+		$token_total = count( $tokens );
+
+		if ( 0 === $t_count || $t_count > $token_total ) {
 			return false;
 		}
 
-		for ( $i = 0; $i <= count( $tokens ) - $t_count; $i++ ) {
+		for ( $i = 0; $i <= $token_total - $t_count; $i++ ) {
 			$match = true;
 			for ( $j = 0; $j < $t_count; $j++ ) {
 				$s_tok = $tokens[ $i + $j ][0];

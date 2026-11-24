@@ -148,8 +148,8 @@ abstract class Base_Builder {
 		if ( false !== strpos( $str, '\u' ) || false !== strpos( $str, '\U' ) ) {
 			$str = preg_replace_callback(
 				'/\\\\u([0-9a-fA-F]{4})/i',
-				function ( $match ) {
-					return mb_convert_encoding( pack( 'H*', $match[1] ), 'UTF-8', 'UCS-2BE' );
+				function ( $unicode_match ) {
+					return mb_convert_encoding( pack( 'H*', $unicode_match[1] ), 'UTF-8', 'UCS-2BE' );
 				},
 				$str
 			);

@@ -1,3 +1,4 @@
 node_modules/
-*.map/vendor/
+*.map
+/vendor/
 composer.lock

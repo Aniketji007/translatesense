@@ -26,6 +26,8 @@ class Admin_Menu {
 
 	/**
 	 * Hook suffix for the admin menu page.
+	 *
+	 * @var string
 	 */
 	private static $page_hook = '';
 

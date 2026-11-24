@@ -22,6 +22,8 @@ class Detector {
 
 	/**
 	 * Target placeholder dummy text to detect.
+	 *
+	 * @var string
 	 */
 	public static $dummy_text = 'Translate This Content';
 
@@ -481,9 +483,8 @@ class Detector {
 						'editor_type' => ( strlen( $val ) > 60 || false !== strpos( $val, '<' ) ) ? 'VISUAL' : 'LINE',
 					);
 				}
-			}
-			// 2. Array value (sequential list of items OR associative object)
-			elseif ( is_array( $val ) && ! empty( $val ) ) {
+			} elseif ( is_array( $val ) && ! empty( $val ) ) {
+				// 2. Array value (sequential list of items OR associative object).
 				$is_sequential = ( array_keys( $val ) === range( 0, count( $val ) - 1 ) );
 
 				if ( $is_sequential ) {

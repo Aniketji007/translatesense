@@ -200,7 +200,7 @@ class Hashing_Db {
 			)
 		);
 
-		return (int) ( $wpdb->insert_id ?: 0 );
+		return (int) ( ! empty( $wpdb->insert_id ) ? $wpdb->insert_id : 0 );
 	}
 
 	/**

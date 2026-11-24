@@ -206,7 +206,7 @@ class Ai_Connector_Bridge {
 	 * @param string $model AI model ID.
 	 * @return bool
 	 */
-	public function is_provider_registered_in_core( string $provider, string $model = '' ): bool {
+	public function is_provider_registered_in_core( string $provider, string $model = '' ): bool { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( ! $this->has_wp_ai ) {
 			return false;
 		}
@@ -320,7 +320,7 @@ class Ai_Connector_Bridge {
 		/*
 		 * Apply the timeout only for this request.
 		 */
-		$timeout_filter = static function ( $current_timeout ) use ( $timeout ) {
+		$timeout_filter = static function ( $current_timeout ) use ( $timeout ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 			return $timeout;
 		};
 
@@ -650,7 +650,7 @@ class Ai_Connector_Bridge {
 	private function parse_batch_json_response( string $raw_json, array $keys ): ?array {
 		$clean_json = trim( $raw_json );
 
-		// Strip markdown code fences (```json ... ```).
+		// Strip markdown code fences around the JSON payload.
 		if ( 0 === strpos( $clean_json, '```' ) ) {
 			$clean_json = preg_replace( '/^```(?:json)?\s*/i', '', $clean_json );
 			$clean_json = preg_replace( '/\s*```$/', '', $clean_json );
@@ -704,9 +704,7 @@ class Ai_Connector_Bridge {
 	/**
 	 * Save or update custom API keys when the user is not relying on site-wide WP AI configuration.
 	 *
-	 * @param array<string, string> $keys
-	 *
-	 * @param array                 $keys List of keys.
+	 * @param array<string, string> $keys List of API keys indexed by provider ID.
 	 * @return bool
 	 */
 	public function update_api_keys( array $keys ): bool {
@@ -902,7 +900,6 @@ class Ai_Connector_Bridge {
 	 * Get provider models either from WP Core AI Connectors, provider API endpoint with 1h transient cache, or static cache.
 	 *
 	 * @param string $id        Provider identifier ('openai', 'gemini'/'google', 'chrome_ai').
-	 * @param bool   $connector Whether to retrieve models via WP AI Connectors.
 	 * @param array  $provider_options Provider options.
 	 * @return array<int, array<string, string>> Array of models containing 'id' and 'name'.
 	 */
@@ -978,8 +975,8 @@ class Ai_Connector_Bridge {
 
 				// Query registry for models matching requirements.
 				if ( null !== $requirements && class_exists( '\WordPress\AiClient\AiClient' ) && method_exists( '\WordPress\AiClient\AiClient', 'defaultRegistry' ) ) {
-					$Privders_Registory = \WordPress\AiClient\AiClient::defaultRegistry();
-					$modal_list         = $Privders_Registory->findModelsMetadataForSupport( $requirements );
+					$providers_registry = \WordPress\AiClient\AiClient::defaultRegistry();
+					$modal_list         = $providers_registry->findModelsMetadataForSupport( $requirements );
 
 					$connector_models = array();
 					if ( is_iterable( $modal_list ) ) {

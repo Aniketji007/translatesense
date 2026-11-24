@@ -32,6 +32,8 @@ class Dom_Filter {
 	private static $cache = array();
 
 	/**
+	 * Cache of attribute placeholders.
+	 *
 	 * @var array<string, string>
 	 */
 	private static $attr_placeholders_cache = array();
@@ -75,17 +77,17 @@ class Dom_Filter {
 	/**
 	 * Decode HTML entities and clean selected invisible characters.
 	 *
-	 * @param string $string Input string.
+	 * @param string $text Input string.
 	 * @return string
 	 */
-	public static function decode_html_string( string $string ): string {
+	public static function decode_html_string( string $text ): string {
 
-		if ( ! isset( $string ) || empty( $string ) ) {
-			return $string;
+		if ( ! isset( $text ) || empty( $text ) ) {
+			return $text;
 		}
 
 		$decoded = html_entity_decode(
-			$string,
+			$text,
 			ENT_QUOTES | ENT_HTML5,
 			'UTF-8'
 		);
@@ -158,7 +160,6 @@ class Dom_Filter {
 	 *
 	 * @param string             $html      DOM-generated HTML.
 	 * @param string             $attribute Temporary marker prefix.
-	 * @param array              $suffixes Suffixes.
 	 * @param array<int, string> $suffixes  Original slash syntax by marker ID.
 	 * @return string
 	 */

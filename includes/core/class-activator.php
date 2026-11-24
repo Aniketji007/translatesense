@@ -93,7 +93,7 @@ class Activator {
 	/**
 	 * Create custom database tables for translation packages and cached results.
 	 *
-	 * dbDelta adds missing columns to existing tables.
+	 * The dbDelta function adds missing columns to existing tables.
 	 *
 	 * @return bool
 	 */

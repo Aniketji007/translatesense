@@ -25,9 +25,11 @@ class Reference_Replacer {
 	 *
 	 * @param array  $content_batch Content batch.
 	 * @param array  $maps {
-	 *     @type array<string, string> $url_map
-	 *     @type array<int, int>       $media_id_map
-	 *     @type array<string, string> $media_url_map
+	 *     Replacement maps.
+	 *
+	 *     @type array<string, string> $url_map       Old URL to new URL.
+	 *     @type array<int, int>       $media_id_map  Old attachment ID to new attachment ID.
+	 *     @type array<string, string> $media_url_map Old media URL to new media URL.
 	 * }
 	 * @param string $target_language Target language code.
 	 * @return array Updated content batch preserving original keys and types.
@@ -60,7 +62,7 @@ class Reference_Replacer {
 	 * @param string $target_language Target language code.
 	 * @return mixed
 	 */
-	public function replace_content( $content, array $url_map, array $media_id_map, array $media_url_map, string $target_language ) {
+	public function replace_content( $content, array $url_map, array $media_id_map, array $media_url_map, string $target_language ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( null === $content || '' === $content || is_bool( $content ) || is_int( $content ) || is_float( $content ) ) {
 			return $content;
 		}
@@ -211,7 +213,7 @@ class Reference_Replacer {
 						}
 					}
 
-					// Gallery block IDs: {"ids":[123,456]}.
+					// Gallery block IDs stored in the "ids" attribute.
 					if ( 'core/gallery' === $block_name && ! empty( $attrs['ids'] ) && is_array( $attrs['ids'] ) ) {
 						foreach ( $attrs['ids'] as &$gid ) {
 							$gid_int = absint( $gid );
@@ -388,7 +390,7 @@ class Reference_Replacer {
 				$content
 			);
 
-			// Shortcodes: [gallery ids="123,456"] or [playlist ids="123,456"].
+			// Gallery and playlist shortcodes with a comma separated "ids" attribute.
 			$content = preg_replace_callback(
 				'/\[(gallery|playlist)\b([^\]]*)\bids\s*=\s*(["\'])([\d\s,]+)\3([^\]]*)\]/i',
 				function ( $matches ) use ( $media_id_map ) {

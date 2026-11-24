@@ -324,7 +324,7 @@ class Elementor_Builder extends Base_Builder {
 			return;
 		}
 
-		// Case: Sequential list / repeater collection ([ 0 => [...], 1 => [...] ]).
+		// Case: Sequential list or repeater collection (numeric keys starting at zero).
 		if ( array_keys( $data ) === range( 0, count( $data ) - 1 ) ) {
 			foreach ( $data as $item ) {
 				if ( is_array( $item ) ) {
@@ -503,7 +503,7 @@ class Elementor_Builder extends Base_Builder {
 		}
 
 		foreach ( self::$translatable_exact_keys as $exact_key ) {
-			if ( $normalized === strtolower( $exact_key ) ) {
+			if ( strtolower( $exact_key ) === $normalized ) {
 				return true;
 			}
 		}

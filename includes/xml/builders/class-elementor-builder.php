@@ -306,9 +306,8 @@ class Elementor_Builder extends Base_Builder {
 					'editor_type' => 'LINE',
 				) );
 				$final_specs[ $path ] = array_merge( $spec, array( 'noTranslate' => true ) );
-			} else {
-				// Second removal: already had noTranslate, user removed it again -> permanently delete it!
 			}
+			// Otherwise the path already had noTranslate and the user removed it again, so it is dropped permanently.
 		}
 
 		// 3. New active fields added

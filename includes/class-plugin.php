@@ -36,7 +36,7 @@ class Plugin {
 	 *
 	 * @var Plugin|null
 	 */
-	protected static $_instance = null;
+	protected static $plugin_instance = null;
 
 	/**
 	 * Main instance of Plugin.
@@ -44,10 +44,10 @@ class Plugin {
 	 * @return Plugin
 	 */
 	public static function instance() {
-		if ( is_null( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( is_null( self::$plugin_instance ) ) {
+			self::$plugin_instance = new self();
 		}
-		return self::$_instance;
+		return self::$plugin_instance;
 	}
 
 	/**

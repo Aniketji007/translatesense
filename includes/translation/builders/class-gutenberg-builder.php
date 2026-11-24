@@ -576,7 +576,7 @@ class Gutenberg_Builder extends Base_Builder {
 		$text_node = null;
 		if ( $node instanceof DOMText ) {
 			$text_node = $node;
-		} elseif ( $node instanceof \DOMElement && false === strpos( $original_value, '<' ) && $node->childNodes->length === 1 && $node->firstChild instanceof DOMText ) {
+		} elseif ( $node instanceof \DOMElement && false === strpos( $original_value, '<' ) && 1 === $node->childNodes->length && $node->firstChild instanceof DOMText ) {
 			$text_node = $node->firstChild;
 		}
 
@@ -672,10 +672,11 @@ class Gutenberg_Builder extends Base_Builder {
 			return $source_html;
 		}
 
-		$matches     = array();
-		$token_count = count( $original_tokens );
+		$matches      = array();
+		$token_count  = count( $original_tokens );
+		$source_count = count( $source_tokens );
 
-		for ( $i = 0; $i <= count( $source_tokens ) - $token_count; $i++ ) {
+		for ( $i = 0; $i <= $source_count - $token_count; $i++ ) {
 			$matched = true;
 
 			for ( $j = 0; $j < $token_count; $j++ ) {
@@ -693,15 +694,13 @@ class Gutenberg_Builder extends Base_Builder {
 						$matched = false;
 						break;
 					}
-				} else {
+				} elseif (
 					// Compare decoded text, but retain raw source offsets.
-					if (
-						html_entity_decode( $original_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
-						!== html_entity_decode( $source_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
-					) {
-						$matched = false;
-						break;
-					}
+					html_entity_decode( $original_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
+					!== html_entity_decode( $source_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
+				) {
+					$matched = false;
+					break;
 				}
 			}
 

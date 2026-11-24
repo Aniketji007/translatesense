@@ -995,6 +995,12 @@ class Bulk_Process {
 	/**
 	 * Process exactly one backend job. The public worker owns the global lock
 	 * and decides whether to claim another job in the same execution.
+	 *
+	 * @return void
+	 *
+	 * @throws \Exception When the post of a queued job no longer exists.
+	 * @throws \UnexpectedValueException When the translation package or provider response is invalid.
+	 * @throws \RuntimeException When the translation provider request fails.
 	 */
 	private static function process_next_backend_job(): void {
 		global $wpdb;

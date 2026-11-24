@@ -19,6 +19,11 @@ if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
 	 */
 	class Autoload {
 
+		/**
+		 * Singleton instance.
+		 *
+		 * @var Autoload|null
+		 */
 		private static $instance;
 
 		/**

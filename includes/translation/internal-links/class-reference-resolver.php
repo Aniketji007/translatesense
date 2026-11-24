@@ -41,8 +41,8 @@ class Reference_Resolver {
 	 * @param Media_Reference_Translator|null $media_translator Media translator.
 	 */
 	public function __construct( ?URL_Resolver $url_resolver = null, ?Media_Reference_Translator $media_translator = null ) {
-		$this->url_resolver     = $url_resolver ?: new URL_Resolver();
-		$this->media_translator = $media_translator ?: new Media_Reference_Translator();
+		$this->url_resolver     = $url_resolver instanceof URL_Resolver ? $url_resolver : new URL_Resolver();
+		$this->media_translator = $media_translator instanceof Media_Reference_Translator ? $media_translator : new Media_Reference_Translator();
 	}
 
 	/**

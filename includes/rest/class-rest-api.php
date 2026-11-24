@@ -53,7 +53,6 @@ class Rest_Api {
 	 * Register REST routes.
 	 */
 	public static function register_routes() {
-
 		/*
 		 * 1. Scan and get widgets support status.
 		 */
@@ -1925,7 +1924,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return true|WP_Error
 	 */
-	public static function permission_bulk_active_batches( WP_REST_Request $request ) {
+	public static function permission_bulk_active_batches( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			return self::permission_error(
 				__( 'You are not allowed to view active translation batches.', 'translatesense' )
@@ -2191,7 +2190,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response
 	 */
-	public static function get_widgets_status( WP_REST_Request $request ) {
+	public static function get_widgets_status( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		$rules = Xml_Engine::get_all_rules();
 
@@ -2804,7 +2803,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response
 	 */
-	public static function get_gutenberg_config( WP_REST_Request $request ) {
+	public static function get_gutenberg_config( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		$gutenberg_rules = Xml_Engine::get_all_rules(
 			'gutenberg'
@@ -2966,7 +2965,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response
 	 */
-	public static function get_settings( WP_REST_Request $request ) {
+	public static function get_settings( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		global $wpdb;
 
@@ -4235,7 +4234,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public static function bulk_active_batches( WP_REST_Request $request ) {
+	public static function bulk_active_batches( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		$batches          = Bulk_Process::get_active_background_batches();
 		$filtered_batches = array();
 
@@ -4705,7 +4704,7 @@ class Rest_Api {
 	 * @param string $target_lang Optional target language slug.
 	 * @return bool True if every string belongs to the source post, false otherwise.
 	 */
-	public static function verify_strings_belong_to_post( array $strings, int $post_id, string $target_lang = '' ): bool {
+	public static function verify_strings_belong_to_post( array $strings, int $post_id, string $target_lang = '' ): bool { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		if ( empty( $strings ) ) {
 			return false;

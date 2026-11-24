@@ -130,11 +130,11 @@ class Gutenberg_Builder extends Base_Builder {
 	 * Recursively append DOM key nodes according to field schema.
 	 *
 	 * @param DOMDocument $dom DOM document.
-	 * @param DOMElement  $parent Parent value.
+	 * @param DOMElement  $parent_node Parent value.
 	 * @param array       $field_details Field details.
 	 * @return void
 	 */
-	private function append_dom_keys_recursive( DOMDocument $dom, DOMElement $parent, array $field_details ): void {
+	private function append_dom_keys_recursive( DOMDocument $dom, DOMElement $parent_node, array $field_details ): void {
 		foreach ( $field_details as $key => $info ) {
 			if ( in_array( $key, array( 'xpath', 'xpaths', '__xpaths__', 'translate' ), true ) ) {
 				continue;
@@ -156,7 +156,7 @@ class Gutenberg_Builder extends Base_Builder {
 				$this->append_dom_keys_recursive( $dom, $k_node, $info['children'] );
 			}
 
-			$parent->appendChild( $k_node );
+			$parent_node->appendChild( $k_node );
 		}
 	}
 
@@ -363,18 +363,18 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Recursively append key nodes into SimpleXML parent.
 	 *
-	 * @param SimpleXMLElement $parent Parent value.
+	 * @param SimpleXMLElement $parent_node Parent value.
 	 * @param array            $field_details Field details.
 	 * @return void
 	 */
-	private function append_simplexml_keys_recursive( SimpleXMLElement $parent, array $field_details ): void {
+	private function append_simplexml_keys_recursive( SimpleXMLElement $parent_node, array $field_details ): void {
 		foreach ( $field_details as $f_key => $f_info ) {
 			if ( in_array( $f_key, array( 'xpath', 'xpaths', '__xpaths__', 'translate' ), true ) ) {
 				continue;
 			}
 			$found_node = null;
-			if ( isset( $parent->key ) ) {
-				foreach ( $parent->key as $k ) {
+			if ( isset( $parent_node->key ) ) {
+				foreach ( $parent_node->key as $k ) {
 					if ( (string) $k['name'] === (string) $f_key ) {
 						$found_node = $k;
 						break;
@@ -382,7 +382,7 @@ class Gutenberg_Builder extends Base_Builder {
 				}
 			}
 			if ( ! $found_node ) {
-				$found_node = $parent->addChild( 'key' );
+				$found_node = $parent_node->addChild( 'key' );
 				$found_node->addAttribute( 'name', (string) $f_key );
 			}
 

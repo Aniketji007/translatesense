@@ -184,7 +184,7 @@ class Reference_Collector {
 				}
 			}
 
-			// Gallery block: <!-- wp:gallery {"ids":[123,456],...} -->.
+			// Gallery block: the block comment carries an "ids" attribute with attachment IDs.
 			if ( preg_match_all( '/<!--\s+wp:gallery\b\s+(\{.*?\})\s*-->/s', $content, $gallery_matches ) ) {
 				foreach ( $gallery_matches[1] as $json_str ) {
 					$attrs = json_decode( $json_str, true );
@@ -241,7 +241,7 @@ class Reference_Collector {
 					$attachment_ids[] = absint( $data_match[2] );
 				}
 
-				// src="...".
+				// The src attribute.
 				if ( preg_match( '/\bsrc\s*=\s*(["\'])(.*?)\1/i', $img_tag, $src_match ) ) {
 					$src = trim( $src_match[2] );
 					if ( '' !== $src && 0 !== strpos( $src, 'data:' ) ) {
@@ -249,7 +249,7 @@ class Reference_Collector {
 					}
 				}
 
-				// srcset="...".
+				// The srcset attribute.
 				if ( preg_match( '/\bsrcset\s*=\s*(["\'])(.*?)\1/i', $img_tag, $srcset_match ) ) {
 					$candidates = explode( ',', $srcset_match[2] );
 					foreach ( $candidates as $candidate ) {
@@ -285,7 +285,7 @@ class Reference_Collector {
 			}
 		}
 
-		// [gallery ids="123,456"] or [playlist ids="123,456"]
+		// Gallery and playlist shortcodes with a comma separated "ids" attribute.
 		if ( preg_match_all( '/\[(?:gallery|playlist)\b[^\]]*\bids\s*=\s*(["\'])([\d\s,]+)\1[^\]]*\]/i', $content, $gallery_sc_matches ) ) {
 			foreach ( $gallery_sc_matches[2] as $ids_str ) {
 				$raw_ids = explode( ',', $ids_str );

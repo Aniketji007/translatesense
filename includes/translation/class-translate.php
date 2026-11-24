@@ -138,7 +138,6 @@ class Translate {
 	 * @param string $source_lang Source language code.
 	 * @param string $target_lang Target language code.
 	 * @param string $widget_id Widget ID.
-	 * @param int    $post_id Post ID.
 	 * @param array  $custom_options Custom options.
 	 * @return array array( 'translated' => string, 'cached' => bool, 'hash' => string )
 	 */

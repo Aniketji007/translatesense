@@ -82,7 +82,7 @@ class Content_Parser {
 	 * @param int   $post_id Post ID being updated.
 	 * @param array $data    Array of post data (optional).
 	 */
-	public static function capture_pre_post_content( int $post_id, array $data = array() ): void {
+	public static function capture_pre_post_content( int $post_id, array $data = array() ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( ! isset( self::$existing_post_content[ $post_id ] ) ) {
 			$post = get_post( $post_id );
 			if ( $post && isset( $post->post_content ) ) {
@@ -411,7 +411,8 @@ class Content_Parser {
 		} elseif ( empty( $new_data_array ) || empty( $existing_data_array ) ) {
 			$is_changed = true;
 		} else {
-			$is_changed = ( $new_data_array != $existing_data_array );
+			// Loose comparison on purpose: only values matter here, not key order.
+			$is_changed = ( $new_data_array != $existing_data_array ); // phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual
 		}
 
 		// If new or existing data not same, trigger only delete_post_packages (do not parse here).
@@ -434,7 +435,7 @@ class Content_Parser {
 	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document|mixed $document Elementor document.
 	 * @param array|null                                                             $data     Post data.
 	 */
-	public static function handle_elementor_after_save_post( $document, $data = null ): void {
+	public static function handle_elementor_after_save_post( $document, $data = null ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( ! $document || ! is_object( $document ) || ! method_exists( $document, 'get_id' ) ) {
 			return;
 		}

@@ -688,7 +688,7 @@ class Polylang_Synchronizer {
 	 * @param string $source_lang Source language code.
 	 * @return string
 	 */
-	public static function translate_content_media_references( string $content, string $target_lang, string $builder = '', string $source_lang = '' ): string {
+	public static function translate_content_media_references( string $content, string $target_lang, string $builder = '', string $source_lang = '' ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( '' === $content ) {
 			return $content;
 		}
@@ -912,7 +912,7 @@ class Polylang_Synchronizer {
 					if ( 'core/file' === $name && ! empty( $block['innerHTML'] ) ) {
 						$source_media = get_post( $source_media_id );
 						$target_media = get_post( $translated_id );
-						if ( $source_media instanceof WP_Post && $target_media instanceof WP_Post && $source_media->post_title === wp_strip_all_tags( $block['innerHTML'] ) ) {
+						if ( $source_media instanceof WP_Post && $target_media instanceof WP_Post && wp_strip_all_tags( $block['innerHTML'] ) === $source_media->post_title ) {
 							$block['innerHTML'] = str_replace( $source_media->post_title, $target_media->post_title, $block['innerHTML'] );
 							if ( ! empty( $block['innerContent'][0] ) ) {
 								$block['innerContent'][0] = str_replace( $source_media->post_title, $target_media->post_title, $block['innerContent'][0] );

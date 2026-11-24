@@ -54,7 +54,7 @@ class Editor_Integration {
 	 * @param \WP_Post|null $post    Post object.
 	 * @param bool          $update  Whether this is an existing post being updated.
 	 */
-	public static function save_source_post_id_on_create( $post_id, $post = null, $update = false ) {
+	public static function save_source_post_id_on_create( $post_id, $post = null, $update = false ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}

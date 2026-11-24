@@ -100,7 +100,7 @@ class Media_Reference_Translator {
 				$matched_size = $this->find_registered_size_name( $id, $width, $height, basename( $clean_url ) );
 				return array(
 					'attachment_id' => $id,
-					'size'          => $matched_size ?: array( $width, $height ),
+					'size'          => ! empty( $matched_size ) ? $matched_size : array( $width, $height ),
 				);
 			}
 		}
@@ -247,7 +247,7 @@ class Media_Reference_Translator {
 		$data = array(
 			'id'     => $translated_id,
 			'url'    => $src_info[0],
-			'srcset' => $srcset ?: '',
+			'srcset' => ! empty( $srcset ) ? $srcset : '',
 		);
 
 		$cache->set_image( $source_attachment_id, $size, $target_language, $data );
