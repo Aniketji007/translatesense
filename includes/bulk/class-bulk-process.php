@@ -33,6 +33,7 @@ class Bulk_Process {
 	 * Initialize hooks.
 	 */
 	public static function init() {
+		// phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- Intentional one-minute tick that drains the translation queue in small batches.
 		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_intervals' ) );
 		add_action( self::CRON_HOOK, array( __CLASS__, 'process_cron_tick' ) );
 		add_action( self::IMMEDIATE_CRON_HOOK, array( __CLASS__, 'process_cron_tick' ) );
@@ -44,7 +45,7 @@ class Bulk_Process {
 	public static function add_cron_intervals( $schedules ) {
 		if ( ! isset( $schedules[ self::CRON_INTERVAL ] ) ) {
 			$schedules[ self::CRON_INTERVAL ] = array(
-				'interval' => 60,
+				'interval' => MINUTE_IN_SECONDS,
 				'display'  => __( 'Every Minute (TranslateSense Bulk Queue)', 'translatesense' ),
 			);
 		}
@@ -590,7 +591,7 @@ class Bulk_Process {
 				: array( 'id' => $job_id );
 			$retry_where_format = $is_term ? array( '%d', '%s' ) : array( '%d' );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic write to the plugin's own queue table; there is nothing to cache.
 			$updated = $wpdb->update(
 				$table,
 				$update_data,

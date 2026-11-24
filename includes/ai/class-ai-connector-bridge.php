@@ -125,7 +125,7 @@ class Ai_Connector_Bridge {
 			return $custom_error;
 		}
 
-		if ( ! in_array( $provider, array( 'openai', 'gemini' ) ) ) {
+		if ( ! in_array( $provider, array( 'openai', 'gemini' ), true ) ) {
 			$custom_error->add( 'invalid_provider', __( 'Invalid Provider', 'translatesense' ) );
 			return $custom_error;
 		}
@@ -505,7 +505,7 @@ class Ai_Connector_Bridge {
 					return new WP_Error( 'missing_api_key', __( 'OpenAI API key is missing. Please configure it in TranslateSense Settings.', 'translatesense' ), array( 'status' => 401 ) );
 				}
 
-				$url  = 'https://api.openai.com/v1/chat/completions'; // phpcs:ignore fallback if connector not found and for older wp version compatibility.
+				$url  = 'https://api.openai.com/v1/chat/completions'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration -- Fallback when no WordPress AI connector is available (WP < 7.0).
 				$body = array(
 					'model'           => $model,
 					'messages'        => array(
@@ -570,7 +570,7 @@ class Ai_Connector_Bridge {
 					return new WP_Error( 'missing_api_key', __( 'Google Gemini API key is missing. Please configure it in TranslateSense Settings.', 'translatesense' ), array( 'status' => 401 ) );
 				}
 
-				$url  = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent'; // phpcs:ignore fallback if connector not found and for older wp version compatibility.
+				$url  = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration -- Fallback when no WordPress AI connector is available (WP < 7.0).
 				$body = array(
 					'contents'         => array(
 						array(
@@ -904,7 +904,7 @@ class Ai_Connector_Bridge {
 		$provider_id   = sanitize_key( $id );
 		$core_provider = ( 'gemini' === $provider_id ) ? 'google' : $provider_id;
 
-		if ( ! in_array( $core_provider, array( 'google', 'openai' ) ) ) {
+		if ( ! in_array( $core_provider, array( 'google', 'openai' ), true ) ) {
 			return array();
 		}
 
@@ -1090,7 +1090,7 @@ class Ai_Connector_Bridge {
 				}
 
 				$response = wp_remote_get(
-					'https://api.openai.com/v1/models', // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration only for fetch ai models
+					'https://api.openai.com/v1/models', // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration -- Only used to list the provider models for the settings screen.
 					array(
 						'headers' => array(
 							'Authorization' => 'Bearer ' . $api_key,
@@ -1145,7 +1145,7 @@ class Ai_Connector_Bridge {
 					return array();
 				}
 
-				$url      = 'https://generativelanguage.googleapis.com/v1beta/models'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration only for fetch ai models
+				$url      = 'https://generativelanguage.googleapis.com/v1beta/models'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration -- Only used to list the provider models for the settings screen.
 				$response = wp_remote_get(
 					$url,
 					array(

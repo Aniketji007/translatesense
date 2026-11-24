@@ -250,6 +250,7 @@ class Activator {
 		$path = Xml_Engine::get_master_xml_path();
 
 		if ( file_exists( $path ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading a local plugin file, not a remote URL.
 			$all_xml = file_get_contents( $path );
 
 			if ( false !== $all_xml && '' !== $all_xml ) {

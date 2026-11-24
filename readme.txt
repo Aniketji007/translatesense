@@ -1,5 +1,5 @@
 === TranslateSense – AI Translation for Polylang ===
-Contributors: dragwyb
+Contributors: dragwyb, alkesh7
 Tags: translation, polylang, multilingual, ai translation, automatic translation
 Requires at least: 5.8
 Tested up to: 7.1

@@ -327,7 +327,7 @@ class Acf {
 
 		$trimmed = trim( $value );
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Required to safely decode serialized metadata without instantiating PHP objects.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize, WordPress.PHP.NoSilencedErrors.Discouraged -- Required to safely decode serialized metadata without instantiating PHP objects; malformed data is handled by the return check below.
 		$unserialized = @unserialize(
 			$trimmed,
 			array(
