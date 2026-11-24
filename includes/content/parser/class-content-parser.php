@@ -117,8 +117,8 @@ class Content_Parser {
 	/**
 	 * Register or override a builder parser instance.
 	 *
-	 * @param string       $slug
-	 * @param Base_Builder $builder
+	 * @param string       $slug Slug.
+	 * @param Base_Builder $builder Builder name.
 	 */
 	public static function register_builder( string $slug, Base_Builder $builder ): void {
 		self::$builders[ sanitize_key( $slug ) ] = $builder;
@@ -127,7 +127,7 @@ class Content_Parser {
 	/**
 	 * Get a builder parser instance by slug.
 	 *
-	 * @param string $slug
+	 * @param string $slug Slug.
 	 * @return Base_Builder|null
 	 */
 	public static function get_builder( string $slug ): ?Base_Builder {
@@ -139,8 +139,8 @@ class Content_Parser {
 	/**
 	 * Automatically detect builder type from post ID or content structure.
 	 *
-	 * @param mixed $content
-	 * @param int   $post_id
+	 * @param mixed $content Content to process.
+	 * @param int   $post_id Post ID.
 	 * @return string 'gutenberg' | 'elementor' | 'classic'
 	 */
 	public static function detect_builder( $content = '', int $post_id = 0 ): string {
@@ -167,10 +167,10 @@ class Content_Parser {
 	/**
 	 * Parse content for translatable strings using the appropriate builder.
 	 *
-	 * @param mixed  $content Content string, block array, or Elementor JSON/array
-	 * @param int    $post_id Post ID (optional)
-	 * @param string $lang    Source language code (optional, auto-detected if empty)
-	 * @param string $builder Builder slug (optional, auto-detected if empty)
+	 * @param mixed  $content Content string, block array, or Elementor JSON/array.
+	 * @param int    $post_id Post ID (optional).
+	 * @param string $lang Source language code (optional, auto-detected if empty).
+	 * @param string $builder Builder slug (optional, auto-detected if empty).
 	 * @return array Extracted strings array
 	 */
 	public static function parse( $content = '', int $post_id = 0, string $lang = '', string $builder = '' ): array {
@@ -280,6 +280,12 @@ class Content_Parser {
 		return array_values( (array) $extracted );
 	}
 
+	/**
+	 * Check whether is save package.
+	 *
+	 * @param mixed $post_id Post ID.
+	 * @return bool
+	 */
 	public static function is_save_package( $post_id ): bool {
 		if ( ! $post_id ) {
 			return false;
@@ -344,8 +350,8 @@ class Content_Parser {
 	 * Compares new update data with existing saved data for _elementor_data.
 	 * If they are not the same, triggers delete_post_packages (does not re-parse content).
 	 *
-	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document $document Elementor document
-	 * @param array                                                            $data     Post data
+	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document $document Elementor document.
+	 * @param array                                                            $data Post data.
 	 */
 	public static function handle_elementor_save_post( $document, $data ): void {
 
@@ -501,8 +507,8 @@ class Content_Parser {
 	 * If they are not the same, triggers delete_post_packages (does not re-parse content).
 	 * If content did not change (delete condition false), deletes post_name or post_title package if value changed.
 	 *
-	 * @param int           $post_id Post ID
-	 * @param \WP_Post|null $post    Post object
+	 * @param int           $post_id Post ID.
+	 * @param \WP_Post|null $post Post object.
 	 */
 	public static function handle_save_post( int $post_id, $post = null ): void {
 

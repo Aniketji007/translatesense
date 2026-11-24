@@ -102,10 +102,10 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Parse Elementor element structure into translatable strings.
 	 *
-	 * @param mixed  $content Elementor JSON string, decoded array, or empty (fetches post meta)
-	 * @param int    $post_id Target post ID
-	 * @param string $lang    Source language
-	 * @param array  $rules   Elementor builder XML configuration rules
+	 * @param mixed  $content Elementor JSON string, decoded array, or empty (fetches post meta).
+	 * @param int    $post_id Target post ID.
+	 * @param string $lang Source language.
+	 * @param array  $rules Elementor builder XML configuration rules.
 	 * @return array
 	 */
 	public function parse( $content, int $post_id = 0, string $lang = '', array $rules = array() ): array {
@@ -143,11 +143,12 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively extract translatable strings from Elementor element trees.
 	 *
-	 * @param array  $elements        Elementor element nodes
-	 * @param array  $elementor_rules Active elementor rules reference
-	 * @param int    $post_id         Post ID
-	 * @param string $lang            Language code
-	 * @param array  $extracted       Extracted string packages reference
+	 * @param array  $elements Elementor element nodes.
+	 * @param array  $elementor_rules Active elementor rules reference.
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param array  $extracted Extracted string packages reference.
+	 * @param int    $depth Nesting depth.
 	 */
 	public function extract_elements_recursive( array $elements, array &$elementor_rules, int $post_id, string $lang, array &$extracted, int $depth = 0 ): void {
 		if ( empty( $elements ) || $depth > 100 ) {
@@ -247,13 +248,13 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Inspect widget settings to extract unmapped translatable strings and register new XML definitions.
 	 *
-	 * @param array  $settings          Widget control settings
-	 * @param string $widget_name       Widget identifier
-	 * @param array  $mapped_rule_paths Mapped XML paths to skip
-	 * @param int    $post_id           Post ID
-	 * @param string $lang              Language code
-	 * @param array  $extracted         Extracted output accumulator
-	 * @param array  $discovered_rules  Discovered XML rule fields accumulator
+	 * @param array  $settings Widget control settings.
+	 * @param string $widget_name Widget identifier.
+	 * @param array  $mapped_rule_paths Mapped XML paths to skip.
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param array  $extracted Extracted output accumulator.
+	 * @param array  $discovered_rules Discovered XML rule fields accumulator.
 	 */
 	protected function discover_unmapped_widget_strings( array $settings, string $widget_name, array $mapped_rule_paths, int $post_id, string $lang, array &$extracted, array &$discovered_rules ): void {
 		foreach ( $settings as $attr_name => $attr_payload ) {
@@ -281,14 +282,14 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively discover translatable fields within complex settings, repeaters, and inner child objects.
 	 *
-	 * @param mixed  $data              Setting value or array node
-	 * @param string $path_prefix       Current path prefix
-	 * @param string $widget_name       Widget identifier
-	 * @param array  $mapped_rule_paths Already mapped paths to skip
-	 * @param int    $post_id           Post ID
-	 * @param string $lang              Language code
-	 * @param array  $extracted         Extracted output accumulator
-	 * @param array  $discovered_rules  Discovered XML rule fields accumulator
+	 * @param mixed  $data Setting value or array node.
+	 * @param string $path_prefix Current path prefix.
+	 * @param string $widget_name Widget identifier.
+	 * @param array  $mapped_rule_paths Already mapped paths to skip.
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param array  $extracted Extracted output accumulator.
+	 * @param array  $discovered_rules Discovered XML rule fields accumulator.
 	 */
 	protected function discover_nested_settings_recursive( $data, string $path_prefix, string $widget_name, array $mapped_rule_paths, int $post_id, string $lang, array &$extracted, array &$discovered_rules ): void {
 		if ( is_string( $data ) ) {
@@ -351,8 +352,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Retrieve all string values matching a delimited or repeater path specification.
 	 *
-	 * @param array  $settings   Widget settings array
-	 * @param string $field_path Target path (e.g. 'title', 'link>url', 'tabs>tab_title')
+	 * @param array  $settings Widget settings array.
+	 * @param string $field_path Target path (e.g. 'title', 'link>url', 'tabs>tab_title').
 	 * @return array<string>
 	 */
 	protected function resolve_field_path_values( array $settings, string $field_path ): array {
@@ -404,9 +405,9 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Extract text from Elementor atomic structure objects ($$type: 'html-v3' or 'string').
 	 *
-	 * @param mixed  $control_payload Elementor control payload
-	 * @param string $attribute_key   Key name
-	 * @param string $path_prefix     Path prefix
+	 * @param mixed  $control_payload Elementor control payload.
+	 * @param string $attribute_key Key name.
+	 * @param string $path_prefix Path prefix.
 	 * @return array<string, string> Map of path => string content
 	 */
 	protected function resolve_atomic_control_strings( $control_payload, string $attribute_key, string $path_prefix ): array {
@@ -440,8 +441,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Infer XML field type and editor type from path semantics and content characteristics.
 	 *
-	 * @param string $field_path Path name
-	 * @param string $sample_val Sample string value
+	 * @param string $field_path Path name.
+	 * @param string $sample_val Sample string value.
 	 * @return array{type: string, editor_type: string}
 	 */
 	protected function infer_field_xml_schema( string $field_path, string $sample_val ): array {
@@ -468,7 +469,7 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Verify if an attribute represents a CSS or styling parameter.
 	 *
-	 * @param string $attribute_key
+	 * @param string $attribute_key Attribute key.
 	 * @return bool
 	 */
 	protected function is_style_attribute( string $attribute_key ): bool {
@@ -484,7 +485,7 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Verify if an attribute name matches translatable text patterns.
 	 *
-	 * @param string $attribute_key
+	 * @param string $attribute_key Attribute key.
 	 * @return bool
 	 */
 	protected function is_translatable_attribute_key( string $attribute_key ): bool {

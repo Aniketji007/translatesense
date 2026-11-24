@@ -13,6 +13,9 @@ if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
 
 		private static $instance;
 
+		/**
+		 * Instance.
+		 */
 		public static function instance() {
 			if ( ! isset( self::$instance ) ) {
 				self::$instance = new self();
@@ -20,6 +23,9 @@ if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
 			return self::$instance;
 		}
 
+		/**
+		 * Construct.
+		 */
 		public function __construct() {
 			static $autoload_status = false;
 
@@ -28,6 +34,11 @@ if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
 			}
 		}
 
+		/**
+		 * Autoload.
+		 *
+		 * @param mixed $class_name Class name.
+		 */
 		public function autoload( $class_name ) {
 			if ( 0 !== strpos( $class_name, __NAMESPACE__ ) ) {
 				return;

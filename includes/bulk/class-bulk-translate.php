@@ -66,6 +66,8 @@ class Bulk_Translate {
 
 	/**
 	 * Render quick Translate button in top and bottom tablenav (only on Polylang translated post types).
+	 *
+	 * @param mixed $which Table navigation position, either "top" or "bottom".
 	 */
 	public static function render_filter_translate_button( $which ) {
 		$post_type = self::get_current_screen_post_type();
@@ -85,6 +87,8 @@ class Bulk_Translate {
 
 	/**
 	 * Enqueue assets on edit.php (Polylang translated post types) and edit-tags.php (Polylang translated taxonomies).
+	 *
+	 * @param mixed $hook Hook name.
 	 */
 	public static function enqueue_bulk_assets( $hook ) {
 		$post_type = '';

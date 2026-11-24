@@ -153,6 +153,7 @@ class Dom_Filter {
 	 *
 	 * @param string             $html      DOM-generated HTML.
 	 * @param string             $attribute Temporary marker prefix.
+	 * @param array              $suffixes Suffixes.
 	 * @param array<int, string> $suffixes  Original slash syntax by marker ID.
 	 * @return string
 	 */

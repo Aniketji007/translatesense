@@ -47,7 +47,7 @@ class Polylang_Bridge {
 	/**
 	 * Check if a post type is translated / supported by Polylang.
 	 *
-	 * @param string $post_type
+	 * @param string $post_type Post type.
 	 * @return bool
 	 */
 	public static function is_translated_post_type( $post_type ) {
@@ -123,6 +123,8 @@ class Polylang_Bridge {
 
 	/**
 	 * Get language of a post.
+	 *
+	 * @param mixed $post_id Post ID.
 	 */
 	public static function get_post_language( $post_id ) {
 		if ( self::is_polylang_active() && function_exists( 'pll_get_post_language' ) ) {
@@ -133,6 +135,9 @@ class Polylang_Bridge {
 
 	/**
 	 * Set language of a post.
+	 *
+	 * @param mixed $post_id Post ID.
+	 * @param mixed $lang_slug Language slug.
 	 */
 	public static function set_post_language( $post_id, $lang_slug ) {
 		if ( self::is_polylang_active() && function_exists( 'pll_set_post_language' ) ) {
@@ -143,6 +148,8 @@ class Polylang_Bridge {
 
 	/**
 	 * Get post translations map (slug => post_id).
+	 *
+	 * @param mixed $post_id Post ID.
 	 */
 	public static function get_post_translations( $post_id ) {
 		if ( self::is_polylang_active() && function_exists( 'pll_get_post_translations' ) ) {
@@ -153,6 +160,8 @@ class Polylang_Bridge {
 
 	/**
 	 * Save translation links between posts.
+	 *
+	 * @param mixed $translations_array Translations array.
 	 */
 	public static function save_post_translations( $translations_array ) {
 		if ( self::is_polylang_active() && function_exists( 'pll_save_post_translations' ) ) {
@@ -229,6 +238,12 @@ class Polylang_Bridge {
 
 	/**
 	 * Create or update a translated version of a post.
+	 *
+	 * @param mixed $source_post_id Source post ID.
+	 * @param mixed $target_lang Target language code.
+	 * @param mixed $translated_title Translated title.
+	 * @param mixed $translated_content Translated content.
+	 * @param array $args Arguments.
 	 */
 	public static function create_or_update_translated_post( $source_post_id, $target_lang, $translated_title, $translated_content, $args = array() ) {
 		$source_post_id = absint( $source_post_id );

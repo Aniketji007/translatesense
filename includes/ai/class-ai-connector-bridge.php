@@ -69,6 +69,9 @@ class Ai_Connector_Bridge {
 		return self::$instance;
 	}
 
+	/**
+	 * Construct.
+	 */
 	public function __construct() {
 		$this->detect_wp_ai_capabilities();
 		$this->load_saved_settings();
@@ -199,8 +202,8 @@ class Ai_Connector_Bridge {
 	/**
 	 * Check if a provider/model is registered in WordPress 7.0 Core AI Client.
 	 *
-	 * @param string $provider
-	 * @param string $model
+	 * @param string $provider AI provider ID.
+	 * @param string $model AI model ID.
 	 * @return bool
 	 */
 	public function is_provider_registered_in_core( string $provider, string $model = '' ): bool {
@@ -640,8 +643,8 @@ class Ai_Connector_Bridge {
 	/**
 	 * Parse batch AI response JSON and map items back to input keys.
 	 *
-	 * @param string $raw_json
-	 * @param array  $keys
+	 * @param string $raw_json Raw JSON.
+	 * @param array  $keys List of keys.
 	 * @return array<string|int, string>|null
 	 */
 	private function parse_batch_json_response( string $raw_json, array $keys ): ?array {
@@ -674,10 +677,10 @@ class Ai_Connector_Bridge {
 	/**
 	 * Build default prompt template for batch string translation.
 	 *
-	 * @param array  $strings
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $settings
+	 * @param array  $strings List of strings.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $settings Settings array.
 	 * @return string
 	 */
 	private function build_default_prompt( array $strings, string $source_lang, string $target_lang, array $settings = array() ): string {
@@ -702,6 +705,8 @@ class Ai_Connector_Bridge {
 	 * Save or update custom API keys when the user is not relying on site-wide WP AI configuration.
 	 *
 	 * @param array<string, string> $keys
+	 *
+	 * @param array                 $keys List of keys.
 	 * @return bool
 	 */
 	public function update_api_keys( array $keys ): bool {
@@ -839,8 +844,8 @@ class Ai_Connector_Bridge {
 	/**
 	 * Standardize and format WP_Error for consistent UI and REST API output.
 	 *
-	 * @param WP_Error $error
-	 * @param string   $provider
+	 * @param WP_Error $error Error object or message.
+	 * @param string   $provider AI provider ID.
 	 * @return WP_Error
 	 */
 	private function standardize_error( WP_Error $error, string $provider ): WP_Error {
@@ -898,6 +903,7 @@ class Ai_Connector_Bridge {
 	 *
 	 * @param string $id        Provider identifier ('openai', 'gemini'/'google', 'chrome_ai').
 	 * @param bool   $connector Whether to retrieve models via WP AI Connectors.
+	 * @param array  $provider_options Provider options.
 	 * @return array<int, array<string, string>> Array of models containing 'id' and 'name'.
 	 */
 	private function get_provider_models( string $id, array $provider_options ): array {
@@ -1037,8 +1043,8 @@ class Ai_Connector_Bridge {
 	/**
 	 * Alias for get_provider_models.
 	 *
-	 * @param string $id
-	 * @param array  $provider_options
+	 * @param string $id Item ID.
+	 * @param array  $provider_options Provider options.
 	 * @return array
 	 */
 	public function get_models( string $id, array $provider_options = array() ): array {
@@ -1072,7 +1078,7 @@ class Ai_Connector_Bridge {
 	/**
 	 * Custom fetch models directly from provider API endpoints.
 	 *
-	 * @param string $provider_id
+	 * @param string $provider_id AI provider ID.
 	 * @return array<int, array<string, string>>|\WP_Error
 	 */
 	private function fetch_remote_provider_models( string $provider_id ) {

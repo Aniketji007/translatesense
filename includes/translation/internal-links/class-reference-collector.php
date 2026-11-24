@@ -44,12 +44,12 @@ class Reference_Collector {
 	/**
 	 * Recursively extract references from arbitrary value.
 	 *
-	 * @param mixed    $value
-	 * @param string[] $urls
-	 * @param int[]    $attachment_ids
-	 * @param string[] $media_urls
-	 * @param string   $parent_key
-	 * @param int      $depth
+	 * @param mixed    $value Value.
+	 * @param string[] $urls List of URLs.
+	 * @param int[]    $attachment_ids Attachment ids.
+	 * @param string[] $media_urls Media urls.
+	 * @param string   $parent_key Parent key.
+	 * @param int      $depth Nesting depth.
 	 */
 	protected function extract_from_value( $value, array &$urls, array &$attachment_ids, array &$media_urls, string $parent_key = '', int $depth = 0 ): void {
 		if ( $depth > 30 || null === $value ) {
@@ -85,12 +85,12 @@ class Reference_Collector {
 	/**
 	 * Extract references from structured array (e.g. Elementor or block trees).
 	 *
-	 * @param array    $data
-	 * @param string[] $urls
-	 * @param int[]    $attachment_ids
-	 * @param string[] $media_urls
-	 * @param string   $parent_key
-	 * @param int      $depth
+	 * @param array    $data Data array.
+	 * @param string[] $urls List of URLs.
+	 * @param int[]    $attachment_ids Attachment ids.
+	 * @param string[] $media_urls Media urls.
+	 * @param string   $parent_key Parent key.
+	 * @param int      $depth Nesting depth.
 	 */
 	protected function extract_from_array( array $data, array &$urls, array &$attachment_ids, array &$media_urls, string $parent_key = '', int $depth = 0 ): void {
 		$is_media_context = (bool) preg_match( '/image|media|gallery|video|audio|background|poster|attachment|icon|slide/i', $parent_key );
@@ -136,10 +136,10 @@ class Reference_Collector {
 	/**
 	 * Extract references from HTML content and Gutenberg blocks.
 	 *
-	 * @param string   $content
-	 * @param string[] $urls
-	 * @param int[]    $attachment_ids
-	 * @param string[] $media_urls
+	 * @param string   $content Content to process.
+	 * @param string[] $urls List of URLs.
+	 * @param int[]    $attachment_ids Attachment ids.
+	 * @param string[] $media_urls Media urls.
 	 */
 	protected function extract_from_html_and_blocks( string $content, array &$urls, array &$attachment_ids, array &$media_urls ): void {
 		// 1. Gutenberg block comment attributes

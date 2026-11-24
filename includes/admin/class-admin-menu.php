@@ -171,6 +171,8 @@ class Admin_Menu {
 
 	/**
 	 * Enqueue admin scripts & styles.
+	 *
+	 * @param mixed $hook Hook name.
 	 */
 	public static function enqueue_admin_assets( $hook ) {
 		if ( self::$page_hook && $hook !== self::$page_hook && false === strpos( $hook, 'translatesense' ) && false === strpos( $hook, 'mlang' ) ) {
@@ -271,7 +273,7 @@ class Admin_Menu {
 	/**
 	 * Get Dashboard Page URL with optional tab parameter.
 	 *
-	 * @param string $tab Optional tab name ('home', 'settings', 'gutenberg', 'elementor', 'cache')
+	 * @param string $tab Optional tab name ('home', 'settings', 'gutenberg', 'elementor', 'cache').
 	 * @return string
 	 */
 	public static function get_dashboard_url( string $tab = '' ): string {

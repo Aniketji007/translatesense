@@ -21,9 +21,9 @@ class Media_Reference_Translator {
 	 * Resolve translated attachment ID for a given source attachment ID.
 	 * Returns 0 if no translation exists or object is invalid.
 	 *
-	 * @param int                  $attachment_id
-	 * @param string               $target_language
-	 * @param Reference_Cache|null $cache
+	 * @param int                  $attachment_id Attachment ID.
+	 * @param string               $target_language Target language code.
+	 * @param Reference_Cache|null $cache Cache data.
 	 * @return int
 	 */
 	public function resolve_translated_attachment_id( int $attachment_id, string $target_language, ?Reference_Cache $cache = null ): int {
@@ -69,7 +69,7 @@ class Media_Reference_Translator {
 	 * Identify the original attachment ID and image size from an image URL.
 	 * Handles both full uploads and generated intermediate thumbnail sizes (e.g. image-150x150.png).
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return array|null { 'attachment_id' => int, 'size' => string|array }
 	 */
 	public function resolve_attachment_from_url( string $url ): ?array {
@@ -117,10 +117,10 @@ class Media_Reference_Translator {
 	/**
 	 * Find registered size slug (e.g. 'thumbnail', 'medium', 'large') from attachment metadata.
 	 *
-	 * @param int    $attachment_id
-	 * @param int    $width
-	 * @param int    $height
-	 * @param string $filename
+	 * @param int    $attachment_id Attachment ID.
+	 * @param int    $width Width in pixels.
+	 * @param int    $height Height in pixels.
+	 * @param string $filename File name.
 	 * @return string|null
 	 */
 	protected function find_registered_size_name( int $attachment_id, int $width, int $height, string $filename ): ?string {
@@ -150,9 +150,9 @@ class Media_Reference_Translator {
 	/**
 	 * Resolve translated image URL from original image URL.
 	 *
-	 * @param string               $url
-	 * @param string               $target_language
-	 * @param Reference_Cache|null $cache
+	 * @param string               $url URL.
+	 * @param string               $target_language Target language code.
+	 * @param Reference_Cache|null $cache Cache data.
 	 * @return string|null
 	 */
 	public function resolve_translated_media_url( string $url, string $target_language, ?Reference_Cache $cache = null ): ?string {
@@ -203,10 +203,10 @@ class Media_Reference_Translator {
 	/**
 	 * Get full translated image reference data (id, url, srcset).
 	 *
-	 * @param int             $source_attachment_id
-	 * @param string|array    $size
-	 * @param string          $target_language
-	 * @param Reference_Cache $cache
+	 * @param int             $source_attachment_id Source attachment ID.
+	 * @param string|array    $size Image size name.
+	 * @param string          $target_language Target language code.
+	 * @param Reference_Cache $cache Cache data.
 	 * @return array|null { 'id' => int, 'url' => string, 'srcset' => string|false }
 	 */
 	public function get_translated_image_data( int $source_attachment_id, $size, string $target_language, Reference_Cache $cache ): ?array {

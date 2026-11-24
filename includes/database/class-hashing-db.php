@@ -45,8 +45,8 @@ class Hashing_Db {
 	/**
 	 * Compute md5 hash for a string or package context.
 	 *
-	 * @param string|int $widget_id
-	 * @param string     $string_value
+	 * @param string|int $widget_id Widget ID.
+	 * @param string     $string_value String value.
 	 * @return string 32-char md5 hash
 	 */
 	public static function generate_hash( $widget_id, $string_value ): string {
@@ -107,15 +107,15 @@ class Hashing_Db {
 	 * Register/Store a translation package in db if not exists.
 	 * Initializes last_used_at with the current database datetime for new records.
 	 *
-	 * @param int         $post_id
-	 * @param string      $target_lang
-	 * @param string|null $hash
-	 * @param string      $editor_type
-	 * @param string      $widget_name
-	 * @param string      $widget_key
-	 * @param string      $source_string
-	 * @param string      $filter_string
-	 * @param string      $string_hash Optional string_hash if already resolved
+	 * @param int         $post_id Post ID.
+	 * @param string      $target_lang Target language code.
+	 * @param string|null $hash Content hash.
+	 * @param string      $editor_type Editor type, such as gutenberg, elementor or classic.
+	 * @param string      $widget_name Widget name.
+	 * @param string      $widget_key Widget key.
+	 * @param string      $source_string Source string.
+	 * @param string      $filter_string Filter string.
+	 * @param string      $string_hash Optional string_hash if already resolved.
 	 * @return int Package ID
 	 */
 	public static function record_package(
@@ -200,9 +200,9 @@ class Hashing_Db {
 	 * Initializes last_used_at with current database datetime for new records.
 	 * Does not modify last_used_at on duplicate key update.
 	 *
-	 * @param string $string_hash       32-char md5 string hash
-	 * @param string $target_lang       Target language code
-	 * @param string $translated_string Translated content
+	 * @param string $string_hash 32-char md5 string hash.
+	 * @param string $target_lang Target language code.
+	 * @param string $translated_string Translated content.
 	 * @return bool
 	 */
 	public static function save_translation_result( string $string_hash, string $target_lang, string $translated_string ): bool {
@@ -235,8 +235,8 @@ class Hashing_Db {
 	 * Check if a translation exists for a package hash or string_id.
 	 * Updates last_used_at timestamp on successful retrieval.
 	 *
-	 * @param int|string $identifier  package_hash (string), string_hash (string), or string_id (int)
-	 * @param string     $target_lang
+	 * @param int|string $identifier package_hash (string), string_hash (string), or string_id (int).
+	 * @param string     $target_lang Target language code.
 	 * @return string|null Translated string or null if not cached
 	 */
 	public static function get_cached_translation( $identifier, string $target_lang ): ?string {
@@ -334,8 +334,8 @@ class Hashing_Db {
 	/**
 	 * Fetch a translated string directly by string_hash and language.
 	 *
-	 * @param string $string_hash 32-char md5 hash of the string
-	 * @param string $language    Language code
+	 * @param string $string_hash 32-char md5 hash of the string.
+	 * @param string $language Language code.
 	 * @return string|null
 	 */
 	public static function get_translation( string $string_hash, string $language ): ?string {
@@ -345,8 +345,8 @@ class Hashing_Db {
 	/**
 	 * Bulk fetch translations by string hashes and language.
 	 *
-	 * @param array  $string_hashes Array of string hashes
-	 * @param string $language      Language code
+	 * @param array  $string_hashes Array of string hashes.
+	 * @param string $language Language code.
 	 * @return array Hash => translated_string
 	 */
 	public static function get_translations_by_hashes( array $string_hashes, string $language ): array {
@@ -357,8 +357,8 @@ class Hashing_Db {
 	 * Batch get cached translations for multiple package hashes or string hashes.
 	 * Efficiently bulk-updates last_used_at for all matched translation and package records.
 	 *
-	 * @param array  $hashes
-	 * @param string $target_lang
+	 * @param array  $hashes Hashes.
+	 * @param string $target_lang Target language code.
 	 * @return array Hash => translated_string
 	 */
 	public static function get_cached_translations_batch( array $hashes, string $target_lang ): array {
@@ -462,9 +462,9 @@ class Hashing_Db {
 	 * Get post packages joined with central translatesense_strings.
 	 * Updates last_used_at timestamp on successful package retrieval.
 	 *
-	 * @param int    $post_id
-	 * @param string $lang
-	 * @param string $editor_type
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 * @param array  $options Optional retrieval options (e.g. ['exclude' => ['custom_field']]).
 	 * @return array
 	 */
@@ -526,7 +526,7 @@ class Hashing_Db {
 	/**
 	 * Check if a post has packages recorded in the translatesense_packages table.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return bool
 	 */
 	public static function has_post_packages( int $post_id ): bool {
@@ -580,10 +580,10 @@ class Hashing_Db {
 	/**
 	 * Delete existing translation package data for a post and clean up unused strings.
 	 *
-	 * @param int         $post_id                Post ID
-	 * @param string|null $lang                   Language code filter (optional)
-	 * @param string|null $editor_type            Editor type filter (optional)
-	 * @param bool        $cleanup_unused_strings Whether to verify and clean unused strings
+	 * @param int         $post_id Post ID.
+	 * @param string|null $lang Language code filter (optional).
+	 * @param string|null $editor_type Editor type filter (optional).
+	 * @param bool        $cleanup_unused_strings Whether to verify and clean unused strings.
 	 * @return int Number of deleted package rows
 	 */
 	public static function delete_post_packages(

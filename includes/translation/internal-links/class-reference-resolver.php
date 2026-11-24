@@ -32,8 +32,8 @@ class Reference_Resolver {
 	/**
 	 * Constructor.
 	 *
-	 * @param URL_Resolver|null               $url_resolver
-	 * @param Media_Reference_Translator|null $media_translator
+	 * @param URL_Resolver|null               $url_resolver URL resolver.
+	 * @param Media_Reference_Translator|null $media_translator Media translator.
 	 */
 	public function __construct( ?URL_Resolver $url_resolver = null, ?Media_Reference_Translator $media_translator = null ) {
 		$this->url_resolver     = $url_resolver ?: new URL_Resolver();
@@ -44,8 +44,8 @@ class Reference_Resolver {
 	 * Resolve collected references and build verified replacement maps.
 	 *
 	 * @param array                $references Collected references from Reference_Collector.
-	 * @param string               $target_language
-	 * @param Reference_Cache|null $cache
+	 * @param string               $target_language Target language code.
+	 * @param Reference_Cache|null $cache Cache data.
 	 * @return array {
 	 *     @type array<string, string> $url_map       Map of original internal URLs to translated URLs.
 	 *     @type array<int, int>       $media_id_map  Map of original attachment IDs to translated IDs.
@@ -158,9 +158,9 @@ class Reference_Resolver {
 	/**
 	 * Perform selective SQL bulk validation for discovered attachment IDs to reduce individual queries.
 	 *
-	 * @param int[]           $attachment_ids
-	 * @param Reference_Cache $cache
-	 * @param string          $target_language
+	 * @param int[]           $attachment_ids Attachment ids.
+	 * @param Reference_Cache $cache Cache data.
+	 * @param string          $target_language Target language code.
 	 */
 	protected function bulk_validate_attachments( array $attachment_ids, Reference_Cache $cache, string $target_language ): void {
 		global $wpdb;

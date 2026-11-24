@@ -270,6 +270,8 @@ class Taxonomy_Translator {
 	 * @param string                             $target_lang            Target language slug.
 	 * @param string                             $provider               Provider ID.
 	 * @param array                              $in_memory_translations Map indexed by hash (updated in place).
+	 * @param array                              $items List of items.
+	 * @param array                              $authorized_tree Authorized tree.
 	 * @return true|WP_Error
 	 */
 	private static function ensure_items_translated(
@@ -401,6 +403,7 @@ class Taxonomy_Translator {
 	 * @param array                              $in_memory_translations Map indexed by hash (updated in place).
 	 * @param int|null                           $user_id                Optional user ID.
 	 * @param bool                               $enforce_permissions    Whether capability checks apply.
+	 * @param array                              $authorized_tree Authorized tree.
 	 * @return true|WP_Error
 	 */
 	private static function ensure_translations_available(

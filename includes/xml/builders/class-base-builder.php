@@ -49,7 +49,7 @@ abstract class Base_Builder {
 	/**
 	 * Extract builder section from full XML document.
 	 *
-	 * @param string $xml_string
+	 * @param string $xml_string XML string.
 	 * @return string
 	 */
 	public function extract_section( string $xml_string ): string {
@@ -83,8 +83,8 @@ abstract class Base_Builder {
 	/**
 	 * Extract exact widget/block snippet from an XML document.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
 	 * @return string|null
 	 */
 	abstract public function extract_widget_snippet( SimpleXMLElement $xml, string $name );
@@ -92,8 +92,8 @@ abstract class Base_Builder {
 	/**
 	 * Build a standalone XML snippet from fields array.
 	 *
-	 * @param string $name
-	 * @param array  $field_details
+	 * @param string $name Name.
+	 * @param array  $field_details Field details.
 	 * @return string
 	 */
 	abstract public function generate_snippet( string $name, array $field_details ): string;
@@ -102,8 +102,8 @@ abstract class Base_Builder {
 	 * Sync an existing DOM element with a new SimpleXMLElement definition.
 	 * Preserves removed keys/fields by setting noTranslate="true".
 	 *
-	 * @param DOMElement       $existing_elem
-	 * @param SimpleXMLElement $new_elem
+	 * @param DOMElement       $existing_elem Existing element.
+	 * @param SimpleXMLElement $new_elem New element.
 	 * @return void
 	 */
 	abstract public function sync_node( DOMElement $existing_elem, SimpleXMLElement $new_elem ): void;
@@ -111,9 +111,9 @@ abstract class Base_Builder {
 	/**
 	 * Append or update a rule in the builder XML.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
-	 * @param array            $field_details
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
+	 * @param array            $field_details Field details.
 	 * @return void
 	 */
 	abstract public function append_rule( SimpleXMLElement $xml, string $name, array $field_details ): void;
@@ -121,9 +121,9 @@ abstract class Base_Builder {
 	/**
 	 * Parse rules from SimpleXMLElement into the rules array.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param array            $rules
-	 * @param string           $source
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param array            $rules List of rules.
+	 * @param string           $source Source string.
 	 * @return void
 	 */
 	abstract public function parse_rules( SimpleXMLElement $xml, array &$rules, string $source = 'core' ): void;
@@ -131,8 +131,8 @@ abstract class Base_Builder {
 	/**
 	 * Helper: Wrap SimpleXMLElement node in <wpml-config><section-name>...</section-name></wpml-config>.
 	 *
-	 * @param SimpleXMLElement $node
-	 * @param string           $section_name
+	 * @param SimpleXMLElement $node DOM node.
+	 * @param string           $section_name Section name.
 	 * @return string
 	 */
 	public static function wrap_node_in_config( SimpleXMLElement $node, string $section_name ): string {
@@ -145,7 +145,7 @@ abstract class Base_Builder {
 	/**
 	 * Helper: Format SimpleXMLElement into pretty printed XML string.
 	 *
-	 * @param SimpleXMLElement $xml
+	 * @param SimpleXMLElement $xml XML string.
 	 * @return string
 	 */
 	public static function format_simplexml_to_string( SimpleXMLElement $xml ): string {
@@ -159,8 +159,8 @@ abstract class Base_Builder {
 	/**
 	 * Helper: Append SimpleXMLElement child recursively.
 	 *
-	 * @param SimpleXMLElement $to
-	 * @param SimpleXMLElement $from
+	 * @param SimpleXMLElement $to To.
+	 * @param SimpleXMLElement $from From.
 	 * @return void
 	 */
 	public static function simplexml_append_child( SimpleXMLElement $to, SimpleXMLElement $from ): void {

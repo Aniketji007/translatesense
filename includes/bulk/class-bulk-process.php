@@ -40,6 +40,8 @@ class Bulk_Process {
 
 	/**
 	 * Add custom batch intervals (every minute / 30 seconds).
+	 *
+	 * @param mixed $schedules Existing cron schedules.
 	 */
 	public static function add_cron_intervals( $schedules ) {
 		if ( ! isset( $schedules[ self::CRON_INTERVAL ] ) ) {
@@ -64,8 +66,8 @@ class Bulk_Process {
 	/**
 	 * Check if a translated post already exists for a post and target language.
 	 *
-	 * @param int    $post_id
-	 * @param string $target_lang
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target language code.
 	 * @return int Target post ID if exists, or 0 if not
 	 */
 	public static function get_existing_translation_post_id( int $post_id, string $target_lang ): int {
@@ -184,6 +186,15 @@ class Bulk_Process {
 		return $filtered_post_ids;
 	}
 
+	/**
+	 * Create batch.
+	 *
+	 * @param array  $post_ids Post ids.
+	 * @param array  $target_languages List of target language codes.
+	 * @param string $provider AI provider ID.
+	 * @param array  $options Options array.
+	 * @return array
+	 */
 	public static function create_batch( array $post_ids, array $target_languages, string $provider = 'openai', array $options = array() ): array {
 		global $wpdb;
 
@@ -1452,11 +1463,11 @@ class Bulk_Process {
 	/**
 	 * Synchronously translate a complete post (Title, Content, Elementor/Gutenberg data) and create Polylang linked post.
 	 *
-	 * @param int    $post_id
-	 * @param string $target_lang
-	 * @param string $provider
-	 * @param array  $in_memory_translations
-	 * @param array  $options
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target language code.
+	 * @param string $provider AI provider ID.
+	 * @param array  $in_memory_translations In memory translations.
+	 * @param array  $options Options array.
 	 * @return array|WP_Error
 	 */
 	public static function execute_post_translation_sync( int $post_id, string $target_lang, string $provider, array $in_memory_translations = array(), array $options = array() ) {
@@ -1466,7 +1477,7 @@ class Bulk_Process {
 	/**
 	 * Get a single job row by ID.
 	 *
-	 * @param int $job_id
+	 * @param int $job_id Job ID.
 	 * @return object|null
 	 */
 	public static function get_job( int $job_id ) {
@@ -1489,8 +1500,8 @@ class Bulk_Process {
 	/**
 	 * Update a job row in the bulk translation table.
 	 *
-	 * @param int   $job_id
-	 * @param array $data
+	 * @param int   $job_id Job ID.
+	 * @param array $data Data array.
 	 * @return bool
 	 */
 	public static function update_job( int $job_id, array $data ): bool {
@@ -1514,8 +1525,8 @@ class Bulk_Process {
 	/**
 	 * Get aggregated batch status for 5-second polling endpoint.
 	 *
-	 * @param string $batch_id
-	 * @param int    $post_id
+	 * @param string $batch_id Batch ID.
+	 * @param int    $post_id Post ID.
 	 * @return array
 	 */
 	public static function get_batch_status( string $batch_id, int $post_id = 0 ): array {

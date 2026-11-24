@@ -552,7 +552,7 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Check if a string contains readable human text characters outside shortcodes and tags.
 	 *
-	 * @param string $text
+	 * @param string $text Text value.
 	 * @return bool
 	 */
 	public static function has_translatable_text( string $text ): bool {
@@ -570,8 +570,8 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Check if a tag name represents a recognized block-level element.
 	 *
-	 * @param string $tag
-	 * @param array  $rules
+	 * @param string $tag Tag name.
+	 * @param array  $rules List of rules.
 	 * @return bool
 	 */
 	private static function is_block_tag( string $tag, array $rules = array() ): bool {
@@ -587,8 +587,8 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Check if a DOM node has any child block elements.
 	 *
-	 * @param DOMNode $node
-	 * @param array   $rules
+	 * @param DOMNode $node DOM node.
+	 * @param array   $rules List of rules.
 	 * @return bool
 	 */
 	private static function has_child_blocks( DOMNode $node, array $rules = array() ): bool {
@@ -611,8 +611,8 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Get inner HTML of a DOMNode while stripping helper attributes.
 	 *
-	 * @param DOMNode     $node
-	 * @param DOMDocument $dom
+	 * @param DOMNode     $node DOM node.
+	 * @param DOMDocument $dom DOM document.
 	 * @return string
 	 */
 	private static function get_node_inner_html( DOMNode $node, DOMDocument $dom ): string {
@@ -632,11 +632,11 @@ class Classic_Builder extends Base_Builder {
 	 * Breaks unbracketed inline node sequences across blank lines (double newlines)
 	 * so each Classic Editor paragraph is extracted as an independent, contextual unit.
 	 *
-	 * @param DOMNode     $container
-	 * @param DOMDocument $dom
-	 * @param array       &$dom_units
-	 * @param array       $rules
-	 * @param int         $depth
+	 * @param DOMNode     $container Container.
+	 * @param DOMDocument $dom DOM document.
+	 * @param array       &$dom_units DOM units.
+	 * @param array       $rules List of rules.
+	 * @param int         $depth Nesting depth.
 	 */
 	private static function extract_dom_units( DOMNode $container, DOMDocument $dom, array &$dom_units, array $rules = array(), int $depth = 0 ): void {
 		if ( $depth > 50 ) {
@@ -723,10 +723,10 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Find the offset and byte length of a target value in source HTML when entities or tag formatting differ.
 	 *
-	 * @param string $source_html
-	 * @param string $target_val
-	 * @param int    $start_from
-	 * @param int    &$found_length
+	 * @param string $source_html Source HTML.
+	 * @param string $target_val Target value.
+	 * @param int    $start_from Start from.
+	 * @param int    &$found_length Found length.
 	 * @return int|false
 	 */
 	private static function find_decoded_offset( string $source_html, string $target_val, int $start_from, &$found_length ) {
@@ -795,7 +795,7 @@ class Classic_Builder extends Base_Builder {
 	 *
 	 * Extracts individual block elements without returning the entire document as one string.
 	 *
-	 * @param string $content
+	 * @param string $content Content to process.
 	 * @return array
 	 */
 	private static function extract_fallback( string $content ): array {

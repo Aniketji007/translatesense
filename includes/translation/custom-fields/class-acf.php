@@ -20,6 +20,20 @@ class Acf {
 
 	/**
 	 * Apply value and reference key for a single ACF field or container.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $root_meta_key Root meta key.
+	 * @param string $current_path Current path.
+	 * @param string $field_type Field type.
+	 * @param string $field_key Field key.
+	 * @param array  $field_def Field def.
+	 * @param string $action Action name.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param bool   $is_existing Is existing.
+	 * @param array  $resolved_rules Resolved rules.
+	 * @param array  $custom_opts Custom options.
 	 */
 	public static function apply_field_value(
 		int $source_post_id,
@@ -208,6 +222,17 @@ class Acf {
 
 	/**
 	 * Apply translation and copy rules to a collection of ACF subfields.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $root_meta_key Root meta key.
+	 * @param string $prefix Prefix.
+	 * @param array  $sub_fields Sub fields.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param bool   $is_existing Is existing.
+	 * @param array  $resolved_rules Resolved rules.
+	 * @param array  $custom_opts Custom options.
 	 */
 	public static function apply_subfields(
 		int $source_post_id,
@@ -265,6 +290,10 @@ class Acf {
 
 	/**
 	 * Write ACF reference key (_meta_key => field_key) to target post.
+	 *
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $meta_key Meta key.
+	 * @param string $field_key Field key.
 	 */
 	public static function write_reference_key( int $target_post_id, string $meta_key, string $field_key ): void {
 		if ( '' !== $field_key && 0 === strpos( $field_key, 'field_' ) ) {
@@ -274,6 +303,9 @@ class Acf {
 
 	/**
 	 * Map attachment ID to translated attachment in target language.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $target_lang Target language code.
 	 */
 	public static function map_attachment_id( int $attachment_id, string $target_lang ): int {
 		if ( $attachment_id > 0 && function_exists( 'pll_get_post' ) ) {
@@ -288,6 +320,9 @@ class Acf {
 
 	/**
 	 * Map post ID to translated post in target language.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target language code.
 	 */
 	public static function map_post_id( int $post_id, string $target_lang ): int {
 		if ( $post_id > 0 && class_exists( Polylang_Bridge::class ) ) {
@@ -302,6 +337,9 @@ class Acf {
 
 	/**
 	 * Map term ID to translated term in target language.
+	 *
+	 * @param int    $term_id Term ID.
+	 * @param string $target_lang Target language code.
 	 */
 	public static function map_term_id( int $term_id, string $target_lang ): int {
 		if ( $term_id > 0 && function_exists( 'pll_get_term' ) ) {

@@ -22,6 +22,9 @@ class Custom_Field_Parser {
 
 	/**
 	 * Get all custom fields for a post (ACF fields and user XML custom meta).
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 */
 	public static function get_post_fields( int $post_id, string $editor_type = 'all' ): array {
 		if ( $post_id <= 0 ) {
@@ -85,6 +88,8 @@ class Custom_Field_Parser {
 
 	/**
 	 * Get deterministic schema hash for fields.
+	 *
+	 * @param array $fields List of fields.
 	 */
 	public static function get_schema_hash( array $fields ): string {
 		$summary = array();
@@ -97,6 +102,9 @@ class Custom_Field_Parser {
 
 	/**
 	 * Get deterministic hash of source values for change detection.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $fields List of fields.
 	 */
 	public static function get_values_hash( int $post_id, array $fields ): string {
 		if ( $post_id <= 0 || empty( $fields ) ) {
@@ -118,7 +126,7 @@ class Custom_Field_Parser {
 	/**
 	 * Check if a value contains only numbers.
 	 *
-	 * @param mixed $value
+	 * @param mixed $value Value.
 	 * @return bool
 	 */
 	public static function is_only_numbers( $value ): bool {
@@ -137,6 +145,11 @@ class Custom_Field_Parser {
 
 	/**
 	 * Extract eligible translatable strings from custom fields.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $fields List of fields.
+	 * @param array $resolved_rules Resolved rules.
+	 * @param int   $max_depth Max depth.
 	 */
 	public static function extract_strings(
 		int $post_id,

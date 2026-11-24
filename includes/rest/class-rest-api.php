@@ -2180,6 +2180,7 @@ class Rest_Api {
 	/**
 	 * Get widgets status endpoint.
 	 *
+	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response
 	 */
 	public static function get_widgets_status( WP_REST_Request $request ) {

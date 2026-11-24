@@ -40,8 +40,8 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Extract widget snippet.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
 	 * @return string|null
 	 */
 	public function extract_widget_snippet( SimpleXMLElement $xml, string $name ) {
@@ -58,8 +58,8 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Generate snippet XML.
 	 *
-	 * @param string $name
-	 * @param array  $field_details
+	 * @param string $name Name.
+	 * @param array  $field_details Field details.
 	 * @return string
 	 */
 	public function generate_snippet( string $name, array $field_details ): string {
@@ -121,9 +121,9 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Recursively append DOM key nodes according to field schema.
 	 *
-	 * @param DOMDocument $dom
-	 * @param DOMElement  $parent
-	 * @param array       $field_details
+	 * @param DOMDocument $dom DOM document.
+	 * @param DOMElement  $parent Parent value.
+	 * @param array       $field_details Field details.
 	 * @return void
 	 */
 	private function append_dom_keys_recursive( DOMDocument $dom, DOMElement $parent, array $field_details ): void {
@@ -155,8 +155,8 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Sync node.
 	 *
-	 * @param DOMElement       $existing_block
-	 * @param SimpleXMLElement $new_block
+	 * @param DOMElement       $existing_block Existing block.
+	 * @param SimpleXMLElement $new_block New block.
 	 * @return void
 	 */
 	public function sync_node( DOMElement $existing_block, SimpleXMLElement $new_block ): void {
@@ -217,9 +217,9 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Recursively sync key elements between DOM and SimpleXML.
 	 *
-	 * @param DOMElement       $existing_parent
-	 * @param SimpleXMLElement $new_parent
-	 * @param DOMDocument      $owner_doc
+	 * @param DOMElement       $existing_parent Existing parent.
+	 * @param SimpleXMLElement $new_parent New parent.
+	 * @param DOMDocument      $owner_doc Owner document.
 	 * @return void
 	 */
 	public function sync_keys_recursive( DOMElement $existing_parent, SimpleXMLElement $new_parent, DOMDocument $owner_doc ): void {
@@ -279,10 +279,10 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Append rule.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
-	 * @param array            $field_details
-	 * @param array            $conditions
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
+	 * @param array            $field_details Field details.
+	 * @param array            $conditions Conditions.
 	 * @return void
 	 */
 	public function append_rule( SimpleXMLElement $xml, string $name, array $field_details, array $conditions = array() ): void {
@@ -355,8 +355,8 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Recursively append key nodes into SimpleXML parent.
 	 *
-	 * @param SimpleXMLElement $parent
-	 * @param array            $field_details
+	 * @param SimpleXMLElement $parent Parent value.
+	 * @param array            $field_details Field details.
 	 * @return void
 	 */
 	private function append_simplexml_keys_recursive( SimpleXMLElement $parent, array $field_details ): void {
@@ -394,9 +394,9 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Parse rules.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param array            $rules
-	 * @param string           $source
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param array            $rules List of rules.
+	 * @param string           $source Source string.
 	 * @return void
 	 */
 	public function parse_rules( SimpleXMLElement $xml, array &$rules, string $source = 'core' ): void {
@@ -473,10 +473,10 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Helper: Recursively parse key node and record leaf noTranslate paths.
 	 *
-	 * @param SimpleXMLElement $key_node
-	 * @param string           $prefix
-	 * @param array            $no_translate_out
-	 * @param bool             $parent_no_translate
+	 * @param SimpleXMLElement $key_node Key node.
+	 * @param string           $prefix Prefix.
+	 * @param array            $no_translate_out No translate out.
+	 * @param bool             $parent_no_translate Parent no translate.
 	 * @return array|null
 	 */
 	private static function parse_key_node_recursive( SimpleXMLElement $key_node, string $prefix, array &$no_translate_out, bool $parent_no_translate = false ): ?array {
@@ -527,7 +527,7 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Count actual leaf translatable keys in a structured key tree.
 	 *
-	 * @param array $keys
+	 * @param array $keys List of keys.
 	 * @return int
 	 */
 	public static function count_leaf_keys( array $keys ): int {

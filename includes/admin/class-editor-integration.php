@@ -111,7 +111,7 @@ class Editor_Integration {
 	/**
 	 * Detect editor type for a given post ID.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return string 'elementor' | 'gutenberg' | 'classic'
 	 */
 	public static function get_post_editor_type( $post_id ) {
@@ -148,7 +148,7 @@ class Editor_Integration {
 	/**
 	 * Get appropriate edit link based on post editor type (Elementor, Gutenberg, Classic).
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return string
 	 */
 	public static function get_post_edit_link( $post_id ): string {
@@ -175,7 +175,7 @@ class Editor_Integration {
 	/**
 	 * Check if post is already translated.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return bool
 	 */
 	public static function is_post_already_translated( int $post_id ): bool {
@@ -216,10 +216,10 @@ class Editor_Integration {
 	 *
 	 * Skips loading heavy universal page editor translation assets.
 	 *
-	 * @param int    $post_id
-	 * @param int    $source_post_id
-	 * @param string $editor_type
-	 * @param array  $localize_data
+	 * @param int    $post_id Post ID.
+	 * @param int    $source_post_id Source post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
+	 * @param array  $localize_data Localize data.
 	 */
 	public static function enqueue_editor_mismatch_modal_assets( int $post_id, int $source_post_id, string $editor_type = 'gutenberg', array $localize_data = array() ): void {
 		if ( ! $post_id || ! $source_post_id ) {
@@ -286,6 +286,10 @@ class Editor_Integration {
 
 	/**
 	 * Enqueue Universal Editor Assets (Helper).
+	 *
+	 * @param mixed  $post_id Post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
+	 * @param array  $localize_data Localize data.
 	 */
 	public static function enqueue_page_editor_assets( $post_id, $editor_type = 'gutenberg', $localize_data = array() ) {
 		$post_id = absint( $post_id );
@@ -571,6 +575,8 @@ class Editor_Integration {
 
 	/**
 	 * Enqueue Classic Editor & Post Edit Admin Assets (only for Polylang translated post types).
+	 *
+	 * @param mixed $hook Hook name.
 	 */
 	public static function enqueue_admin_editor_assets( $hook ) {
 		if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
@@ -616,7 +622,7 @@ class Editor_Integration {
 	 * Get the source post ID for translation.
 	 * Read-only resolution — never modifies the database during read/GET requests.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return int
 	 */
 	public static function get_source_post_id( $post_id ): int {
@@ -664,6 +670,9 @@ class Editor_Integration {
 		return 0;
 	}
 
+	/**
+	 * Check whether is translate current post.
+	 */
 	private static function is_translate_current_post() {
 		global $post;
 
@@ -729,6 +738,8 @@ class Editor_Integration {
 
 	/**
 	 * Render Meta Box HTML for Gutenberg and Classic Editor.
+	 *
+	 * @param mixed $post Post object.
 	 */
 	public static function render_editor_meta_box( $post ) {
 		$post_id = (int) $post->ID;
@@ -777,6 +788,8 @@ class Editor_Integration {
 
 	/**
 	 * Render Translate button in Classic Editor after the "Add Media" button (only for Polylang translated post types).
+	 *
+	 * @param mixed $editor_id Editor identifier.
 	 */
 	public static function render_media_translate_button( $editor_id ) {
 		if ( 'content' !== $editor_id && ! empty( $editor_id ) ) {

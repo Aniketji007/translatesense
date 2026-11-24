@@ -43,6 +43,7 @@ class Activator {
 	/**
 	 * Run backward-compatible schema upgrades.
 	 *
+	 * @param bool $force Whether to force the action.
 	 * @return void
 	 */
 	public static function maybe_upgrade_db( $force = false ): void {

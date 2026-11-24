@@ -75,6 +75,9 @@ class Plugin {
 		}
 	}
 
+	/**
+	 * Handle activation redirect.
+	 */
 	public function handle_activation_redirect() {
 		global $pagenow;
 

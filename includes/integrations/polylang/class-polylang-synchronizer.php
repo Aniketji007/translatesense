@@ -680,6 +680,7 @@ class Polylang_Synchronizer {
 	 * @param string $content    Already translated content.
 	 * @param string $target_lang Target language slug.
 	 * @param string $builder    Builder slug.
+	 * @param string $source_lang Source language code.
 	 * @return string
 	 */
 	public static function translate_content_media_references( string $content, string $target_lang, string $builder = '', string $source_lang = '' ): string {
@@ -822,6 +823,7 @@ class Polylang_Synchronizer {
 	 *
 	 * @param array  $blocks      Parsed block tree.
 	 * @param string $target_lang Target language.
+	 * @param string $source_lang Source language code.
 	 * @return array
 	 */
 	private static function translate_block_media( array $blocks, string $target_lang, string $source_lang = '' ): array {
@@ -987,6 +989,7 @@ class Polylang_Synchronizer {
 	 * @param mixed  $value      Current value.
 	 * @param string $target_lang Target language.
 	 * @param string $parent_key Parent array key.
+	 * @param bool   $in_media_context In media context.
 	 * @return mixed
 	 */
 	private static function walk_elementor_media_data( $value, string $target_lang, string $parent_key, bool $in_media_context = false ) {

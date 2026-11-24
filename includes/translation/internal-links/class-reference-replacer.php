@@ -18,13 +18,13 @@ class Reference_Replacer {
 	/**
 	 * Apply replacement maps across all content items in the batch.
 	 *
-	 * @param array  $content_batch
+	 * @param array  $content_batch Content batch.
 	 * @param array  $maps {
 	 *     @type array<string, string> $url_map
 	 *     @type array<int, int>       $media_id_map
 	 *     @type array<string, string> $media_url_map
 	 * }
-	 * @param string $target_language
+	 * @param string $target_language Target language code.
 	 * @return array Updated content batch preserving original keys and types.
 	 */
 	public function replace_batch( array $content_batch, array $maps, string $target_language ): array {
@@ -48,11 +48,11 @@ class Reference_Replacer {
 	/**
 	 * Replace references in a single content item (string or array).
 	 *
-	 * @param mixed  $content
-	 * @param array  $url_map
-	 * @param array  $media_id_map
-	 * @param array  $media_url_map
-	 * @param string $target_language
+	 * @param mixed  $content Content to process.
+	 * @param array  $url_map URL map.
+	 * @param array  $media_id_map Media ID map.
+	 * @param array  $media_url_map Media URL map.
+	 * @param string $target_language Target language code.
 	 * @return mixed
 	 */
 	public function replace_content( $content, array $url_map, array $media_id_map, array $media_url_map, string $target_language ) {
@@ -88,12 +88,12 @@ class Reference_Replacer {
 	/**
 	 * Replace references within a structured array (e.g. Elementor settings tree).
 	 *
-	 * @param array  $data
-	 * @param array  $url_map
-	 * @param array  $media_id_map
-	 * @param array  $media_url_map
-	 * @param string $parent_key
-	 * @param int    $depth
+	 * @param array  $data Data array.
+	 * @param array  $url_map URL map.
+	 * @param array  $media_id_map Media ID map.
+	 * @param array  $media_url_map Media URL map.
+	 * @param string $parent_key Parent key.
+	 * @param int    $depth Nesting depth.
 	 * @return array
 	 */
 	public function replace_array_references( array $data, array $url_map, array $media_id_map, array $media_url_map, string $parent_key = '', int $depth = 0 ): array {
@@ -166,10 +166,10 @@ class Reference_Replacer {
 	/**
 	 * Replace references in HTML and Gutenberg blocks.
 	 *
-	 * @param string $content
-	 * @param array  $url_map
-	 * @param array  $media_id_map
-	 * @param array  $media_url_map
+	 * @param string $content Content to process.
+	 * @param array  $url_map URL map.
+	 * @param array  $media_id_map Media ID map.
+	 * @param array  $media_url_map Media URL map.
 	 * @return string
 	 */
 	public function replace_html_and_blocks( string $content, array $url_map, array $media_id_map, array $media_url_map ): string {

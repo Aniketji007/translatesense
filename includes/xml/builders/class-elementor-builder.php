@@ -40,8 +40,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Extract widget snippet.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
 	 * @return string|null
 	 */
 	public function extract_widget_snippet( SimpleXMLElement $xml, string $name ) {
@@ -58,7 +58,7 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Convert flat path list into nested tree.
 	 *
-	 * @param array $field_details
+	 * @param array $field_details Field details.
 	 * @return array
 	 */
 	public function build_fields_tree( array $field_details ): array {
@@ -92,9 +92,9 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively append tree nodes into DOMElement.
 	 *
-	 * @param DOMDocument $dom
-	 * @param DOMElement  $parent_element
-	 * @param array       $tree
+	 * @param DOMDocument $dom DOM document.
+	 * @param DOMElement  $parent_element Parent element.
+	 * @param array       $tree Tree.
 	 */
 	private function append_tree_to_dom( DOMDocument $dom, DOMElement $parent_element, array $tree ): void {
 		foreach ( $tree as $key => $sub_tree ) {
@@ -136,8 +136,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively append tree nodes into SimpleXMLElement.
 	 *
-	 * @param SimpleXMLElement $parent_node
-	 * @param array            $tree
+	 * @param SimpleXMLElement $parent_node Parent node.
+	 * @param array            $tree Tree.
 	 */
 	private function append_tree_to_simplexml( SimpleXMLElement $parent_node, array $tree ): void {
 		foreach ( $tree as $key => $sub_tree ) {
@@ -191,8 +191,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Generate snippet XML.
 	 *
-	 * @param string $name
-	 * @param array  $field_details
+	 * @param string $name Name.
+	 * @param array  $field_details Field details.
 	 * @return string
 	 */
 	public function generate_snippet( string $name, array $field_details ): string {
@@ -219,8 +219,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Sync node.
 	 *
-	 * @param DOMElement       $existing_widget
-	 * @param SimpleXMLElement $new_widget
+	 * @param DOMElement       $existing_widget Existing widget.
+	 * @param SimpleXMLElement $new_widget New widget.
 	 * @return void
 	 */
 	public function sync_node( DOMElement $existing_widget, SimpleXMLElement $new_widget ): void {
@@ -349,10 +349,10 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Append rule.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
-	 * @param array            $field_details
-	 * @param array            $conditions
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
+	 * @param array            $field_details Field details.
+	 * @param array            $conditions Conditions.
 	 * @return void
 	 */
 	public function append_rule( SimpleXMLElement $xml, string $name, array $field_details, array $conditions = array() ): void {
@@ -382,10 +382,10 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively parse <field> XML nodes into path-mapped rule arrays.
 	 *
-	 * @param SimpleXMLElement $field_node
-	 * @param string           $prefix
-	 * @param array            $fields_out
-	 * @param array            $no_translate_out
+	 * @param SimpleXMLElement $field_node Field node.
+	 * @param string           $prefix Prefix.
+	 * @param array            $fields_out Fields out.
+	 * @param array            $no_translate_out No translate out.
 	 */
 	public function parse_field_node_recursive( SimpleXMLElement $field_node, string $prefix, array &$fields_out, array &$no_translate_out ): void {
 		$key = '';
@@ -430,9 +430,9 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Parse rules.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param array            $rules
-	 * @param string           $source
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param array            $rules List of rules.
+	 * @param string           $source Source string.
 	 * @return void
 	 */
 	public function parse_rules( SimpleXMLElement $xml, array &$rules, string $source = 'core' ): void {

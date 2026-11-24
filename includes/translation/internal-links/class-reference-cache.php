@@ -59,7 +59,7 @@ class Reference_Cache {
 	/**
 	 * Check if a URL has been cached (including negative lookups).
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return bool
 	 */
 	public function has_url( string $url ): bool {
@@ -70,7 +70,7 @@ class Reference_Cache {
 	 * Get cached URL translation, or null if not in cache.
 	 * Returns string if translated, or false if previously resolved as untranslatable.
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return string|false|null
 	 */
 	public function get_url( string $url ) {
@@ -80,8 +80,8 @@ class Reference_Cache {
 	/**
 	 * Cache a URL translation result.
 	 *
-	 * @param string      $url
-	 * @param string|null $translated_url
+	 * @param string      $url URL.
+	 * @param string|null $translated_url Translated URL.
 	 */
 	public function set_url( string $url, ?string $translated_url ): void {
 		$this->url_cache[ $url ] = ( null !== $translated_url && '' !== $translated_url ) ? $translated_url : false;
@@ -90,8 +90,8 @@ class Reference_Cache {
 	/**
 	 * Check if a post translation has been cached.
 	 *
-	 * @param int    $post_id
-	 * @param string $lang
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
 	 * @return bool
 	 */
 	public function has_post( int $post_id, string $lang ): bool {
@@ -101,8 +101,8 @@ class Reference_Cache {
 	/**
 	 * Get cached translated post ID.
 	 *
-	 * @param int    $post_id
-	 * @param string $lang
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
 	 * @return int
 	 */
 	public function get_post( int $post_id, string $lang ): int {
@@ -112,9 +112,9 @@ class Reference_Cache {
 	/**
 	 * Set cached translated post ID.
 	 *
-	 * @param int    $post_id
-	 * @param string $lang
-	 * @param int    $translated_id
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param int    $translated_id Translated ID.
 	 */
 	public function set_post( int $post_id, string $lang, int $translated_id ): void {
 		$this->post_cache[ $post_id . ':' . $lang ] = $translated_id;
@@ -123,9 +123,9 @@ class Reference_Cache {
 	/**
 	 * Check if a term translation has been cached.
 	 *
-	 * @param int    $term_id
-	 * @param string $taxonomy
-	 * @param string $lang
+	 * @param int    $term_id Term ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @param string $lang Language code.
 	 * @return bool
 	 */
 	public function has_term( int $term_id, string $taxonomy, string $lang ): bool {
@@ -135,9 +135,9 @@ class Reference_Cache {
 	/**
 	 * Get cached translated term ID.
 	 *
-	 * @param int    $term_id
-	 * @param string $taxonomy
-	 * @param string $lang
+	 * @param int    $term_id Term ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @param string $lang Language code.
 	 * @return int
 	 */
 	public function get_term( int $term_id, string $taxonomy, string $lang ): int {
@@ -147,10 +147,10 @@ class Reference_Cache {
 	/**
 	 * Set cached translated term ID.
 	 *
-	 * @param int    $term_id
-	 * @param string $taxonomy
-	 * @param string $lang
-	 * @param int    $translated_id
+	 * @param int    $term_id Term ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @param string $lang Language code.
+	 * @param int    $translated_id Translated ID.
 	 */
 	public function set_term( int $term_id, string $taxonomy, string $lang, int $translated_id ): void {
 		$this->term_cache[ $term_id . ':' . $taxonomy . ':' . $lang ] = $translated_id;
@@ -159,8 +159,8 @@ class Reference_Cache {
 	/**
 	 * Check if a media attachment ID translation has been cached.
 	 *
-	 * @param int    $attachment_id
-	 * @param string $lang
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $lang Language code.
 	 * @return bool
 	 */
 	public function has_media( int $attachment_id, string $lang ): bool {
@@ -170,8 +170,8 @@ class Reference_Cache {
 	/**
 	 * Get cached translated attachment ID.
 	 *
-	 * @param int    $attachment_id
-	 * @param string $lang
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $lang Language code.
 	 * @return int
 	 */
 	public function get_media( int $attachment_id, string $lang ): int {
@@ -181,9 +181,9 @@ class Reference_Cache {
 	/**
 	 * Set cached translated attachment ID.
 	 *
-	 * @param int    $attachment_id
-	 * @param string $lang
-	 * @param int    $translated_id
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $lang Language code.
+	 * @param int    $translated_id Translated ID.
 	 */
 	public function set_media( int $attachment_id, string $lang, int $translated_id ): void {
 		$this->media_cache[ $attachment_id . ':' . $lang ] = $translated_id;
@@ -192,8 +192,8 @@ class Reference_Cache {
 	/**
 	 * Check if a media URL translation has been cached.
 	 *
-	 * @param string $url
-	 * @param string $lang
+	 * @param string $url URL.
+	 * @param string $lang Language code.
 	 * @return bool
 	 */
 	public function has_media_url( string $url, string $lang ): bool {
@@ -203,8 +203,8 @@ class Reference_Cache {
 	/**
 	 * Get cached translated media URL.
 	 *
-	 * @param string $url
-	 * @param string $lang
+	 * @param string $url URL.
+	 * @param string $lang Language code.
 	 * @return string|false|null
 	 */
 	public function get_media_url( string $url, string $lang ) {
@@ -214,9 +214,9 @@ class Reference_Cache {
 	/**
 	 * Set cached translated media URL.
 	 *
-	 * @param string      $url
-	 * @param string      $lang
-	 * @param string|null $translated_url
+	 * @param string      $url URL.
+	 * @param string      $lang Language code.
+	 * @param string|null $translated_url Translated URL.
 	 */
 	public function set_media_url( string $url, string $lang, ?string $translated_url ): void {
 		$this->media_url_cache[ $url . ':' . $lang ] = ( null !== $translated_url && '' !== $translated_url ) ? $translated_url : false;
@@ -225,7 +225,7 @@ class Reference_Cache {
 	/**
 	 * Format size key for image cache.
 	 *
-	 * @param string|array $size
+	 * @param string|array $size Image size name.
 	 * @return string
 	 */
 	protected function format_size_key( $size ): string {
@@ -238,9 +238,9 @@ class Reference_Cache {
 	/**
 	 * Check if an image size mapping has been cached.
 	 *
-	 * @param int          $attachment_id
-	 * @param string|array $size
-	 * @param string       $lang
+	 * @param int          $attachment_id Attachment ID.
+	 * @param string|array $size Image size name.
+	 * @param string       $lang Language code.
 	 * @return bool
 	 */
 	public function has_image( int $attachment_id, $size, string $lang ): bool {
@@ -251,9 +251,9 @@ class Reference_Cache {
 	/**
 	 * Get cached image data.
 	 *
-	 * @param int          $attachment_id
-	 * @param string|array $size
-	 * @param string       $lang
+	 * @param int          $attachment_id Attachment ID.
+	 * @param string|array $size Image size name.
+	 * @param string       $lang Language code.
 	 * @return array|false|null
 	 */
 	public function get_image( int $attachment_id, $size, string $lang ) {
@@ -264,10 +264,10 @@ class Reference_Cache {
 	/**
 	 * Set cached image data.
 	 *
-	 * @param int          $attachment_id
-	 * @param string|array $size
-	 * @param string       $lang
-	 * @param array|null   $data
+	 * @param int          $attachment_id Attachment ID.
+	 * @param string|array $size Image size name.
+	 * @param string       $lang Language code.
+	 * @param array|null   $data Data array.
 	 */
 	public function set_image( int $attachment_id, $size, string $lang, ?array $data ): void {
 		$key                       = $attachment_id . ':' . $this->format_size_key( $size ) . ':' . $lang;

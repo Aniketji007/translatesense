@@ -21,6 +21,13 @@ class Custom_Field_Translator {
 
 	/**
 	 * Apply custom-field rules and translations to target post.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param bool   $is_existing Is existing.
+	 * @param array  $custom_opts Custom options.
 	 */
 	public static function apply_target_metadata(
 		int $source_post_id,

@@ -71,6 +71,8 @@ class Detector {
 
 	/**
 	 * Ensure Elementor recognizes the config post type as supported.
+	 *
+	 * @param mixed $cpt Custom post type.
 	 */
 	public static function filter_elementor_cpt_support( $cpt ) {
 		if ( ! is_array( $cpt ) ) {
@@ -94,6 +96,8 @@ class Detector {
 
 	/**
 	 * Check if Config Mapping Mode is active for a given post.
+	 *
+	 * @param int $post_id Post ID.
 	 */
 	public static function is_translatesense_config_post( int $post_id = 0 ) {
 		if ( $post_id ) {
@@ -116,6 +120,11 @@ class Detector {
 		return false;
 	}
 
+	/**
+	 * Get config post id.
+	 *
+	 * @param string $builder Builder name.
+	 */
 	final public static function get_config_post_id( string $builder ) {
 		$builder_ids = get_option( 'translatesense_config_posts', array() );
 		if ( ! empty( $builder_ids[ $builder ] ) ) {
@@ -141,7 +150,7 @@ class Detector {
 	/**
 	 * Get or create a config sandbox post ID for the specified builder.
 	 *
-	 * @param string $builder Builder identifier ('gutenberg', 'elementor', 'classic')
+	 * @param string $builder Builder identifier ('gutenberg', 'elementor', 'classic').
 	 * @return int Post ID of the config sandbox post
 	 */
 	public static function get_or_create_config_post( string $builder = 'gutenberg' ): int {
@@ -213,6 +222,9 @@ class Detector {
 
 	/**
 	 * Handle standard WP post save (Gutenberg / Classic).
+	 *
+	 * @param mixed $post_id Post ID.
+	 * @param mixed $post Post object.
 	 */
 	public static function handle_save_post( $post_id, $post ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -240,8 +252,8 @@ class Detector {
 	/**
 	 * Recursively scan Gutenberg blocks for unmapped text or dummy markers.
 	 *
-	 * @param array $blocks
-	 * @param int   $depth
+	 * @param array $blocks List of parsed blocks.
+	 * @param int   $depth Nesting depth.
 	 */
 	public static function scan_blocks_for_mapping( $blocks, $depth = 0 ) {
 		if ( ! is_array( $blocks ) || empty( $blocks ) || $depth > 25 ) {
@@ -284,6 +296,9 @@ class Detector {
 
 	/**
 	 * Handle Elementor document save data.
+	 *
+	 * @param mixed $document DOM document.
+	 * @param mixed $data Data array.
 	 */
 	public static function handle_elementor_save( $document, $data ) {
 		$post_id = $document->get_id();
@@ -302,8 +317,8 @@ class Detector {
 	/**
 	 * Recursively scan Elementor elements tree for unmapped settings with depth protection.
 	 *
-	 * @param array $elements
-	 * @param int   $depth
+	 * @param array $elements Elements.
+	 * @param int   $depth Nesting depth.
 	 */
 	public static function scan_elementor_elements( $elements, $depth = 0 ) {
 		if ( ! is_array( $elements ) || empty( $elements ) || $depth > 25 ) {
@@ -351,7 +366,7 @@ class Detector {
 	 * Detect unmapped fields / dummy text from Gutenberg blocks in memory and generate XML snippet.
 	 * Enforces depth and node limits to prevent resource exhaustion.
 	 *
-	 * @param mixed $blocks
+	 * @param mixed $blocks List of parsed blocks.
 	 * @return array|null
 	 */
 	public static function detect_from_gutenberg_blocks( $blocks ) {
@@ -426,10 +441,10 @@ class Detector {
 	 * - If attribute value is a sequential array (list of items): wraps unique item keys in key="*".
 	 * - If attribute value is an associative array (object): saves direct nested keys inside key.
 	 *
-	 * @param array $attrs
-	 * @param bool  $require_dummy
-	 * @param array $no_translate
-	 * @param int   $depth
+	 * @param array $attrs Block attributes.
+	 * @param bool  $require_dummy Require dummy.
+	 * @param array $no_translate No translate.
+	 * @param int   $depth Nesting depth.
 	 * @return array
 	 */
 	public static function extract_translatable_gutenberg_attrs( array $attrs, bool $require_dummy = false, array $no_translate = array(), int $depth = 0 ): array {
@@ -520,8 +535,8 @@ class Detector {
 	/**
 	 * Helper: Format hierarchical keys into clean Gutenberg XML indentation.
 	 *
-	 * @param array  $fields
-	 * @param string $indent
+	 * @param array  $fields List of fields.
+	 * @param string $indent Indentation string.
 	 * @return string
 	 */
 	public static function format_gutenberg_keys_xml( array $fields, string $indent = '            ' ): string {
@@ -545,7 +560,7 @@ class Detector {
 	 * Detect unmapped fields / dummy text from Elementor data in memory and generate XML snippet.
 	 * Enforces depth and node limits to prevent resource exhaustion.
 	 *
-	 * @param mixed $elements
+	 * @param mixed $elements Elements.
 	 * @return array|null
 	 */
 	public static function detect_from_elementor_data( $elements ) {
@@ -619,11 +634,11 @@ class Detector {
 	/**
 	 * Helper to recursively identify translatable text settings in Elementor widget.
 	 *
-	 * @param array  $settings
-	 * @param string $prefix
-	 * @param array  $existing_fields
-	 * @param array  $new_fields
-	 * @param int    $depth
+	 * @param array  $settings Settings array.
+	 * @param string $prefix Prefix.
+	 * @param array  $existing_fields Existing fields.
+	 * @param array  $new_fields New fields.
+	 * @param int    $depth Nesting depth.
 	 */
 	private static function find_elementor_text_settings( $settings, $prefix, $existing_fields, &$new_fields, $depth = 0 ) {
 		if ( ! is_array( $settings ) || empty( $settings ) || $depth > 15 ) {

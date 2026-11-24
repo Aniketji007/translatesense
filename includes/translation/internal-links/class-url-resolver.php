@@ -37,7 +37,7 @@ class URL_Resolver {
 	/**
 	 * Check whether a URL is internal to this WordPress site.
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return bool
 	 */
 	public function is_internal_url( string $url ): bool {
@@ -80,9 +80,9 @@ class URL_Resolver {
 	 * Resolve an internal URL into its translated counterpart if available.
 	 * Returns null if the URL is external, unknown, or has no target translation.
 	 *
-	 * @param string               $url
-	 * @param string               $target_language
-	 * @param Reference_Cache|null $cache
+	 * @param string               $url URL.
+	 * @param string               $target_language Target language code.
+	 * @param Reference_Cache|null $cache Cache data.
 	 * @return string|null
 	 */
 	public function resolve_translated_url( string $url, string $target_language, ?Reference_Cache $cache = null ): ?string {
@@ -205,9 +205,9 @@ class URL_Resolver {
 	/**
 	 * Identify whether a URL references a Post, Page, CPT, Taxonomy/Term, or Media.
 	 *
-	 * @param string $url
-	 * @param array  $parsed
-	 * @param array  $query_params
+	 * @param string $url URL.
+	 * @param array  $parsed Parsed.
+	 * @param array  $query_params Query params.
 	 * @return array|null { 'type' => 'post'|'term'|'media', 'id' => int, 'taxonomy' => string|null }
 	 */
 	public function resolve_url_object( string $url, array $parsed, array $query_params ): ?array {
@@ -273,7 +273,7 @@ class URL_Resolver {
 	/**
 	 * Build post object result after validating existence.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return array|null
 	 */
 	protected function build_post_object_result( int $post_id ): ?array {
@@ -297,8 +297,8 @@ class URL_Resolver {
 	 * Resolve pretty taxonomy permalinks using registered taxonomy information.
 	 * Supports categories, tags, custom taxonomies, and WooCommerce product categories & tags.
 	 *
-	 * @param string $full_url
-	 * @param array  $parsed
+	 * @param string $full_url Full URL.
+	 * @param array  $parsed Parsed.
 	 * @return array|null
 	 */
 	protected function resolve_taxonomy_url( string $full_url, array $parsed ): ?array {
@@ -354,7 +354,7 @@ class URL_Resolver {
 	/**
 	 * Make a URL absolute using site home URL.
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return string
 	 */
 	public function make_absolute_url( string $url ): string {
@@ -373,10 +373,10 @@ class URL_Resolver {
 	/**
 	 * Rebuild a URL keeping non-WordPress query parameters and fragment.
 	 *
-	 * @param string   $base_url
-	 * @param array    $original_query_params
-	 * @param string   $fragment
-	 * @param string[] $strip_keys
+	 * @param string   $base_url Base URL.
+	 * @param array    $original_query_params Original query params.
+	 * @param string   $fragment HTML fragment.
+	 * @param string[] $strip_keys Strip keys.
 	 * @return string
 	 */
 	protected function rebuild_url( string $base_url, array $original_query_params, string $fragment, array $strip_keys = array() ): string {
@@ -398,7 +398,7 @@ class URL_Resolver {
 	 * are human-readable instead of %xx percent-encoded sequences.
 	 * Preserves query parameter delimiters (&, =, +, #, ?).
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return string
 	 */
 	public function decode_url( string $url ): string {
