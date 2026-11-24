@@ -496,7 +496,7 @@
         if (elementorButton) {
           translateBtn.disabled = true;
           translateBtn.innerHTML =
-            '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span> Opening Elementor...';
+            '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></span> Opening Elementor...';
 
           elementorButton.click();
         } else {
@@ -508,7 +508,7 @@
           if ($goToEditLink && $goToEditLink.length) {
             translateBtn.disabled = true;
             translateBtn.innerHTML =
-              '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span> Opening Elementor...';
+              '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></span> Opening Elementor...';
 
             $goToEditLink[0].click();
           } else {
