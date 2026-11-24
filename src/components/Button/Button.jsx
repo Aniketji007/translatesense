@@ -40,10 +40,10 @@ export function Button({
       {...props}
     >
       {loading ? (
-        <span className="ts-btn-spinner-wrap">
+        <>
           <span className="ts-spinner-circle" aria-hidden="true" />
           {children}
-        </span>
+        </>
       ) : (
         <>
           {icon && <span className="ts-btn-icon">{icon}</span>}
