@@ -121,7 +121,7 @@ class Editor_Integration {
 
 		// 1. Check Elementor
 		$elementor_edit_mode = get_post_meta( $post_id, '_elementor_edit_mode', true );
-		if ( 'builder' === $elementor_edit_mode ) {
+		if ( 'builder' === $elementor_edit_mode && defined( 'ELEMENTOR_VERSION' ) ) {
 			return 'elementor';
 		}
 
