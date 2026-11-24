@@ -14,6 +14,7 @@ use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 use TranslateSense\Includes\Translation\Custom_Fields\Custom_Field_Translator;
+use TranslateSense\Includes\Translation\Translate;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -73,6 +74,7 @@ class Content_Parser {
 
 		// Hook into elementor post save lifecycle to check for element modifications
 		add_action( 'elementor/document/before_save', array( __CLASS__, 'handle_elementor_save_post' ), 10, 2 );
+		add_action( 'elementor/document/after_save', array( __CLASS__, 'handle_elementor_after_save_post' ), 10, 2 );
 
 		// Hook into permanent post deletion lifecycle to purge package data
 		add_action( 'before_delete_post', array( __CLASS__, 'handle_delete_post' ), 10, 1 );
@@ -87,8 +89,6 @@ class Content_Parser {
 	 */
 	public static function capture_post_updated( int $post_id, \WP_Post $post_after, \WP_Post $post_before ): void {
 		self::$existing_post_content[ $post_id ] = (string) $post_before->post_content;
-
-		self::finalize_pending_translation( $post_id );
 	}
 
 	/**
@@ -144,7 +144,7 @@ class Content_Parser {
 		}
 
 		// Check Elementor edit mode post meta
-		if ( $post_id > 0 && 'builder' === get_post_meta( $post_id, '_elementor_edit_mode', true ) ) {
+		if ( $post_id > 0 && 'builder' === get_post_meta( $post_id, '_elementor_edit_mode', true ) && defined( 'ELEMENTOR_VERSION' ) ) {
 			return 'elementor';
 		}
 
@@ -360,17 +360,12 @@ class Content_Parser {
 
 		$post_id = (int) $document->get_id();
 
-		self::finalize_pending_translation( $post_id );
-
 		if ( ! self::is_save_package( $post_id ) ) {
 			return;
 		}
 
 		// Detect source language
-		$lang = '';
-		if ( class_exists( 'TranslateSense\\Includes\\Integrations\\Polylang\\Polylang_Bridge' ) ) {
-			$lang = Polylang_Bridge::get_post_language( $post_id );
-		}
+		$lang = Polylang_Bridge::get_post_language( $post_id );
 
 		// Extract new elements data from payload
 		$new_elements = null;
@@ -417,6 +412,34 @@ class Content_Parser {
 			}
 			self::check_and_delete_changed_metadata_packages( $post_id, null, $override_meta );
 		}
+	}
+
+	/**
+	 * Handle Elementor document after save action.
+	 * Finalizes pending translation metadata only after Elementor has successfully persisted the document.
+	 *
+	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document|mixed $document Elementor document.
+	 * @param array|null                                                             $data     Post data.
+	 */
+	public static function handle_elementor_after_save_post( $document, $data = null ): void {
+		if ( ! $document || ! is_object( $document ) || ! method_exists( $document, 'get_id' ) ) {
+			return;
+		}
+
+		if ( method_exists( $document, 'is_autosave' ) && $document->is_autosave() ) {
+			return;
+		}
+
+		if ( method_exists( $document, 'is_revision' ) && $document->is_revision() ) {
+			return;
+		}
+
+		$post_id = (int) $document->get_id();
+		if ( $post_id <= 0 ) {
+			return;
+		}
+
+		self::finalize_pending_translation( $post_id );
 	}
 
 	/**
@@ -503,6 +526,17 @@ class Content_Parser {
 		if ( $post_id === (int) $stored_translated ) {
 			$status                            = self::clean_pending_meta_key( true, $post_id );
 			self::$finalized_posts[ $post_id ] = $status;
+
+			$front_page_id = absint( get_option( 'page_on_front' ) );
+
+			if ( $front_page_id && in_array( $front_page_id, array( $source_id, $post_id ) ) ) {
+				$post_name = get_post_field( 'post_name', $post_id );
+
+				if ( ! empty( $post_name ) ) {
+					Polylang_Bridge::clear_static_page_cache();
+				}
+			}
+
 			return $status;
 		}
 
