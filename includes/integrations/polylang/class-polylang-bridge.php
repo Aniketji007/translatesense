@@ -187,6 +187,23 @@ class Polylang_Bridge {
 	}
 
 	/**
+	 * Clear Polylang static page cache.
+	 */
+	public static function clear_static_page_cache() {
+		if ( function_exists( 'PLL' ) ) {
+			$polylang = PLL();
+
+			if (
+			isset( $polylang->model->languages ) &&
+			is_object( $polylang->model->languages ) &&
+			is_callable( array( $polylang->model->languages, 'clean_cache' ) )
+			) {
+				$polylang->model->languages->clean_cache();
+			}
+		}
+	}
+
+	/**
 	 * Find the target-language translation for a source post.
 	 *
 	 * Polylang's translation map is authoritative. The TranslateSense source
