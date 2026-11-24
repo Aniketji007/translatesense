@@ -1,4 +1,9 @@
 <?php
+/**
+ * Collects content references that need to be translated.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

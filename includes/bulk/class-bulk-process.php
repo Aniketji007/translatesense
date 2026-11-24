@@ -1,4 +1,9 @@
 <?php
+/**
+ * Background queue processing for bulk translation.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -22,6 +27,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Background queue processing for bulk translation.
+ */
 class Bulk_Process {
 
 	const CRON_HOOK            = 'translatesense_bulk_process_cron';

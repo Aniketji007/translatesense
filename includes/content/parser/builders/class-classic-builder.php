@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from Classic Editor content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

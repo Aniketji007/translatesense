@@ -1,4 +1,9 @@
 <?php
+/**
+ * Synchronizes post data between Polylang translations.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

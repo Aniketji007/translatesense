@@ -1,9 +1,10 @@
 <?php
-
 /**
  * Feedback_Form class.
  *
  * Handles plugin deactivation feedback.
+ *
+ * @package TranslateSense
  */
 
 namespace TranslateSense\Includes\Admin\Feedback;

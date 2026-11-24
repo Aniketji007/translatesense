@@ -1,4 +1,9 @@
 <?php
+/**
+ * Manages custom field translation rules and saved state.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

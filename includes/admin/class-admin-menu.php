@@ -1,4 +1,9 @@
 <?php
+/**
+ * Registers the TranslateSense admin menu and settings pages.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -11,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Registers the TranslateSense admin menu and settings pages.
+ */
 class Admin_Menu {
 
 	const REVIEW_NONCE_ACTION = 'translatesense_review_notice_nonce';

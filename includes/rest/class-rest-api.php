@@ -1,4 +1,9 @@
 <?php
+/**
+ * REST API routes for TranslateSense.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -30,6 +35,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * REST API routes for TranslateSense.
+ */
 class Rest_Api {
 
 	const NAMESPACE = 'translatesense/v1';

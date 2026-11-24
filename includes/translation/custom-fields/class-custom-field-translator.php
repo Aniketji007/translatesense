@@ -1,4 +1,9 @@
 <?php
+/**
+ * Translates custom field values.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

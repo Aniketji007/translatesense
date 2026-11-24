@@ -1,4 +1,10 @@
 <?php
+/**
+ * Builds, merges and validates the XML translation configuration.
+ *
+ * @package TranslateSense
+ */
+
 declare(strict_types=1);
 
 namespace TranslateSense\Includes\XML;
@@ -16,6 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Builds, merges and validates the XML translation configuration.
+ */
 class Xml_Engine {
 
 	/**

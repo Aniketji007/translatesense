@@ -1,4 +1,9 @@
 <?php
+/**
+ * Replaces content references with their translated equivalents.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

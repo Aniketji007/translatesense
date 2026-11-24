@@ -1,4 +1,9 @@
 <?php
+/**
+ * Integrates TranslateSense into the Gutenberg, Elementor and Classic editors.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -12,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Integrates TranslateSense into the Gutenberg, Elementor and Classic editors.
+ */
 class Editor_Integration {
 
 	/**

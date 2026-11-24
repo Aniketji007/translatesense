@@ -1,4 +1,9 @@
 <?php
+/**
+ * Resolves site URLs to posts, terms and translated equivalents.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

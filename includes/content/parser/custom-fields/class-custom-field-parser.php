@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from custom fields.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

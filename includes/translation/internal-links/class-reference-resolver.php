@@ -1,4 +1,9 @@
 <?php
+/**
+ * Resolves content references found in post content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

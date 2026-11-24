@@ -1,4 +1,9 @@
 <?php
+/**
+ * Resolves custom field rules from the XML translation configuration.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

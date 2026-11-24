@@ -10,6 +10,8 @@
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       translatesense
  * Domain Path:       /languages
+ *
+ * @package TranslateSense
  */
 
 declare(strict_types=1);

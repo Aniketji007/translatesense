@@ -1,4 +1,9 @@
 <?php
+/**
+ * Shared base for the XML configuration builders.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -12,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Shared base for the XML configuration builders.
+ */
 abstract class Base_Builder {
 
 	/**

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Main plugin bootstrap that wires all TranslateSense components together.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

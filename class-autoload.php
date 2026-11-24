@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class autoloader for the TranslateSense namespace.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -9,6 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
+	/**
+	 * Class autoloader for the TranslateSense namespace.
+	 */
 	class Autoload {
 
 		private static $instance;

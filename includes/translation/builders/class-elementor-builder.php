@@ -1,4 +1,9 @@
 <?php
+/**
+ * Applies translated strings to Elementor page data.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

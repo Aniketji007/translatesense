@@ -1,4 +1,9 @@
 <?php
+/**
+ * Translates media references to their language-specific attachments.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

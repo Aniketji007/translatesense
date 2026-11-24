@@ -1,4 +1,9 @@
 <?php
+/**
+ * Bridge between TranslateSense and the Polylang API.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -10,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Bridge between TranslateSense and the Polylang API.
+ */
 class Polylang_Bridge {
 
 	/**

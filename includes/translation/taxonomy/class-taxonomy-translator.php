@@ -1,4 +1,9 @@
 <?php
+/**
+ * Translates taxonomy terms and their metadata.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

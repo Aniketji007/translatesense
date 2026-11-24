@@ -1,4 +1,9 @@
 <?php
+/**
+ * Builds the Elementor section of the XML translation configuration.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -12,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Builds the Elementor section of the XML translation configuration.
+ */
 class Elementor_Builder extends Base_Builder {
 
 	/**

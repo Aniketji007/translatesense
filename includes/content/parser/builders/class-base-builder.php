@@ -1,4 +1,9 @@
 <?php
+/**
+ * Shared base for the builders that extract translatable strings.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

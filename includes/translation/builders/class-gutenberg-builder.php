@@ -1,4 +1,9 @@
 <?php
+/**
+ * Applies translated strings to Gutenberg block content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

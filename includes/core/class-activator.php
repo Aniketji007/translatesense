@@ -1,4 +1,9 @@
 <?php
+/**
+ * Plugin activation tasks.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -10,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Plugin activation tasks.
+ */
 class Activator {
 
 	const DB_VERSION        = '1.0.0';

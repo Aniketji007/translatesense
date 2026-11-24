@@ -1,4 +1,9 @@
 <?php
+/**
+ * Filters DOM nodes to find translatable text.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

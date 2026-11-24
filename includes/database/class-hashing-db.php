@@ -1,4 +1,9 @@
 <?php
+/**
+ * Database layer for hashed strings, translations, packages and the queue.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -8,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Database layer for hashed strings, translations, packages and the queue.
+ */
 class Hashing_Db {
 
 	/**

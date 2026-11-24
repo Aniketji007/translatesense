@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from Elementor page data.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Shared base for the translation builders that write translations back to content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

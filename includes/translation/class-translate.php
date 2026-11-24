@@ -1,4 +1,9 @@
 <?php
+/**
+ * Core translation service that sends strings to the selected AI provider.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

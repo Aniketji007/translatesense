@@ -1,4 +1,9 @@
 <?php
+/**
+ * Applies translated strings to Classic Editor content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

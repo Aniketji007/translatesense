@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from taxonomy terms.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

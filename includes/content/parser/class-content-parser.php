@@ -1,4 +1,9 @@
 <?php
+/**
+ * Parses post content into translatable strings.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

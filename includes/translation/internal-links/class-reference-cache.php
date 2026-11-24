@@ -1,4 +1,9 @@
 <?php
+/**
+ * Caches resolved content references.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

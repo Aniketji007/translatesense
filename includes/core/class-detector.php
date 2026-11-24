@@ -1,4 +1,9 @@
 <?php
+/**
+ * Detects the active editor, builder and environment capabilities.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -10,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Detects the active editor, builder and environment capabilities.
+ */
 class Detector {
 
 	/**
