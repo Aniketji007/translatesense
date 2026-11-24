@@ -46,7 +46,7 @@ class URL_Resolver {
 			return false;
 		}
 
-		// Relative URL with path or query
+		// Relative URL with path or query.
 		if ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) {
 			return true;
 		}
@@ -65,7 +65,7 @@ class URL_Resolver {
 			return false;
 		}
 
-		// Exact host match or www/non-www equivalence
+		// Exact host match or www/non-www equivalence.
 		$url_host  = strtolower( (string) $parts['host'] );
 		$home_host = strtolower( (string) $home_host );
 
@@ -116,10 +116,10 @@ class URL_Resolver {
 		}
 		$fragment = ! empty( $parsed['fragment'] ) ? '#' . $parsed['fragment'] : '';
 
-		// Identify the object referenced by this URL
+		// Identify the object referenced by this URL.
 		$object = $this->resolve_url_object( $url, $parsed, $query_params );
 		if ( ! $object ) {
-			// If it is an internal URL that contains percent-encoded characters, decode it so it's readable
+			// If it is an internal URL that contains percent-encoded characters, decode it so it's readable.
 			if ( false !== strpos( $url, '%' ) ) {
 				$decoded = $this->decode_url( $url );
 				if ( $decoded !== $url ) {
@@ -254,7 +254,7 @@ class URL_Resolver {
 		$full_url = $this->make_absolute_url( $url );
 		$post_id  = function_exists( 'url_to_postid' ) ? url_to_postid( $full_url ) : 0;
 		if ( $post_id <= 0 && false !== strpos( $full_url, '%' ) && function_exists( 'url_to_postid' ) ) {
-			// Fallback: try decoded URL in case rewrite rules match decoded Unicode slug
+			// Fallback: try decoded URL in case rewrite rules match decoded Unicode slug.
 			$post_id = url_to_postid( $this->decode_url( $full_url ) );
 		}
 		if ( $post_id > 0 ) {
@@ -313,7 +313,7 @@ class URL_Resolver {
 			return null;
 		}
 
-		// Get all public taxonomies
+		// Get all public taxonomies.
 		$taxonomies = function_exists( 'get_taxonomies' ) ? get_taxonomies( array( 'public' => true ), 'objects' ) : array();
 		if ( empty( $taxonomies ) ) {
 			return null;
@@ -326,14 +326,14 @@ class URL_Resolver {
 				continue;
 			}
 
-			// Path starts with taxonomy rewrite slug (e.g. "category/news" or "product-category/shoes")
+			// Path starts with taxonomy rewrite slug (e.g. "category/news" or "product-category/shoes").
 			if ( 0 === strpos( $url_path, $slug . '/' ) || $url_path === $slug ) {
 				$term_path = trim( substr( $url_path, strlen( $slug ) ), '/' );
 				if ( '' === $term_path ) {
 					continue;
 				}
 
-				// If hierarchical (e.g. parent/child), get the leaf slug
+				// If hierarchical (e.g. parent/child), get the leaf slug.
 				$segments  = explode( '/', $term_path );
 				$leaf_slug = sanitize_title( end( $segments ) );
 
@@ -431,7 +431,7 @@ class URL_Resolver {
 				'/%[0-9a-fA-F]{2}/',
 				static function ( $m ) {
 					$hex = strtoupper( $m[0] );
-					// Do not decode reserved query characters &, =, +, #, ?, space
+					// Do not decode reserved query characters &, =, +, #, ?, space.
 					if ( in_array( $hex, array( '%26', '%3D', '%2B', '%23', '%3F', '%20' ), true ) ) {
 						return $m[0];
 					}

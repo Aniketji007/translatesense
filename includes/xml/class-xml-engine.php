@@ -213,7 +213,7 @@ class Xml_Engine {
 			}
 		}
 
-		// Check active theme/child theme
+		// Check active theme/child theme.
 		$theme_xml = get_stylesheet_directory() . '/wpml-config.xml';
 		if ( file_exists( $theme_xml ) && is_readable( $theme_xml ) ) {
 			$content = file_get_contents( $theme_xml );
@@ -222,7 +222,7 @@ class Xml_Engine {
 			}
 		}
 
-		// Check parent theme if distinct
+		// Check parent theme if distinct.
 		if ( get_template_directory() !== get_stylesheet_directory() ) {
 			$parent_xml = get_template_directory() . '/wpml-config.xml';
 			if ( file_exists( $parent_xml ) && is_readable( $parent_xml ) ) {
@@ -315,7 +315,7 @@ class Xml_Engine {
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
 
-		// Initialize root skeleton
+		// Initialize root skeleton.
 		$dom->loadXML( self::get_default_builder_skeleton( 'all' ), LIBXML_NONET );
 		$root = $dom->documentElement;
 
@@ -376,7 +376,7 @@ class Xml_Engine {
 						}
 						$existing = self::find_dom_child_by_text( $cf_section, 'custom-field', $cf_name );
 						if ( $existing ) {
-							// Sync attributes onto existing node
+							// Sync attributes onto existing node.
 							foreach ( $cf->attributes() as $attr_k => $attr_v ) {
 								$existing->setAttribute( (string) $attr_k, (string) $attr_v );
 							}
@@ -460,7 +460,7 @@ class Xml_Engine {
 			}
 		}
 
-		// Merge order: core -> active plugins -> user custom
+		// Merge order: core -> active plugins -> user custom.
 		$all_sources = array_merge(
 			array( $core_xml ),
 			array_values( $plugin_configs ),
@@ -469,7 +469,7 @@ class Xml_Engine {
 
 		$merged_xml = self::merge_wpml_xml_documents( $all_sources );
 
-		// Format XML
+		// Format XML.
 		$dom                     = new DOMDocument( '1.0' );
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
@@ -479,7 +479,7 @@ class Xml_Engine {
 			$formatted_xml = $merged_xml;
 		}
 
-		// Save to transients
+		// Save to transients.
 		set_transient( self::TRANSIENT_MERGED_XML, $formatted_xml, DAY_IN_SECONDS );
 		set_transient( self::TRANSIENT_ACTIVE_PLUGINS, self::get_active_plugins_list(), DAY_IN_SECONDS );
 
@@ -522,7 +522,7 @@ class Xml_Engine {
 			return $saved;
 		}
 
-		// Extract editor-specific section from unified merged configuration
+		// Extract editor-specific section from unified merged configuration.
 		$all_xml = self::get_config( 'all' );
 		if ( ! empty( $all_xml ) ) {
 			$builder_obj = self::get_builder( $editor );
@@ -633,7 +633,7 @@ class Xml_Engine {
 			return $validation;
 		}
 
-		// Format XML
+		// Format XML.
 		$dom                     = new DOMDocument( '1.0' );
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
@@ -644,14 +644,14 @@ class Xml_Engine {
 		}
 
 		if ( 'all' === $editor ) {
-			// Update primary options in database
+			// Update primary options in database.
 			update_option( self::OPTION_ALL_XML, $formatted_xml );
 		} else {
 			$option_key = 'translatesense_' . $editor . '_xml';
 			update_option( $option_key, $formatted_xml );
 		}
 
-		// Reset in-memory cache and transients
+		// Reset in-memory cache and transients.
 		self::$parsed_rules = null;
 		self::invalidate_transients();
 
@@ -793,7 +793,7 @@ class Xml_Engine {
 			$xml->addChild( $section_name );
 		}
 
-		// Find new node from snippet
+		// Find new node from snippet.
 		$new_node = null;
 		if ( 'gutenberg' === $target_builder && isset( $snippet_doc->{'gutenberg-blocks'}->{'gutenberg-block'} ) ) {
 			$new_node = $snippet_doc->{'gutenberg-blocks'}->{'gutenberg-block'}[0];
@@ -807,7 +807,7 @@ class Xml_Engine {
 
 		$dom_target = dom_import_simplexml( $xml->{$section_name} );
 
-		// Find existing child with matching name in current custom XML
+		// Find existing child with matching name in current custom XML.
 		$existing_child = null;
 		$dom_nodes      = $dom_target->childNodes;
 		for ( $i = 0; $i < $dom_nodes->length; $i++ ) {
@@ -824,7 +824,7 @@ class Xml_Engine {
 			}
 		}
 
-		// If not found in custom XML, check if base rule exists in core/all XML to seed existing child
+		// If not found in custom XML, check if base rule exists in core/all XML to seed existing child.
 		if ( ! $existing_child ) {
 			$base_snippet_raw = self::get_widget_xml_snippet( $target_builder, (string) $name );
 			if ( ! empty( $base_snippet_raw ) ) {
@@ -845,10 +845,10 @@ class Xml_Engine {
 		}
 
 		if ( $existing_child ) {
-			// Update existing child in place: preserve keys, mark removed with noTranslate="true", add new keys
+			// Update existing child in place: preserve keys, mark removed with noTranslate="true", add new keys.
 			$builder_obj->sync_node( $existing_child, $new_node );
 		} else {
-			// Append new node if it did not exist
+			// Append new node if it did not exist.
 			$new_dom = dom_import_simplexml( $new_node );
 			$dom_target->appendChild( $dom_target->ownerDocument->importNode( $new_dom, true ) );
 		}

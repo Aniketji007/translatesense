@@ -135,7 +135,7 @@ class Ai_Connector_Bridge {
 
 		$provider = sanitize_key( $provider );
 
-		// Set default prompt if not supplied
+		// Set default prompt if not supplied.
 		if ( empty( $prompt ) ) {
 			$source_lang = $settings['source_lang'] ?? 'en';
 			$target_lang = $settings['target_lang'] ?? 'es';
@@ -145,7 +145,7 @@ class Ai_Connector_Bridge {
 		$active_providers = $this->get_active_providers( false, array( $provider ) );
 		$provider_info    = $active_providers[ $provider ] ?? null;
 
-		// Condition A: If WP 7.0+ and connectors are installed for this provider, always send request through WP Core Connectors
+		// Condition A: If WP 7.0+ and connectors are installed for this provider, always send request through WP Core Connectors.
 		if ( ! empty( $provider_info['connectors'] ) && ! empty( $provider_info['isProviderInstall'] ) ) {
 			if ( empty( $provider_info['isConnected'] ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -180,7 +180,7 @@ class Ai_Connector_Bridge {
 				return $core_result;
 			}
 
-			// Core AI Connector failed: log error and return standardized error (do not trigger legacy direct API fallback)
+			// Core AI Connector failed: log error and return standardized error (do not trigger legacy direct API fallback).
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log( sprintf( '[TranslateSense AI Bridge] WP Core Connector translation error (%s): %s', $provider, $core_result->get_error_message() ) );
@@ -189,7 +189,7 @@ class Ai_Connector_Bridge {
 			return $this->standardize_error( $core_result, $provider );
 		}
 
-		// Condition B: For providers without connectors or uninstalled connector plugins, use legacy direct API endpoints
+		// Condition B: For providers without connectors or uninstalled connector plugins, use legacy direct API endpoints.
 		$legacy_result = $this->translate_via_legacy_api( $strings, $prompt, $model, $provider, $settings );
 
 		if ( is_wp_error( $legacy_result ) ) {
@@ -233,7 +233,7 @@ class Ai_Connector_Bridge {
 			}
 		}
 
-		// If WP 7.0 general AI is available without provider restrictions
+		// If WP 7.0 general AI is available without provider restrictions.
 		if ( 'wp_core' === $provider || 'core' === $provider || 'WordPress' === $provider ) {
 			return true;
 		}
@@ -650,7 +650,7 @@ class Ai_Connector_Bridge {
 	private function parse_batch_json_response( string $raw_json, array $keys ): ?array {
 		$clean_json = trim( $raw_json );
 
-		// Strip markdown code fences (```json ... ```)
+		// Strip markdown code fences (```json ... ```).
 		if ( 0 === strpos( $clean_json, '```' ) ) {
 			$clean_json = preg_replace( '/^```(?:json)?\s*/i', '', $clean_json );
 			$clean_json = preg_replace( '/\s*```$/', '', $clean_json );
@@ -721,7 +721,7 @@ class Ai_Connector_Bridge {
 
 		$updated = update_option( 'translatesense_api_keys', $sanitized );
 
-		// Synchronize with main plugin settings for backward compatibility
+		// Synchronize with main plugin settings for backward compatibility.
 		$main_settings = get_option( 'translatesense_settings', array() );
 		if ( isset( $sanitized['openai'] ) ) {
 			$main_settings['openai_api_key'] = $sanitized['openai'];
@@ -732,7 +732,7 @@ class Ai_Connector_Bridge {
 		update_option( 'translatesense_settings', $main_settings );
 
 		$this->legacy_keys      = $sanitized;
-		$this->active_providers = null; // Invalidate cached providers
+		$this->active_providers = null; // Invalidate cached providers.
 
 		return $updated;
 	}
@@ -830,7 +830,7 @@ class Ai_Connector_Bridge {
 			return $this->active_providers;
 		}
 
-		// Normalize requested providers list (mapping aliases e.g. 'google' => 'gemini')
+		// Normalize requested providers list (mapping aliases e.g. 'google' => 'gemini').
 		$requested_providers = array_map(
 			static function ( $p ) {
 				return 'google' === $p ? 'gemini' : sanitize_key( (string) $p );
@@ -942,12 +942,12 @@ class Ai_Connector_Bridge {
 			}
 
 			try {
-				// Resolve CapabilityEnum
+				// Resolve CapabilityEnum.
 				$capability = null;
 				if ( class_exists( CapabilityEnum::class ) ) {
 					$capability = CapabilityEnum::textGeneration();
 				}
-				// Resolve MessagePart & UserMessage
+				// Resolve MessagePart & UserMessage.
 				$messages = array();
 				if ( class_exists( '\WordPress\AiClient\Messages\DTO\MessagePart' ) && class_exists( '\WordPress\AiClient\Messages\DTO\UserMessage' ) ) {
 					$part       = new \WordPress\AiClient\Messages\DTO\MessagePart( 'hello' );
@@ -957,7 +957,7 @@ class Ai_Connector_Bridge {
 					$messages[] = new \UserMessage( array( $part ) );
 				}
 
-				// Resolve ModelConfig
+				// Resolve ModelConfig.
 				$modal_config = null;
 				if ( class_exists( '\WordPress\AiClient\Providers\Models\DTO\ModelConfig' ) ) {
 					$modal_config = new \WordPress\AiClient\Providers\Models\DTO\ModelConfig();
@@ -965,7 +965,7 @@ class Ai_Connector_Bridge {
 					$modal_config = new \ModelConfig();
 				}
 
-				// Build ModelRequirements
+				// Build ModelRequirements.
 				$requirements = null;
 
 				if ( null !== $capability && ! empty( $messages ) && null !== $modal_config ) {
@@ -976,7 +976,7 @@ class Ai_Connector_Bridge {
 					}
 				}
 
-				// Query registry for models matching requirements
+				// Query registry for models matching requirements.
 				if ( null !== $requirements && class_exists( '\WordPress\AiClient\AiClient' ) && method_exists( '\WordPress\AiClient\AiClient', 'defaultRegistry' ) ) {
 					$Privders_Registory = \WordPress\AiClient\AiClient::defaultRegistry();
 					$modal_list         = $Privders_Registory->findModelsMetadataForSupport( $requirements );
@@ -1016,7 +1016,7 @@ class Ai_Connector_Bridge {
 				}
 			}
 
-			// Do not fall back to manual API endpoint if connector is installed
+			// Do not fall back to manual API endpoint if connector is installed.
 			return array();
 		}
 
@@ -1120,7 +1120,7 @@ class Ai_Connector_Bridge {
 					foreach ( $body['data'] as $item ) {
 						if ( ! empty( $item['id'] ) && is_string( $item['id'] ) ) {
 							$model_id = $item['id'];
-							// Filter relevant chat / text generation models
+							// Filter relevant chat / text generation models.
 							if (
 								0 === strpos( $model_id, 'gpt-' ) ||
 								0 === strpos( $model_id, 'o1' ) ||

@@ -91,7 +91,7 @@ class Cron {
 			)
 		);
 
-		// Clean orphaned strings in translatesense_strings
+		// Clean orphaned strings in translatesense_strings.
 		Hashing_Db::cleanup_unused_strings();
 	}
 

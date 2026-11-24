@@ -116,7 +116,7 @@ class Gutenberg_Builder extends Base_Builder {
 				if ( isset( $block['innerContent'] ) && is_array( $block['innerContent'] ) && ! empty( $block['innerContent'] ) ) {
 					if ( ! empty( $xpaths ) ) {
 						if ( class_exists( 'DOMDocument' ) && class_exists( 'DOMXPath' ) ) {
-							// sort by content_lenght
+							// sort by content_lenght.
 							$temp_strings = array_column( $found_strings, 'original' );
 							usort( $temp_strings, static fn( $a, $b ) => strlen( $b ) <=> strlen( $a ) );
 							$inner_content_modified = false;
@@ -209,7 +209,7 @@ class Gutenberg_Builder extends Base_Builder {
 							$block['innerHTML'] = implode( '', $block['innerContent'] );
 						}
 					} elseif ( isset( $block['innerContent'] ) && ! empty( $block['innerContent'] ) && ! empty( $found_strings ) ) {
-						// sort by content_lenght
+						// sort by content_lenght.
 						$temp_strings = array_column( $found_strings, 'original' );
 						usort( $temp_strings, static fn( $a, $b ) => strlen( $b ) <=> strlen( $a ) );
 						$inner_content_modified = false;
@@ -905,7 +905,7 @@ class Gutenberg_Builder extends Base_Builder {
 					}
 				}
 
-				// Plain text node
+				// Plain text node.
 				$node->appendChild( $dom->createTextNode( $new_content ) );
 			}
 		} catch ( \Throwable $e ) {

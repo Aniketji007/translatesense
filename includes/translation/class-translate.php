@@ -146,12 +146,12 @@ class Translate {
 			);
 		}
 
-		// Filter DOM content to extract translatable substring (matching Content_Parser extraction)
+		// Filter DOM content to extract translatable substring (matching Content_Parser extraction).
 		$filtered_string = $source_string;
 
 		$hash = Hashing_Db::generate_hash( (string) $widget_id, (string) $filtered_string );
 
-		// Step 3.2b: Check in-memory translations (Chrome Local AI / custom maps)
+		// Step 3.2b: Check in-memory translations (Chrome Local AI / custom maps).
 		if ( ! empty( $custom_options['in_memory_translations'] ) && is_array( $custom_options['in_memory_translations'] ) ) {
 			if ( isset( $custom_options['in_memory_translations'][ $hash ] ) && '' !== trim( (string) $custom_options['in_memory_translations'][ $hash ] ) ) {
 				$translated_text = self::sanitize_string( $source_string, $custom_options['in_memory_translations'][ $hash ] );
@@ -180,7 +180,7 @@ class Translate {
 			}
 		}
 
-		// Step 3.3: Check DB Cache
+		// Step 3.3: Check DB Cache.
 		$cached = Hashing_Db::get_cached_translation( $hash, $target_lang );
 		if ( null !== $cached ) {
 			return array(
@@ -194,7 +194,7 @@ class Translate {
 			$filtered_string = Dom_Filter::filter_dom_content( (string) $source_string );
 			$filtered_hash   = Hashing_Db::generate_hash( (string) $widget_id, (string) $filtered_string );
 
-			// Step 3.3: Check DB Cache
+			// Step 3.3: Check DB Cache.
 			$cached = Hashing_Db::get_cached_translation( $filtered_hash, $target_lang );
 			if ( null !== $cached ) {
 				return array(
@@ -677,7 +677,7 @@ class Translate {
 			$hashes[ $idx ] = md5( $str );
 		}
 
-		// Step 3.2b: Check in-memory translations batch
+		// Step 3.2b: Check in-memory translations batch.
 		if ( ! empty( $custom_options['in_memory_translations'] ) && is_array( $custom_options['in_memory_translations'] ) ) {
 			$in_memory = $custom_options['in_memory_translations'];
 			foreach ( $strings_array as $idx => $str ) {
@@ -698,7 +698,7 @@ class Translate {
 			}
 		}
 
-		// Step 3.3: Batch Cache Lookup for remaining uncached strings
+		// Step 3.3: Batch Cache Lookup for remaining uncached strings.
 		$remaining_hashes = array();
 		foreach ( $hashes as $idx => $h ) {
 			if ( ! isset( $results[ $idx ] ) ) {
@@ -737,11 +737,11 @@ class Translate {
 			return $results;
 		}
 
-		// Translate uncached strings via provider
+		// Translate uncached strings via provider.
 		$settings = get_option( 'translatesense_settings', array() );
 		$provider = $requested_provider;
 
-		// Execute provider batch translation preserving array keys / indices
+		// Execute provider batch translation preserving array keys / indices.
 		$translated_batch = self::execute_provider_batch_translation( $to_translate, $source_lang, $target_lang, $provider, $settings );
 
 		if ( is_wp_error( $translated_batch ) ) {
@@ -766,7 +766,7 @@ class Translate {
 			);
 		}
 
-		// Maintain original order
+		// Maintain original order.
 		ksort( $results );
 		return $results;
 	}

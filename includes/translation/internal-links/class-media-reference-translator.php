@@ -39,7 +39,7 @@ class Media_Reference_Translator {
 			return $cache->get_media( $attachment_id, $target_language );
 		}
 
-		// Validate that the source object is indeed an attachment
+		// Validate that the source object is indeed an attachment.
 		$source = get_post( $attachment_id );
 		if ( ! $source instanceof WP_Post || 'attachment' !== $source->post_type ) {
 			$cache->set_media( $attachment_id, $target_language, 0 );
@@ -51,7 +51,7 @@ class Media_Reference_Translator {
 			$translated_id = (int) pll_get_post( $attachment_id, $target_language );
 		}
 
-		// Validate translated object
+		// Validate translated object.
 		if ( $translated_id > 0 && $translated_id !== $attachment_id ) {
 			$target = get_post( $translated_id );
 			if ( $target instanceof WP_Post && 'attachment' === $target->post_type && 'trash' !== $target->post_status ) {
@@ -60,7 +60,7 @@ class Media_Reference_Translator {
 			}
 		}
 
-		// Never auto-create media translations
+		// Never auto-create media translations.
 		$cache->set_media( $attachment_id, $target_language, 0 );
 		return 0;
 	}
@@ -86,7 +86,7 @@ class Media_Reference_Translator {
 
 			$id = function_exists( 'attachment_url_to_postid' ) ? attachment_url_to_postid( $base_url ) : 0;
 			if ( $id <= 0 ) {
-				// Also check if base had "-scaled" suffix
+				// Also check if base had "-scaled" suffix.
 				$scaled_url = $dim_match[1] . '-scaled.' . $dim_match[4];
 				$id         = function_exists( 'attachment_url_to_postid' ) ? attachment_url_to_postid( $scaled_url ) : 0;
 			}
@@ -189,7 +189,7 @@ class Media_Reference_Translator {
 		if ( is_array( $img_data ) && ! empty( $img_data[0] ) ) {
 			$translated_url = $img_data[0];
 		} else {
-			// Fallback to full size
+			// Fallback to full size.
 			$full_data = wp_get_attachment_image_src( $translated_id, 'full' );
 			if ( is_array( $full_data ) && ! empty( $full_data[0] ) ) {
 				$translated_url = $full_data[0];

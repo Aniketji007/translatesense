@@ -212,13 +212,13 @@ abstract class Base_Builder {
 				? $source_post->post_name
 				: $this->translate_post_name( $source_post->post_name, $source_lang, $target_lang, $custom_opts ) );
 
-		// Allow style CSS properities temporarily
+		// Allow style CSS properities temporarily.
 		add_filter( 'safe_style_css', array( $this, 'allowed_css_properties' ), 10, 1 );
 
 		// 2. Translate Builder Content
 		$translated_content = $this->translate_content( $source_post, $source_lang, $target_lang, $custom_opts );
 
-		// Remove filter after translation
+		// Remove filter after translation.
 		remove_filter( 'safe_style_css', array( $this, 'allowed_css_properties' ), 10, 1 );
 
 		$wp_post_content = ! empty( $translated_content ) && is_string( $translated_content ) ? $translated_content : $source_post->post_content;
@@ -377,7 +377,7 @@ abstract class Base_Builder {
 	 * @param int $target_post_id Target post ID.
 	 */
 	public function after_save_post( int $target_post_id ): void {
-		// Base implementation - can be extended by builders
+		// Base implementation - can be extended by builders.
 	}
 
 	/**

@@ -226,7 +226,7 @@ class Elementor_Builder extends Base_Builder {
 	public function sync_node( DOMElement $existing_widget, SimpleXMLElement $new_widget ): void {
 		$owner_doc = $existing_widget->ownerDocument;
 
-		// Find or create <fields> element
+		// Find or create <fields> element.
 		$fields_elem = null;
 		$child_nodes = $existing_widget->childNodes;
 		for ( $i = 0; $i < $child_nodes->length; $i++ ) {
@@ -240,7 +240,7 @@ class Elementor_Builder extends Base_Builder {
 			$fields_elem = $existing_widget->appendChild( $owner_doc->createElement( 'fields' ) );
 		}
 
-		// Parse existing fields
+		// Parse existing fields.
 		$existing_fields_map       = array();
 		$existing_no_translate_map = array();
 		$existing_fields_xml       = simplexml_import_dom( $fields_elem );
@@ -250,7 +250,7 @@ class Elementor_Builder extends Base_Builder {
 			}
 		}
 
-		// Extract fields map from new_widget
+		// Extract fields map from new_widget.
 		$new_fields_map       = array();
 		$new_no_translate_map = array();
 		if ( isset( $new_widget->fields->field ) ) {
@@ -264,10 +264,10 @@ class Elementor_Builder extends Base_Builder {
 		// 1. Existing active fields
 		foreach ( $existing_fields_map as $path => $info ) {
 			if ( isset( $new_fields_map[ $path ] ) ) {
-				// Kept active with new settings
+				// Kept active with new settings.
 				$final_specs[ $path ] = $new_fields_map[ $path ];
 			} elseif ( isset( $new_no_translate_map[ $path ] ) ) {
-				// Explicitly marked noTranslate
+				// Explicitly marked noTranslate.
 				$spec                 = is_array( $new_no_translate_map[ $path ] ) ? $new_no_translate_map[ $path ] : ( is_array( $info ) ? $info : array(
 					'path'        => $path,
 					'type'        => 'title',
@@ -275,7 +275,7 @@ class Elementor_Builder extends Base_Builder {
 				) );
 				$final_specs[ $path ] = array_merge( $spec, array( 'noTranslate' => true ) );
 			} else {
-				// First removal: mark as noTranslate="true" to preserve for auto-updating prevention
+				// First removal: mark as noTranslate="true" to preserve for auto-updating prevention.
 				$spec                 = is_array( $info ) ? $info : array(
 					'path'        => $path,
 					'type'        => 'title',
@@ -288,10 +288,10 @@ class Elementor_Builder extends Base_Builder {
 		// 2. Existing noTranslate fields
 		foreach ( $existing_no_translate_map as $path => $info ) {
 			if ( isset( $new_fields_map[ $path ] ) ) {
-				// Restored to active
+				// Restored to active.
 				$final_specs[ $path ] = $new_fields_map[ $path ];
 			} elseif ( isset( $new_no_translate_map[ $path ] ) ) {
-				// Kept as noTranslate
+				// Kept as noTranslate.
 				$spec                 = is_array( $new_no_translate_map[ $path ] ) ? $new_no_translate_map[ $path ] : ( is_array( $info ) ? $info : array(
 					'path'        => $path,
 					'type'        => 'title',
@@ -322,7 +322,7 @@ class Elementor_Builder extends Base_Builder {
 			}
 		}
 
-		// Rebuild fields DOM from final specs
+		// Rebuild fields DOM from final specs.
 		while ( $fields_elem->firstChild ) {
 			$fields_elem->removeChild( $fields_elem->firstChild );
 		}
@@ -332,7 +332,7 @@ class Elementor_Builder extends Base_Builder {
 			$this->append_tree_to_dom( $owner_doc, $fields_elem, $tree );
 		}
 
-		// Sync conditions if present in new_widget
+		// Sync conditions if present in new_widget.
 		if ( isset( $new_widget->conditions ) ) {
 			for ( $i = 0; $i < $child_nodes->length; $i++ ) {
 				$child = $child_nodes->item( $i );

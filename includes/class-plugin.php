@@ -50,7 +50,7 @@ class Plugin {
 	 */
 	public function __construct() {
 		$this->init_hooks();
-		// Plugin activate redirect
+		// Plugin activate redirect.
 		add_action( 'admin_init', array( $this, 'handle_activation_redirect' ) );
 	}
 

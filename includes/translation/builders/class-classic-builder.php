@@ -48,7 +48,7 @@ class Classic_Builder extends Base_Builder {
 			return $content;
 		}
 
-		// Extract translation units with exact source offsets
+		// Extract translation units with exact source offsets.
 		$units = class_exists( Classic_Parser::class )
 			? Classic_Parser::extract_units_with_offsets( $content )
 			: array();
@@ -94,7 +94,7 @@ class Classic_Builder extends Base_Builder {
 			return $content;
 		}
 
-		// Sort replacements descending by offset so replacements don't shift earlier offsets
+		// Sort replacements descending by offset so replacements don't shift earlier offsets.
 		usort(
 			$replacements,
 			static function ( array $a, array $b ): int {
@@ -105,7 +105,7 @@ class Classic_Builder extends Base_Builder {
 			}
 		);
 
-		// Apply replacements sequentially from back to front, ensuring non-overlapping ranges
+		// Apply replacements sequentially from back to front, ensuring non-overlapping ranges.
 		$translated_content = $content;
 		$content_len        = strlen( $content );
 		$last_applied_start = PHP_INT_MAX;
@@ -115,7 +115,7 @@ class Classic_Builder extends Base_Builder {
 			$r_len   = (int) $r['length'];
 			$r_end   = $r_start + $r_len;
 
-			// Skip invalid ranges or overlapping slices
+			// Skip invalid ranges or overlapping slices.
 			if ( $r_start < 0 || $r_len <= 0 || $r_end > $content_len || $r_end > $last_applied_start ) {
 				continue;
 			}

@@ -85,7 +85,7 @@ class Reference_Resolver {
 				if ( $translated_id > 0 && $translated_id !== $aid ) {
 					$media_id_map[ $aid ] = $translated_id;
 
-					// Also map original attachment full URL if available
+					// Also map original attachment full URL if available.
 					$orig_url   = wp_get_attachment_url( $aid );
 					$target_url = wp_get_attachment_url( $translated_id );
 					if ( is_string( $orig_url ) && is_string( $target_url ) && '' !== $orig_url && $orig_url !== $target_url ) {
@@ -121,13 +121,13 @@ class Reference_Resolver {
 			if ( is_string( $translated_url ) && '' !== $translated_url && $translated_url !== $url ) {
 				$url_map[ $url ] = $translated_url;
 
-				// Register decoded key if original was percent-encoded
+				// Register decoded key if original was percent-encoded.
 				$decoded_url = $this->url_resolver->decode_url( $url );
 				if ( $decoded_url !== $url ) {
 					$url_map[ $decoded_url ] = $translated_url;
 				}
 
-				// Also register trailing slash variant if path without query/fragment
+				// Also register trailing slash variant if path without query/fragment.
 				if ( false === strpos( $url, '?' ) && false === strpos( $url, '#' ) ) {
 					if ( substr( $url, -1 ) === '/' ) {
 						$u_alt = rtrim( $url, '/' );
@@ -182,7 +182,7 @@ class Reference_Resolver {
 			return;
 		}
 
-		// Chunk large batches to stay safely within SQL parameter limits
+		// Chunk large batches to stay safely within SQL parameter limits.
 		$chunks = array_chunk( $uncached, 100 );
 		foreach ( $chunks as $chunk ) {
 			$placeholders = implode( ',', array_fill( 0, count( $chunk ), '%d' ) );
@@ -198,7 +198,7 @@ class Reference_Resolver {
 
 			$valid_map = array_flip( array_map( 'intval', (array) $valid_ids ) );
 
-			// Mark invalid IDs in cache so no further queries are performed
+			// Mark invalid IDs in cache so no further queries are performed.
 			foreach ( $chunk as $check_id ) {
 				if ( ! isset( $valid_map[ $check_id ] ) ) {
 					$cache->set_media( $check_id, $target_language, 0 );

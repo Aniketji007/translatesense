@@ -59,7 +59,7 @@ class Polylang_Bridge {
 			return (bool) pll_is_translated_post_type( $post_type );
 		}
 
-		// Fallback for public post types when Polylang isn't fully initialized
+		// Fallback for public post types when Polylang isn't fully initialized.
 		$public_types = get_post_types( array( 'public' => true ), 'names' );
 		return in_array( $post_type, $public_types, true );
 	}

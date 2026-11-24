@@ -193,7 +193,7 @@ class Classic_Builder extends Base_Builder {
 			return array();
 		}
 
-		// Fallback if PHP DOMDocument or DOMXPath extension is unavailable
+		// Fallback if PHP DOMDocument or DOMXPath extension is unavailable.
 		if ( ! class_exists( 'DOMDocument' ) || ! class_exists( 'DOMXPath' ) ) {
 			return self::extract_fallback( $content );
 		}
@@ -220,7 +220,7 @@ class Classic_Builder extends Base_Builder {
 		$tokens = $matches[0];
 		$units  = array();
 
-		// Merge user-configured rules if provided
+		// Merge user-configured rules if provided.
 		$trans_attrs = self::TRANSLATABLE_ATTRS;
 		if ( ! empty( $rules['attributes'] ) && is_array( $rules['attributes'] ) ) {
 			$trans_attrs = array_unique( array_merge( $trans_attrs, array_map( 'strtolower', $rules['attributes'] ) ) );
@@ -334,7 +334,7 @@ class Classic_Builder extends Base_Builder {
 			return $units;
 		}
 
-		// Tag DOM elements with document-order tag index to map back to source tokens
+		// Tag DOM elements with document-order tag index to map back to source tokens.
 		$dom_tag_counters = array();
 		$xpath            = new DOMXPath( $dom );
 		$all_dom_nodes    = $xpath->query( '//*' );
@@ -371,7 +371,7 @@ class Classic_Builder extends Base_Builder {
 				$slice     = $elements_by_tag[ $tag ][ $tag_idx ];
 				$raw_inner = $slice['raw_inner'];
 
-				// Direct match
+				// Direct match.
 				if ( $raw_inner === $du['value'] ) {
 					$start              = $slice['inner_start'];
 					$len                = strlen( $raw_inner );
@@ -390,7 +390,7 @@ class Classic_Builder extends Base_Builder {
 					continue;
 				}
 
-				// Locate the unit value inside raw_inner (e.g. text before child blocks)
+				// Locate the unit value inside raw_inner (e.g. text before child blocks).
 				$pos_in_inner = strpos( $raw_inner, $du['value'] );
 				if ( false !== $pos_in_inner ) {
 					$start              = $slice['inner_start'] + $pos_in_inner;
@@ -410,7 +410,7 @@ class Classic_Builder extends Base_Builder {
 					continue;
 				}
 
-				// Trimmed whitespace match
+				// Trimmed whitespace match.
 				$leading_ws = 0;
 				if ( preg_match( '/^\s+/u', $raw_inner, $ws_match ) ) {
 					$leading_ws = strlen( $ws_match[0] );
@@ -440,7 +440,7 @@ class Classic_Builder extends Base_Builder {
 				}
 			}
 
-			// Standalone paragraph or text run
+			// Standalone paragraph or text run.
 			$val = $du['value'];
 			$pos = strpos( $content, $val, $source_pos );
 			if ( false === $pos ) {
@@ -556,13 +556,13 @@ class Classic_Builder extends Base_Builder {
 	 * @return bool
 	 */
 	public static function has_translatable_text( string $text ): bool {
-		// Strip shortcodes to avoid extracting pure shortcode blocks
+		// Strip shortcodes to avoid extracting pure shortcode blocks.
 		$clean = preg_replace( '/\[\/?[\w-]+(?:\s+[^\]]*)?\]/s', '', $text );
-		// Strip HTML tags
+		// Strip HTML tags.
 		$clean = wp_strip_all_tags( (string) $clean );
-		// Decode entities
+		// Decode entities.
 		$clean = html_entity_decode( $clean, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-		// Strip non-breaking spaces and invisible characters
+		// Strip non-breaking spaces and invisible characters.
 		$clean = preg_replace( '/[\s\x{00a0}\x{200b}\x{200e}\x{200f}]+/u', '', $clean );
 		return '' !== trim( (string) $clean );
 	}
@@ -661,7 +661,7 @@ class Classic_Builder extends Base_Builder {
 			$inline_nodes = array();
 			$html         = preg_replace( '/\s*data-ts-tag-idx="[^"]*"/i', '', $html );
 
-			// Split inline flow by blank lines (double newlines or wpautop breaks)
+			// Split inline flow by blank lines (double newlines or wpautop breaks).
 			$paras = preg_split( '/(\r?\n\s*\r?\n)/u', $html );
 			if ( ! $paras ) {
 				$paras = array( $html );

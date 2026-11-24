@@ -14,7 +14,7 @@ class Hashing_Db {
 	 * Initialize.
 	 */
 	public static function init() {
-		// Automatically clean up package entries and orphan strings when a post is permanently deleted
+		// Automatically clean up package entries and orphan strings when a post is permanently deleted.
 		add_action( 'before_delete_post', array( __CLASS__, 'delete_post_packages' ), 10, 1 );
 	}
 
@@ -135,7 +135,7 @@ class Hashing_Db {
 			return 0;
 		}
 
-		// Do not record packages for values that contain only numbers
+		// Do not record packages for values that contain only numbers.
 		$clean_filter = trim( wp_strip_all_tags( (string) $filter_string ) );
 		if ( '' !== $clean_filter && is_numeric( $clean_filter ) ) {
 			return 0;
@@ -163,7 +163,7 @@ class Hashing_Db {
 		// 2. Calculate package hash
 		$package_hash = ! empty( $hash ) ? (string) $hash : md5( $string_hash . $widget_name );
 
-		// Check if package already exists
+		// Check if package already exists.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$existing_id = $wpdb->get_var(
 			$wpdb->prepare(
@@ -177,7 +177,7 @@ class Hashing_Db {
 			return (int) $existing_id;
 		}
 
-		// Initialize last_used_at with current database datetime (NOW()) for newly inserted package
+		// Initialize last_used_at with current database datetime (NOW()) for newly inserted package.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$wpdb->query(
 			$wpdb->prepare(
@@ -271,7 +271,7 @@ class Hashing_Db {
 			return null;
 		}
 
-		// Check by string_hash
+		// Check by string_hash.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
@@ -295,7 +295,7 @@ class Hashing_Db {
 			return (string) $row['translated_string'];
 		}
 
-		// Check by package_hash
+		// Check by package_hash.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
@@ -429,7 +429,7 @@ class Hashing_Db {
 			}
 		}
 
-		// Bulk update last_used_at for all matched translation records efficiently
+		// Bulk update last_used_at for all matched translation records efficiently.
 		if ( ! empty( $translation_ids_to_touch ) ) {
 			$translation_ids_to_touch = array_values( array_unique( $translation_ids_to_touch ) );
 			$ids_placeholders         = implode( ',', array_fill( 0, count( $translation_ids_to_touch ), '%d' ) );
@@ -442,7 +442,7 @@ class Hashing_Db {
 			);
 		}
 
-		// Bulk update last_used_at for all matched package records efficiently
+		// Bulk update last_used_at for all matched package records efficiently.
 		if ( ! empty( $package_ids_to_touch ) ) {
 			$package_ids_to_touch = array_values( array_unique( $package_ids_to_touch ) );
 			$pkg_placeholders     = implode( ',', array_fill( 0, count( $package_ids_to_touch ), '%d' ) );
@@ -474,7 +474,7 @@ class Hashing_Db {
 		$packages_table = self::get_packages_table();
 		$strings_table  = self::get_strings_table();
 
-		// Whitelist of valid exclude enum values for security
+		// Whitelist of valid exclude enum values for security.
 		$allowed_excludes = array( 'custom_field' );
 		$exclude_clauses  = array();
 		$query_params     = array( $post_id, $lang, $editor_type );
@@ -506,7 +506,7 @@ class Hashing_Db {
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( ! empty( $results ) ) {
-			// Update last_used_at for all matching retrieved packages efficiently
+			// Update last_used_at for all matching retrieved packages efficiently.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$wpdb->query(
 				$wpdb->prepare(
@@ -616,7 +616,7 @@ class Hashing_Db {
 		$deleted       = $wpdb->delete( $packages_table, $where, $format );
 		$deleted_count = false !== $deleted ? (int) $deleted : 0;
 
-		// Clean up any strings in translatesense_strings that are no longer used by any package
+		// Clean up any strings in translatesense_strings that are no longer used by any package.
 		if ( $cleanup_unused_strings && $deleted_count > 0 ) {
 			self::cleanup_unused_strings();
 		}

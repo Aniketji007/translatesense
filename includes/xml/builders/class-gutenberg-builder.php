@@ -74,7 +74,7 @@ class Gutenberg_Builder extends Base_Builder {
 		$translate = isset( $field_details['translate'] ) ? (string) $field_details['translate'] : '1';
 		$block->setAttribute( 'translate', $translate );
 
-		// Append child <xpath> tags
+		// Append child <xpath> tags.
 		$xpaths = array();
 		if ( ! empty( $field_details['__xpaths__'] ) && is_array( $field_details['__xpaths__'] ) ) {
 			$xpaths = $field_details['__xpaths__'];
@@ -166,13 +166,13 @@ class Gutenberg_Builder extends Base_Builder {
 			$existing_block->setAttribute( 'translate', (string) $new_block['translate'] );
 		}
 
-		// Remove legacy xpath attribute if present
+		// Remove legacy xpath attribute if present.
 		if ( $existing_block->hasAttribute( 'xpath' ) ) {
 			$existing_block->removeAttribute( 'xpath' );
 		}
 
 		// Sync child <xpath> elements
-		// 1. Remove existing <xpath> elements
+		// 1. Remove existing <xpath> elements.
 		$nodes_to_remove = array();
 		$child_nodes     = $existing_block->childNodes;
 		for ( $i = 0; $i < $child_nodes->length; $i++ ) {
@@ -187,7 +187,7 @@ class Gutenberg_Builder extends Base_Builder {
 
 		// 2. Add new <xpath> elements from $new_block
 		if ( isset( $new_block->xpath ) ) {
-			// Find first key node to insert xpath elements before it
+			// Find first key node to insert xpath elements before it.
 			$first_key_node     = null;
 			$remaining_children = $existing_block->childNodes;
 			for ( $i = 0; $i < $remaining_children->length; $i++ ) {
@@ -256,7 +256,7 @@ class Gutenberg_Builder extends Base_Builder {
 					$dom_key->removeAttribute( 'noTranslate' );
 				}
 
-				// Recursively sync nested child keys
+				// Recursively sync nested child keys.
 				$this->sync_keys_recursive( $dom_key, $new_k, $owner_doc );
 			} else {
 				$already_no_translate = $dom_key->hasAttribute( 'noTranslate' ) && in_array( strtolower( (string) $dom_key->getAttribute( 'noTranslate' ) ), array( 'true', '1', 'yes' ), true );

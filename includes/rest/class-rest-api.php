@@ -2027,7 +2027,7 @@ class Rest_Api {
 			}
 		}
 
-		// Provider validation: STRICTLY restricted to OpenAI and Gemini
+		// Provider validation: STRICTLY restricted to OpenAI and Gemini.
 		foreach ( $rows as $row ) {
 			$provider = strtolower( (string) $row['provider'] );
 			if ( ! in_array( $provider, array( 'openai', 'gemini' ), true ) ) {
@@ -2052,7 +2052,7 @@ class Rest_Api {
 			}
 		}
 
-		// Status validation: At least one job must be in pending or running state
+		// Status validation: At least one job must be in pending or running state.
 		$has_active = false;
 		foreach ( $rows as $row ) {
 			if ( in_array( $row['status'], array( 'pending', 'running' ), true ) ) {
@@ -3519,7 +3519,7 @@ class Rest_Api {
 		$skipped_cf_count = 0;
 
 		if ( $is_sync_enabled ) {
-			// Count translatable custom fields skipped due to Polylang synchronization
+			// Count translatable custom fields skipped due to Polylang synchronization.
 			$fields           = Custom_Field_Parser::get_post_fields( $post_id, $source_editor_type );
 			$user_rules       = Xml_Engine::get_user_custom_field_rules( $source_editor_type );
 			$resolved_rules   = Custom_Field_Rule_Resolver::resolve_all_rules( $fields, $user_rules );

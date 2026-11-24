@@ -26,13 +26,13 @@ class Detector {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		// Register internal config post type
+		// Register internal config post type.
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 
-		// Hook Gutenberg / Classic Post Saves (Step 2.1)
+		// Hook Gutenberg / Classic Post Saves (Step 2.1).
 		add_action( 'save_post', array( __CLASS__, 'handle_save_post' ), 20, 2 );
 
-		// Hook Elementor Document Saves (Step 2.1)
+		// Hook Elementor Document Saves (Step 2.1).
 		add_action( 'elementor/document/before_save', array( __CLASS__, 'handle_elementor_save' ), 20, 2 );
 		add_filter( 'option_elementor_cpt_support', array( __CLASS__, 'filter_elementor_cpt_support' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'protect_frontend_access' ) );
@@ -156,7 +156,7 @@ class Detector {
 	public static function get_or_create_config_post( string $builder = 'gutenberg' ): int {
 		$builder = sanitize_key( $builder );
 
-		// Check cached option first
+		// Check cached option first.
 		$builder_ids = get_option( 'translatesense_config_posts', array() );
 		if ( ! empty( $builder_ids[ $builder ] ) ) {
 			$post = get_post( (int) $builder_ids[ $builder ] );
@@ -173,7 +173,7 @@ class Detector {
 			}
 		}
 
-		// Find existing draft sandbox post via query
+		// Find existing draft sandbox post via query.
 		$existing_sandbox = get_posts(
 			array(
 				'post_type'      => self::POST_TYPE,
@@ -241,7 +241,7 @@ class Detector {
 			return;
 		}
 
-		// Parse Gutenberg content
+		// Parse Gutenberg content.
 		$content = $post->post_content;
 		if ( function_exists( 'has_blocks' ) && has_blocks( $content ) ) {
 			$blocks = parse_blocks( $content );
@@ -279,15 +279,15 @@ class Detector {
 			$attrs        = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
 			$no_translate = isset( $gutenberg_rules[ $block_name ]['no_translate'] ) ? array_keys( $gutenberg_rules[ $block_name ]['no_translate'] ) : array();
 
-			// Scan attributes recursively supporting nested array items (with key="*") and objects
+			// Scan attributes recursively supporting nested array items (with key="*") and objects.
 			$new_fields = self::extract_translatable_gutenberg_attrs( $attrs, true, $no_translate );
 
-			// If new fields found, register into custom XML
+			// If new fields found, register into custom XML.
 			if ( ! empty( $new_fields ) ) {
 				Xml_Engine::append_custom_rule( 'gutenberg', $block_name, $new_fields );
 			}
 
-			// Recurse inner blocks with depth limit
+			// Recurse inner blocks with depth limit.
 			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
 				self::scan_blocks_for_mapping( $block['innerBlocks'], $depth + 1 );
 			}
@@ -355,7 +355,7 @@ class Detector {
 				}
 			}
 
-			// Recurse inner elements with depth limit
+			// Recurse inner elements with depth limit.
 			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
 				self::scan_elementor_elements( $element['elements'], $depth + 1 );
 			}
@@ -479,7 +479,7 @@ class Detector {
 				$is_sequential = ( array_keys( $val ) === range( 0, count( $val ) - 1 ) );
 
 				if ( $is_sequential ) {
-					// Sequential list of items: collect unique item keys across all items and wrap in key="*"
+					// Sequential list of items: collect unique item keys across all items and wrap in key="*".
 					$item_fields = array();
 					foreach ( $val as $item ) {
 						if ( is_array( $item ) ) {
@@ -517,7 +517,7 @@ class Detector {
 						);
 					}
 				} else {
-					// Associative array (direct object): save direct nested keys inside key
+					// Associative array (direct object): save direct nested keys inside key.
 					$nested_fields = self::extract_translatable_gutenberg_attrs( $val, $require_dummy, array(), $depth + 1 );
 					if ( ! empty( $nested_fields ) ) {
 						$fields[ $str_key ] = array(

@@ -53,7 +53,7 @@ abstract class Base_Builder {
 			return array();
 		}
 
-		// Skip email addresses, URLs, and file path references
+		// Skip email addresses, URLs, and file path references.
 		if ( $this->is_email_or_url( (string) $filtered_value ) || $this->is_email_or_url( $value ) ) {
 			return array();
 		}
@@ -150,7 +150,7 @@ abstract class Base_Builder {
 			);
 		}
 
-		// Unescape standard backslash-escaped characters like \" or \'
+		// Unescape standard backslash-escaped characters like \" or \'.
 		$str = stripslashes( $str );
 
 		return $str;
@@ -168,9 +168,9 @@ abstract class Base_Builder {
 			return false;
 		}
 
-		// Decode HTML entities (including &nbsp;, &#160;, etc.)
+		// Decode HTML entities (including &nbsp;, &#160;, etc.).
 		$decoded = html_entity_decode( wp_strip_all_tags( $text ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-		// Strip all whitespace including unicode non-breaking spaces and zero-width spaces
+		// Strip all whitespace including unicode non-breaking spaces and zero-width spaces.
 		$clean = preg_replace( '/[\s\x{00a0}\x{200b}\x{200e}\x{200f}]+/u', '', $decoded );
 
 		return '' !== $clean;

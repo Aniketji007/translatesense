@@ -18,24 +18,24 @@ class Editor_Integration {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		// Save _translatesense_source_id when new translation post is created via Polylang '+' icon
+		// Save _translatesense_source_id when new translation post is created via Polylang '+' icon.
 		add_action( 'save_post', array( __CLASS__, 'save_source_post_id_on_create' ), 10, 3 );
 
-		// Gutenberg Block Editor
+		// Gutenberg Block Editor.
 		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets' ) );
 
-		// Classic Editor & Admin Edit Screens
+		// Classic Editor & Admin Edit Screens.
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_editor_assets' ) );
 
-		// Meta Box for Gutenberg & Classic Editor
+		// Meta Box for Gutenberg & Classic Editor.
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_translatesense_meta_box' ) );
 
-		// Classic Editor Media Buttons (After Add Media)
+		// Classic Editor Media Buttons (After Add Media).
 		add_action( 'media_buttons', array( __CLASS__, 'render_media_translate_button' ), 25 );
 		add_action( 'admin_footer', array( __CLASS__, 'render_editor_portal_container' ) );
 		add_action( 'elementor/editor/footer', array( __CLASS__, 'render_editor_portal_container' ) );
 
-		// Elementor Editor Hooks
+		// Elementor Editor Hooks.
 		add_action( 'elementor/editor/after_enqueue_scripts', array( __CLASS__, 'enqueue_elementor_editor_assets' ) );
 	}
 
@@ -59,7 +59,7 @@ class Editor_Integration {
 			return;
 		}
 
-		// Do not overwrite existing source ID
+		// Do not overwrite existing source ID.
 		$existing_source_id = get_post_meta( $post_id, '_translatesense_source_id', true );
 		if ( ! empty( $existing_source_id ) ) {
 			return;
@@ -226,7 +226,7 @@ class Editor_Integration {
 			return;
 		}
 
-		// Enqueue minimal CSS for modal rendering
+		// Enqueue minimal CSS for modal rendering.
 		wp_enqueue_style(
 			'translatesense-common',
 			esc_url( TRANSLATESENSE_PLUGIN_URL . 'assets/css/common' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.css' ),
@@ -532,7 +532,7 @@ class Editor_Integration {
 		$is_translated          = get_post_meta( $post_id, '_translatesense_translated', true );
 		$is_block_state_pending = Block_Processor::is_block_state_pending( $post_id );
 
-		// Strictly check that BOTH conditions are fulfilled
+		// Strictly check that BOTH conditions are fulfilled.
 		if ( empty( $is_translated ) || '0' === (string) $is_translated || ! $is_block_state_pending ) {
 			return;
 		}

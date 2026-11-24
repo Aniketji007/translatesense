@@ -25,7 +25,7 @@ class Admin_Menu {
 	 * Initialize admin menu hooks.
 	 */
 	public static function init() {
-		// Priority 99 ensures Polylang menu 'mlang' is already registered before we attach the submenu
+		// Priority 99 ensures Polylang menu 'mlang' is already registered before we attach the submenu.
 		add_action( 'admin_menu', array( __CLASS__, 'register_menu_pages' ), 99 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
 		add_action( 'in_admin_header', array( __CLASS__, 'hide_unrelated_admin_notices' ), 100 );
@@ -131,7 +131,7 @@ class Admin_Menu {
 	public static function register_menu_pages() {
 		$capability = self::get_manage_capability();
 
-		// If Polylang is active, place directly under Polylang's main "Languages" (mlang) menu
+		// If Polylang is active, place directly under Polylang's main "Languages" (mlang) menu.
 		if ( Polylang_Bridge::is_polylang_active() ) {
 			self::$page_hook = add_submenu_page(
 				'mlang',
@@ -142,7 +142,7 @@ class Admin_Menu {
 				array( __CLASS__, 'render_admin_root' )
 			);
 		} else {
-			// Fallback under Options if Polylang is not yet active
+			// Fallback under Options if Polylang is not yet active.
 			self::$page_hook = add_options_page(
 				__( 'TranslateSense Config', 'translatesense' ),
 				__( 'TranslateSense', 'translatesense' ),
@@ -179,7 +179,7 @@ class Admin_Menu {
 			return;
 		}
 
-		// Asset file metadata handling with fallback
+		// Asset file metadata handling with fallback.
 		$asset_file = TRANSLATESENSE_PLUGIN_DIR . 'assets/build/dashboard/index.asset.php';
 		$asset      = file_exists( $asset_file )
 			? require $asset_file
@@ -188,7 +188,7 @@ class Admin_Menu {
 				'version'      => TRANSLATESENSE_VERSION,
 			);
 
-		// Enqueue CSS
+		// Enqueue CSS.
 		wp_enqueue_style(
 			'translatesense-admin-css',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/build/dashboard/index.css',
@@ -196,13 +196,13 @@ class Admin_Menu {
 			$asset['version']
 		);
 
-		// Enqueue WordPress Script Dependencies
+		// Enqueue WordPress Script Dependencies.
 		wp_enqueue_script( 'wp-element' );
 		wp_enqueue_script( 'wp-components' );
 		wp_enqueue_script( 'wp-api-fetch' );
 		wp_enqueue_script( 'wp-i18n' );
 
-		// Enqueue App Script (Production React Bundle)
+		// Enqueue App Script (Production React Bundle).
 		$script_url = TRANSLATESENSE_PLUGIN_URL . 'assets/build/dashboard/index.js';
 
 		wp_enqueue_script(
@@ -250,7 +250,7 @@ class Admin_Menu {
 			}
 		}
 
-		// Localize Script (Step 1.1)
+		// Localize Script (Step 1.1).
 		wp_localize_script(
 			'translatesense-admin-js',
 			'TranslateSenseData',

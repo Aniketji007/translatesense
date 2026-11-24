@@ -45,7 +45,7 @@ class Acf {
 
 		$fields = array();
 
-		// Find fields from post meta reference keys (_meta_key => field_key)
+		// Find fields from post meta reference keys (_meta_key => field_key).
 		foreach ( $post_meta as $meta_key => $values ) {
 			if ( ! is_string( $meta_key ) || '' === $meta_key || '_' !== $meta_key[0] || 1 === strlen( $meta_key ) ) {
 				continue;
@@ -80,7 +80,7 @@ class Acf {
 			);
 		}
 
-		// Also check field groups assigned by location rules
+		// Also check field groups assigned by location rules.
 		if ( function_exists( 'acf_get_field_groups' ) && function_exists( 'acf_get_fields' ) ) {
 			$groups = acf_get_field_groups( array( 'post_id' => $post_id ) );
 			if ( is_array( $groups ) ) {
@@ -153,7 +153,7 @@ class Acf {
 				if ( is_string( $raw_val ) && '' !== trim( $raw_val ) ) {
 					$clean_val = trim( $raw_val );
 
-					// Skip values that contain only numbers
+					// Skip values that contain only numbers.
 					if ( Custom_Field_Parser::is_only_numbers( $clean_val ) ) {
 						break;
 					}
