@@ -38,7 +38,7 @@ function SparklesIcon({ size = 18, color = 'currentColor' }) {
   );
 }
 
-function LayersIcon({ size = 18, color = '#2563eb' }) {
+function LayersIcon({ size = 18, color = '#3858e9' }) {
   return (
     <svg
       width={size}
@@ -426,7 +426,7 @@ export function UnifiedBulkSelection({
             <div className="ts-bulk-panel-header">
               <div className="ts-panel-title-group">
                 <div className="ts-panel-icon-circle">
-                  <GlobeIcon size={19} color="#2563eb" />
+                  <GlobeIcon size={19} color="#3858e9" />
                 </div>
                 <div>
                   <h3 className="ts-panel-title">Target Languages</h3>
@@ -525,7 +525,7 @@ export function UnifiedBulkSelection({
             {/* Arrow connecting Language Selection to Provider Selection */}
             <div className="ts-bulk-step-arrow" aria-hidden="true">
               <div className="ts-bulk-step-arrow-circle">
-                <ArrowRightIcon size={14} color="#2563eb" />
+                <ArrowRightIcon size={14} color="#3858e9" />
               </div>
             </div>
           </div>
@@ -540,7 +540,7 @@ export function UnifiedBulkSelection({
             <div className="ts-bulk-panel-header">
               <div className="ts-panel-title-group">
                 <div className="ts-panel-icon-circle ts-provider-icon-circle">
-                  <SparklesIcon size={18} color="#2563eb" />
+                  <SparklesIcon size={18} color="#3858e9" />
                 </div>
                 <div>
                   <h3 className="ts-panel-title">AI Provider</h3>
@@ -593,7 +593,7 @@ export function UnifiedBulkSelection({
         <div className="ts-bulk-summary-bar">
           <div className="ts-summary-item">
             <span className="ts-summary-icon">
-              <LayersIcon size={18} color="#2563eb" />
+              <LayersIcon size={18} color="#3858e9" />
             </span>
             <div className="ts-summary-text">
               <span className="ts-summary-num">{postsCount}</span>
@@ -605,7 +605,7 @@ export function UnifiedBulkSelection({
 
           <div className="ts-summary-item">
             <span className="ts-summary-icon">
-              <GlobeIcon size={19} color="#2563eb" />
+              <GlobeIcon size={19} color="#3858e9" />
             </span>
             <div className="ts-summary-text">
               <span className="ts-summary-num">{targetLangsCount}</span>
@@ -617,7 +617,7 @@ export function UnifiedBulkSelection({
 
           <div className="ts-summary-item">
             <span className="ts-summary-icon">
-              <TranslateIcon size={18} color="#2563eb" />
+              <TranslateIcon size={18} color="#3858e9" />
             </span>
             <div className="ts-summary-text">
               <span className="ts-summary-num">{totalJobs}</span>

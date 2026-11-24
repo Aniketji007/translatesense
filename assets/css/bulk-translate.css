@@ -140,7 +140,7 @@
 .ts-lang-counter {
   font-size: 12px;
   font-weight: 700;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   padding: 4px 12px;
@@ -201,9 +201,9 @@
 }
 
 .ts-lang-card.selected {
-  border-color: #2563eb !important;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) !important;
   background: #eff6ff !important;
-  box-shadow: 0 0 0 1px #2563eb, 0 2px 6px -1px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 1px var(--wp-admin-theme-color,var(--ts-primary,#3858e9)), 0 2px 6px -1px rgba(37, 99, 235, 0.12);
 }
 
 .ts-lang-card input[type="checkbox"] {
@@ -211,7 +211,7 @@
   cursor: pointer;
   width: 15px;
   height: 15px;
-  accent-color: #2563eb;
+  accent-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border-radius: var(--ts-radius-xs);
   flex-shrink: 0;
 }
@@ -346,7 +346,7 @@
 .ts-modal-notice-banner.info {
   background: #eff6ff;
   border-color: #bfdbfe;
-  border-left-color: #2563eb;
+  border-left-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-modal-notice-banner .ts-notice-icon {
@@ -357,7 +357,7 @@
 }
 
 .ts-modal-notice-banner.info .ts-notice-icon {
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-modal-notice-banner .ts-notice-text {
@@ -449,7 +449,7 @@
 .ts-progress-bar-fill {
   height: 100%;
   width: 0%;
-  background: #2563eb;
+  background: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border-radius: 9999px;
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -515,7 +515,7 @@
 }
 
 .ts-stat-icon-box.blue {
-  background: #2563eb;
+  background: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   color: #ffffff;
   border-radius: var(--ts-radius-md);
 }
@@ -699,7 +699,7 @@
 }
 
 .ts-post-status-pill.in-progress {
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   background: #eff6ff;
   padding: 3px 10px;
 }
@@ -906,7 +906,7 @@ button.ts-error-detail-btn:hover {
 
 .ts-row-status.translating {
   background: #eff6ff;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-row-status.pending {
@@ -1030,7 +1030,7 @@ button.ts-error-detail-btn:hover {
 .ts-dots-spinner {
   width: 13px;
   height: 13px;
-  border: 2px dotted #2563eb;
+  border: 2px dotted var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border-radius: 50%;
   animation: tsSpin 1.2s linear infinite;
   display: inline-block;
@@ -1067,7 +1067,7 @@ button.ts-error-detail-btn:hover {
 /* Active running target language row animation */
 .ts-translation-item.running {
   background: #f0f7ff !important;
-  border-left: 3px solid #2563eb !important;
+  border-left: 3px solid var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) !important;
   animation: tsRowPulse 2s infinite ease-in-out;
 }
 
@@ -1085,8 +1085,8 @@ button.ts-error-detail-btn:hover {
   width: 13px;
   height: 13px;
   border: 2px solid #bfdbfe;
-  border-top-color: #2563eb;
-  border-right-color: #2563eb;
+  border-top-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
+  border-right-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border-radius: 50%;
   background: radial-gradient(circle, rgba(37, 99, 235, 0.45) 35%, transparent 70%);
   animation: tsSpin 0.75s linear infinite, tsCircleFillPulse 1.5s ease-in-out infinite;
@@ -1119,7 +1119,7 @@ button.ts-error-detail-btn:hover {
 /* Three bouncing dots animation after text in status column */
 .ts-row-status.translating {
   background: #eff6ff;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border: 1px solid #bfdbfe;
   display: inline-flex;
   align-items: center;
@@ -1140,7 +1140,7 @@ button.ts-error-detail-btn:hover {
 .ts-ellipsis-dots .ts-dot {
   width: 3px;
   height: 3px;
-  background-color: #2563eb;
+  background-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border-radius: 50%;
   display: inline-block;
   animation: tsDotBounce 1.2s infinite ease-in-out both;
@@ -1408,7 +1408,7 @@ button.ts-error-detail-btn:hover {
 
 .ts-bulk-panel {
   background: #ffffff;
-  border: 1px solid #2563eb;
+  border: 1px solid var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border-radius: 0 12px 12px;
   padding: 22px 18px 16px;
   display: flex;
@@ -1432,7 +1432,7 @@ button.ts-error-detail-btn:hover {
 }
 
 .ts-bulk-step-badge {
-  background: #2563eb;
+  background: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   color: #ffffff;
 }
 
@@ -1451,7 +1451,7 @@ button.ts-error-detail-btn:hover {
 }
 
 .ts-bulk-step-badge .ts-step-number {
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-bulk-step-badge .ts-step-text {
@@ -1478,7 +1478,7 @@ button.ts-error-detail-btn:hover {
   border: 1px solid #bfdbfe;
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(37,99,235,.12);
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   display: flex;
   height: 23px;
   justify-content: center;
@@ -1504,7 +1504,7 @@ button.ts-error-detail-btn:hover {
   border-radius: 50%;
   background: #eff6ff;
   border: 1px solid #dbeafe;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1530,7 +1530,7 @@ button.ts-error-detail-btn:hover {
 .ts-bulk-count-pill {
   background: #eff6ff;
   border: 1px solid #bfdbfe;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   font-size: 12px;
   font-weight: 700;
   padding: 4px 12px;
@@ -1580,7 +1580,7 @@ button.ts-error-detail-btn:hover {
 }
 
 .ts-bulk-search-input:focus {
-  border-color: #2563eb !important;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) !important;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
 }
 
@@ -1663,7 +1663,7 @@ button.ts-error-detail-btn:hover {
 }
 
 .ts-bulk-lang-card.selected {
-  border-color: #2563eb !important;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) !important;
   background: #eff6ff !important;
 }
 
@@ -1689,8 +1689,8 @@ button.ts-error-detail-btn:hover {
 }
 
 .ts-bulk-checkbox.checked {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-bulk-checkbox.disabled {
@@ -1783,7 +1783,7 @@ button.ts-error-detail-btn:hover {
 }
 
 .ts-bulk-provider-card.selected {
-  border-color: #2563eb !important;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) !important;
   background: #eff6ff !important;
 }
 
@@ -1808,14 +1808,14 @@ button.ts-error-detail-btn:hover {
 }
 
 .ts-bulk-radio.selected {
-  border-color: #2563eb;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-bulk-radio-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2563eb;
+  background: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   display: block;
 }
 
@@ -1894,7 +1894,7 @@ button.ts-error-detail-btn:hover {
 .ts-summary-icon {
   display: flex;
   align-items: center;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   flex-shrink: 0;
 }
 
@@ -1907,7 +1907,7 @@ button.ts-error-detail-btn:hover {
 .ts-summary-num {
   font-size: 18px;
   font-weight: 800;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-summary-lbl {

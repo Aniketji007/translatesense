@@ -638,7 +638,6 @@ export function usePageTranslation(config = {}) {
 
             const widgetId = String(resultItem.widget_id || '');
             if (
-              widgetId === 'post_name' ||
               widgetId === 'post_title' ||
               widgetId.startsWith('custom_field')
             ) {

@@ -404,7 +404,7 @@
       '<div class="ts-header-icon-box">' +
       (safeLogoSrc
         ? '<img src="' + safeLogoSrc + '" alt="TranslateSense" class="ts-header-icon-img" />'
-        : '<span class="dashicons dashicons-translation" style="font-size: 22px; width: 22px; height: 22px; color: #2563eb;"></span>') +
+        : '<span class="dashicons dashicons-translation" style="font-size: 22px; width: 22px; height: 22px; color: #3858e9;"></span>') +
       '</div>' +
       '<div class="ts-header-text-wrap">' +
       '<h2 class="ts-modal-title ts-common-title">Translate Page Content</h2>' +
