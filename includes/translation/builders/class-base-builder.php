@@ -9,8 +9,12 @@ use TranslateSense\Includes\Translation\Custom_Fields\Custom_Field_Translator;
 use TranslateSense\Includes\Translation\InternalLinks\Internal_Link_Translator;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Synchronizer;
+use TranslateSense\Includes\Translation\Media\Media_Translator;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 use TranslateSense\Includes\Admin\Editor_Integration;
+use TranslateSense\Includes\Helper\Utils;
+use TranslateSense\Includes\Integrations\WC\WC_Integration;
+use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
 use WP_Post;
 use WP_Error;
@@ -94,53 +98,6 @@ abstract class Base_Builder {
 		return ! empty( $res['translated'] ) ? (string) $res['translated'] : $excerpt;
 	}
 
-	public function translate_post_name( string $post_name, string $source_lang, string $target_lang, array $custom_opts = array() ): string {
-		if ( empty( trim( $post_name ) ) ) {
-			return $post_name;
-		}
-
-		$res = Translate::translate_string(
-			$post_name,
-			$source_lang,
-			$target_lang,
-			'post_name',
-			$custom_opts
-		);
-
-		return ! empty( $res['translated'] ) ? (string) $res['translated'] : $post_name;
-	}
-
-	/**
-	 * Generate or translate slug for target post.
-	 *
-	 * @param WP_Post $source_post
-	 * @param string  $translated_title
-	 * @param string  $target_lang
-	 * @return string
-	 */
-	public function generate_translated_slug( WP_Post $source_post, string $translated_title, string $target_lang ): string {
-		$base_slug = sanitize_title( $translated_title );
-		if ( empty( $base_slug ) ) {
-			$base_slug = $source_post->post_name . '-' . $target_lang;
-		}
-
-		$target_parent_id = 0;
-		if ( ! empty( $source_post->post_parent ) ) {
-			$target_parent_id = Polylang_Bridge::get_existing_translation_post_id( (int) $source_post->post_parent, $target_lang );
-			if ( $target_parent_id === (int) $source_post->post_parent ) {
-				$target_parent_id = 0;
-			}
-		}
-
-		return wp_unique_post_slug(
-			$base_slug,
-			0,
-			$source_post->post_status,
-			$source_post->post_type,
-			$target_parent_id
-		);
-	}
-
 	/**
 	 * Execute full post translation workflow for this builder.
 	 *
@@ -161,15 +118,17 @@ abstract class Base_Builder {
 		$is_existing      = $existing_post_id > 0 && $existing_post_id !== $post_id;
 		Polylang_Synchronizer::reset_media_tracking();
 
-		$settings      = get_option( 'translatesense_settings', array() );
-		$raw_slug_mode = ! empty( $settings['slug_translation'] ) ? sanitize_key( (string) $settings['slug_translation'] ) : 'slug_translate';
-		$slug_mode     = in_array( $raw_slug_mode, array( 'keep_orignal', 'title_based', 'slug_translate' ), true ) ? $raw_slug_mode : 'slug_translate';
-
+		$settings         = get_option( 'translatesense_settings', array() );
 		$raw_post_status  = ! empty( $settings['post_status'] ) ? sanitize_key( (string) $settings['post_status'] ) : 'draft';
 		$bulk_post_status = in_array( $raw_post_status, array( 'publish', 'draft' ), true ) ? $raw_post_status : 'draft';
 
 		if ( function_exists( 'pll_get_post_language' ) && empty( pll_get_post_language( $post_id, 'slug' ) ) ) {
 			return new WP_Error( 'no_language', __( 'The source post does not have a language assigned in Polylang.', 'translatesense' ), array( 'status' => 400 ) );
+		}
+
+		// Initialize WooCommerce Integration.
+		if ( 'product' === $source_post->post_type ) {
+			WC_Integration::translate_wc();
 		}
 
 		$source_lang = Polylang_Bridge::get_post_language( $post_id );
@@ -196,13 +155,6 @@ abstract class Base_Builder {
 		$translated_title   = $this->translate_title( $source_post->post_title, $source_lang, $target_lang, $custom_opts );
 		$translated_excerpt = $this->translate_excerpt( $source_post->post_excerpt, $source_lang, $target_lang, $custom_opts );
 
-		// Never translate or change the slug of an existing target translation.
-		$translated_post_name = $is_existing
-			? $source_post->post_name
-			: ( 'slug_translate' !== $slug_mode
-				? $source_post->post_name
-				: $this->translate_post_name( $source_post->post_name, $source_lang, $target_lang, $custom_opts ) );
-
 		// Allow style CSS properities temporarily
 		add_filter( 'safe_style_css', array( $this, 'allowed_css_properties' ), 10, 1 );
 
@@ -224,38 +176,46 @@ abstract class Base_Builder {
 		$wp_post_content    = is_string( $translated_batch['post_content'] ?? null ) ? $translated_batch['post_content'] : $wp_post_content;
 		$translated_excerpt = is_string( $translated_batch['post_excerpt'] ?? null ) ? $translated_batch['post_excerpt'] : $translated_excerpt;
 
-		// Existing translations are updated in place. Slug and status settings
-		// are creation-only and must not overwrite editorial choices on a target.
-		$create_args = array(
-			'post_excerpt' => $translated_excerpt,
-		);
-
-		if ( ! $is_existing ) {
-			$create_args['post_status'] = $bulk_post_status;
-
-			if ( 'keep_orignal' === $slug_mode ) {
-				$create_args['post_name'] = sanitize_title( (string) $source_post->post_name );
-			} elseif ( 'title_based' === $slug_mode ) {
-				$slug_candidate           = sanitize_title( (string) $translated_title );
-				$create_args['post_name'] = ! empty( $slug_candidate ) ? $slug_candidate : sanitize_title( (string) $source_post->post_name );
-			} else {
-				$slug_candidate = ! empty( $translated_post_name ) ? sanitize_title( (string) $translated_post_name ) : '';
-				if ( ! empty( $slug_candidate ) ) {
-					$create_args['post_name'] = $slug_candidate;
-				}
-			}
-		} elseif ( ! empty( $translated_post_name ) && $translated_post_name !== $source_post->post_name ) {
-			$create_args['post_name'] = sanitize_title( $translated_post_name );
-		}
-
-		$include_taxonomies    = ! array_key_exists( 'include_taxonomies', $options ) || ! empty( $options['include_taxonomies'] );
-		$translated_taxonomies = array();
-
 		$taxonomy_options = array(
 			'user_id'             => ( array_key_exists( 'user_id', $options ) && null !== $options['user_id'] ) ? (int) $options['user_id'] : null,
 			'enforce_permissions' => array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true,
 			'skip_unauthorized'   => ! empty( $options['skip_unauthorized'] ),
 		);
+
+		// Existing translations are updated in place. Slug and status settings
+		// are creation-only and must not overwrite editorial choices on a target.
+		$create_args = array(
+			'post_excerpt'           => $translated_excerpt,
+			'provider'               => $provider,
+			'in_memory_translations' => $in_memory_translations,
+			'user_id'                => $taxonomy_options['user_id'],
+			'enforce_permissions'    => $taxonomy_options['enforce_permissions'],
+		);
+
+		if ( 'product' === $source_post->post_type ) {
+			Product_Attribute_Translator::set_current_context(
+				array(
+					'provider'               => $provider,
+					'in_memory_translations' => $in_memory_translations,
+					'source_lang'            => $source_lang,
+					'target_lang'            => $target_lang,
+					'user_id'                => $taxonomy_options['user_id'],
+					'enforce_permissions'    => $taxonomy_options['enforce_permissions'],
+				)
+			);
+		}
+
+		if ( ! $is_existing ) {
+			$create_args['post_status'] = $bulk_post_status;
+			$tranlsated_slug            = sanitize_title( Translate::translate_slug( $source_post->post_name, $translated_title, $source_lang, $target_lang, $custom_opts ) );
+
+			if ( ! empty( $tranlsated_slug ) ) {
+				$create_args['post_name'] = $tranlsated_slug;
+			}
+		}
+
+		$include_taxonomies    = ! array_key_exists( 'include_taxonomies', $options ) || ! empty( $options['include_taxonomies'] );
+		$translated_taxonomies = array();
 
 		// 3. Resolve taxonomy translations before creating/updating the target post (Bulk workflow only).
 		// This ensures Polylang can link existing translated terms during its copy pass.
@@ -276,6 +236,33 @@ abstract class Base_Builder {
 			$create_args['skip_taxonomies_sync'] = true;
 		}
 
+		// 3b. Resolve featured-image and product gallery media translation before creating/updating the target post.
+		$include_media         = Polylang_Bridge::is_media_translation_enabled();
+		$featured_media_result = array();
+		$gallery_media_result  = array();
+
+		if ( $include_media ) {
+			$featured_media_result = Media_Translator::prepare_featured_image_for_post(
+				$post_id,
+				$target_lang,
+				(string) $source_lang,
+				(string) $provider,
+				$in_memory_translations,
+				$taxonomy_options
+			);
+
+			if ( 'product' === $source_post->post_type ) {
+				$gallery_media_result = Media_Translator::prepare_product_gallery_for_post(
+					$post_id,
+					$target_lang,
+					(string) $source_lang,
+					(string) $provider,
+					$in_memory_translations,
+					$taxonomy_options
+				);
+			}
+		}
+
 		// 4. Create or update Polylang translated post.
 		$created_post_id = Polylang_Bridge::create_or_update_translated_post(
 			$post_id,
@@ -293,10 +280,35 @@ abstract class Base_Builder {
 		$this->after_save_post( $created_post_id );
 		Polylang_Synchronizer::attach_translated_media_to_post( $created_post_id );
 
-		$tax_warnings = Taxonomy_Translator::get_last_warnings();
-		if ( ! empty( $tax_warnings ) ) {
+		$sync_warnings_to_merge = Taxonomy_Translator::get_last_warnings();
+		if ( ! empty( $featured_media_result['warning'] ) ) {
+			$sync_warnings_to_merge[] = (string) $featured_media_result['warning'];
+		}
+		if ( ! empty( $gallery_media_result['warnings'] ) && is_array( $gallery_media_result['warnings'] ) ) {
+			foreach ( $gallery_media_result['warnings'] as $gallery_warn ) {
+				$sync_warnings_to_merge[] = (string) $gallery_warn;
+			}
+		}
+		if ( ! empty( $sync_warnings_to_merge ) ) {
 			$existing_warnings = (array) get_post_meta( $created_post_id, '_translatesense_sync_warnings', true );
-			update_post_meta( $created_post_id, '_translatesense_sync_warnings', array_values( array_unique( array_merge( $existing_warnings, $tax_warnings ) ) ) );
+			update_post_meta( $created_post_id, '_translatesense_sync_warnings', array_values( array_unique( array_merge( $existing_warnings, $sync_warnings_to_merge ) ) ) );
+		}
+
+		// Assign resolved translated featured image and product gallery (or clear stale/source safely).
+		if ( $include_media ) {
+			Media_Translator::assign_featured_image_to_post(
+				$created_post_id,
+				$featured_media_result,
+				$is_existing
+			);
+
+			if ( 'product' === get_post_type( $created_post_id ) ) {
+				Media_Translator::assign_product_gallery_to_post(
+					$created_post_id,
+					$gallery_media_result,
+					$is_existing
+				);
+			}
 		}
 
 		// Replace copied source-language assignments with resolved target-language terms.

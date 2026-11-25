@@ -15,6 +15,8 @@ namespace TranslateSense\Includes\AI;
 use WP_Error;
 use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
+use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Translation\Translate;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -505,7 +507,7 @@ class Ai_Connector_Bridge {
 					return new WP_Error( 'missing_api_key', __( 'OpenAI API key is missing. Please configure it in TranslateSense Settings.', 'translatesense' ), array( 'status' => 401 ) );
 				}
 
-				$url  = 'https://api.openai.com/v1/chat/completions'; // phpcs:ignore fallback if connector not found and for older wp version compatibility.
+				$url  = 'https://api.openai.com/v1/chat/completions'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 				$body = array(
 					'model'           => $model,
 					'messages'        => array(
@@ -532,7 +534,7 @@ class Ai_Connector_Bridge {
 					$url,
 					array(
 						'headers'     => $headers,
-						'body'        => wp_json_encode( $body ),
+						'body'        => wp_json_encode( $body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 						'timeout'     => $timeout,
 						'data_format' => 'body',
 					)
@@ -570,7 +572,7 @@ class Ai_Connector_Bridge {
 					return new WP_Error( 'missing_api_key', __( 'Google Gemini API key is missing. Please configure it in TranslateSense Settings.', 'translatesense' ), array( 'status' => 401 ) );
 				}
 
-				$url  = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent'; // phpcs:ignore fallback if connector not found and for older wp version compatibility.
+				$url  = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 				$body = array(
 					'contents'         => array(
 						array(
@@ -593,7 +595,7 @@ class Ai_Connector_Bridge {
 							'Content-Type'   => 'application/json',
 							'x-goog-api-key' => $api_key,
 						),
-						'body'        => wp_json_encode( $body ),
+						'body'        => wp_json_encode( $body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 						'timeout'     => $timeout,
 						'data_format' => 'body',
 					)
@@ -644,7 +646,7 @@ class Ai_Connector_Bridge {
 	 * @param array  $keys
 	 * @return array<string|int, string>|null
 	 */
-	private function parse_batch_json_response( string $raw_json, array $keys ): ?array {
+	private function parse_batch_json_response( string $raw_json, array $keys ) {
 		$clean_json = trim( $raw_json );
 
 		// Strip markdown code fences (```json ... ```)
@@ -662,9 +664,21 @@ class Ai_Connector_Bridge {
 		$translations_seq = array_values( $decoded['translations'] );
 		$mapped           = array();
 
+		if ( count( $keys ) !== count( $translations_seq ) ) {
+			return new WP_Error(
+				'wp_ai_json_parse_error',
+				sprintf( /* translators: %1$d: Number of translations, %2$d: Number of keys, %3$s: Response */ __( 'Number of translations (%1$d) does not match the number of input keys (%2$d). Returned response: %3$s', 'translatesense' ), count( $translations_seq ), count( $keys ), $clean_json ),
+				array( 'status' => 422 )
+			);
+		}
+
 		foreach ( $keys as $i => $orig_key ) {
 			if ( isset( $translations_seq[ $i ] ) ) {
-				$mapped[ $orig_key ] = (string) $translations_seq[ $i ];
+				$val = (string) $translations_seq[ $i ];
+				if ( false !== strpos( $val, '\u' ) && class_exists( Dom_Filter::class ) ) {
+					$val = Dom_Filter::decode_unicode_escapes( $val );
+				}
+				$mapped[ $orig_key ] = $val;
 			}
 		}
 
@@ -683,10 +697,10 @@ class Ai_Connector_Bridge {
 	private function build_default_prompt( array $strings, string $source_lang, string $target_lang, array $settings = array() ): string {
 		$template = ! empty( $settings['custom_prompt'] )
 			? (string) $settings['custom_prompt']
-			: "You are a professional HTML-safe translator. Translate the JSON array of strings from {source_lang} to {target_lang}.\nPreserve all HTML tags, placeholders, and formatting.\nOutput ONLY a valid JSON object matching this schema: {\"translations\": [\"...\", \"...\"]}\nLength of translations array MUST EXACTLY MATCH input array length ({count} items):\n\n{json_strings}";
+			: Translate::DEFAULT_PROMPT;
 
 		$values_seq = array_values( $strings );
-		$json_str   = wp_json_encode( array( 'strings' => $values_seq ) );
+		$json_str   = wp_json_encode( array( 'strings' => $values_seq ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		$replacements = array(
 			'{source_lang}'  => $source_lang,
@@ -1090,7 +1104,7 @@ class Ai_Connector_Bridge {
 				}
 
 				$response = wp_remote_get(
-					'https://api.openai.com/v1/models', // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration only for fetch ai models
+					'https://api.openai.com/v1/models', // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 					array(
 						'headers' => array(
 							'Authorization' => 'Bearer ' . $api_key,
@@ -1145,7 +1159,7 @@ class Ai_Connector_Bridge {
 					return array();
 				}
 
-				$url      = 'https://generativelanguage.googleapis.com/v1beta/models'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration only for fetch ai models
+				$url      = 'https://generativelanguage.googleapis.com/v1beta/models'; // phpcs:ignore PluginCheck.CodeAnalysis.AIProvider.DirectIntegration
 				$response = wp_remote_get(
 					$url,
 					array(

@@ -262,7 +262,7 @@ class Elementor_Builder extends Base_Builder {
 			return;
 		}
 
-		$elementor_json = wp_json_encode( self::$translated_content );
+		$elementor_json = wp_json_encode( self::$translated_content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 		if ( ! is_string( $elementor_json ) ) {
 			return;
 		}
@@ -281,7 +281,7 @@ class Elementor_Builder extends Base_Builder {
 
 			if ( is_array( $translated_batch ) && isset( $translated_batch['elementor_data'] ) && ! empty( $translated_batch['elementor_data'] ) ) {
 				$candidate      = $translated_batch['elementor_data'];
-				$candidate_json = is_array( $candidate ) ? wp_json_encode( $candidate ) : $candidate;
+				$candidate_json = is_array( $candidate ) ? wp_json_encode( $candidate, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) : $candidate;
 
 				if ( is_string( $candidate_json ) ) {
 					$decoded_candidate = json_decode( $candidate_json, true );

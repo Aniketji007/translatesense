@@ -33,7 +33,7 @@ export function getPostProgress(item) {
   if (total > 0) {
     const calculated = Math.round((completed / total) * 100);
     // While in progress, clamp below 100 until fully completed
-    return Math.max(status === 'running' || status === 'processing' ? 5 : 0, Math.min(99, calculated));
+    return Math.max(status === 'running' || status === 'processing' ? 5 : 0, Math.min(100, calculated));
   }
 
   return 0;

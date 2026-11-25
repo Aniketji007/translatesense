@@ -7,9 +7,9 @@
  */
 
 :root {
-  --ts-primary: #2563eb;
+  --ts-primary: #3858e9;
   --ts-primary-hover: #1d4ed8;
-  --ts-primary-active: #1e40af;
+  --ts-primary-active: #183ad6;
   --ts-surface: #ffffff;
   --ts-bg-subtle: #f8fafc;
   --ts-border: #e2e8f0;
@@ -50,6 +50,8 @@
   box-sizing: border-box;
   min-height: 30px !important;
   display: inline-flex !important;
+  border-width: 1px;
+  border-style: solid;
 }
 
 .ts-btn .dashicons{
@@ -134,7 +136,7 @@
 }
 
 .ts-provider-row.selected {
-  border: 1.5px solid #2563eb !important;
+  border: 1.5px solid var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) !important;
   background: #ffffff !important;
   box-shadow: none !important;
 }
@@ -324,7 +326,7 @@
 }
 
 .ts-provider-row.selected .ts-provider-custom-radio {
-  border-color: #2563eb;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   background: #ffffff;
 }
 
@@ -333,7 +335,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2563eb;
+  background: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   display: block;
 }
 
@@ -407,7 +409,7 @@
 }
 
 .ts-doc-link {
-  color: #2563eb !important;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) !important;
   font-weight: 600;
   text-decoration: underline !important;
   text-underline-offset: 2.5px;
@@ -650,7 +652,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   font-size: 16px;
   font-weight: 700;
   flex-shrink: 0;
@@ -738,7 +740,7 @@
   padding: 9px 14px;
   background: var(--ts-surface, #ffffff);
   border: 1px solid var(--ts-border, #e2e8f0);
-  border-left: 4px solid var(--ts-primary, #2563eb);
+  border-left: 4px solid var(--ts-primary, var(--wp-admin-theme-color,var(--ts-primary,#3858e9)));
   box-shadow: var(--ts-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04));
   box-sizing: border-box;
   flex-shrink: 0;
@@ -763,7 +765,7 @@
 }
 
 .ts-review-notice-link {
-  color: var(--ts-primary, #2563eb);
+  color: var(--ts-primary, var(--wp-admin-theme-color,var(--ts-primary,#3858e9)));
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -776,7 +778,7 @@
 }
 
 .ts-review-notice-link:focus-visible {
-  outline: 2px solid var(--ts-primary, #2563eb);
+  outline: 2px solid var(--ts-primary, var(--wp-admin-theme-color,var(--ts-primary,#3858e9)));
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -815,7 +817,7 @@
 }
 
 .ts-review-notice-action:focus-visible {
-  outline: 2px solid var(--ts-primary, #2563eb);
+  outline: 2px solid var(--ts-primary, var(--wp-admin-theme-color,var(--ts-primary,#3858e9)));
   outline-offset: 2px;
   border-radius: 3px;
 }

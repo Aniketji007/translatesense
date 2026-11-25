@@ -121,7 +121,7 @@ class Editor_Integration {
 
 		// 1. Check Elementor
 		$elementor_edit_mode = get_post_meta( $post_id, '_elementor_edit_mode', true );
-		if ( 'builder' === $elementor_edit_mode ) {
+		if ( 'builder' === $elementor_edit_mode && defined( 'ELEMENTOR_VERSION' ) ) {
 			return 'elementor';
 		}
 
@@ -203,7 +203,7 @@ class Editor_Integration {
 
 		if ( metadata_exists( 'post', $post_id, '_translatesense_translation_update_pending' ) ) {
 			$pending = get_post_meta( $post_id, '_translatesense_translation_update_pending', true );
-			if ( $post_id === (int) $pending ) {
+			if ( isset( $pending ) && ! empty( $pending ) ) {
 				delete_post_meta( $post_id, '_translatesense_translation_update_pending' );
 			}
 		}
@@ -293,9 +293,6 @@ class Editor_Integration {
 			return;
 		}
 
-		// Handle abandoned pending translation during editor initialization.
-		self::clean_pending_translation_meta( $post_id );
-
 		if ( self::is_post_already_translated( $post_id ) ) {
 			return;
 		}
@@ -314,6 +311,9 @@ class Editor_Integration {
 			self::enqueue_editor_mismatch_modal_assets( (int) $post_id, (int) $source_post_id, $editor_type, $localize_data );
 			return;
 		}
+
+		// Handle abandoned pending translation during editor initialization.
+		self::clean_pending_translation_meta( $post_id );
 
 		$settings         = get_option( 'translatesense_settings', array() );
 		$enable_providers = is_array( $settings ) && isset( $settings['enabled_providers'] ) && is_array( $settings['enabled_providers'] ) ? $settings['enabled_providers'] : array();
@@ -497,8 +497,6 @@ class Editor_Integration {
 
 		$post_id = (int) $post->ID;
 
-		self::clean_pending_translation_meta( $post_id );
-
 		self::maybe_enqueue_block_editor_assets( $post_id );
 
 		if ( ! self::is_translate_current_post() ) {
@@ -536,6 +534,8 @@ class Editor_Integration {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
+
+		self::clean_pending_translation_meta( $post_id );
 
 		self::enqueue_block_state_editor_assets( $post_id );
 	}
@@ -585,8 +585,6 @@ class Editor_Integration {
 		$current_screen = get_current_screen();
 		$post_id        = (int) $post->ID;
 
-		self::clean_pending_translation_meta( $post_id );
-
 		if ( method_exists( $current_screen, 'is_block_editor' ) && ! $current_screen->is_block_editor() ) {
 			self::enqueue_page_editor_assets( $post_id, 'classic' );
 		}
@@ -597,9 +595,6 @@ class Editor_Integration {
 	 */
 	public static function enqueue_elementor_editor_assets() {
 		$post_id = (int) get_the_ID();
-		if ( $post_id > 0 ) {
-			self::clean_pending_translation_meta( $post_id );
-		}
 
 		if ( ! $post_id || self::is_post_already_translated( $post_id ) ) {
 			return;

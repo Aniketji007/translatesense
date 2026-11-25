@@ -128,8 +128,8 @@
 }
 
 .ts-review-search-wrap:focus-within {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px #2563eb;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
+  box-shadow: 0 0 0 1px var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-search-icon {
@@ -239,7 +239,7 @@
   height: 22px;
   border-radius: 4px;
   background: #dbeafe;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   font-size: 12px;
   font-weight: 800;
   display: flex;
@@ -357,7 +357,7 @@
 
 .ts-tag-symbol {
   font-weight: 800;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 /* Translated text cell wrapper */
@@ -382,8 +382,8 @@
 }
 
 .ts-trans-box:focus-within {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px #2563eb;
+  border-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
+  box-shadow: 0 0 0 1px var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-trans-box.ts-trans-failed {
@@ -440,7 +440,7 @@
 .ts-trans-reset-btn:hover {
   background: #eff6ff;
   border-color: #93c5fd;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   transform: rotate(-90deg);
 }
 
@@ -506,7 +506,7 @@
   width: 15px;
   height: 15px;
   border: 2px solid #bfdbfe;
-  border-top-color: #2563eb;
+  border-top-color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
   border-radius: 50%;
   animation: tsSpin 0.75s linear infinite;
 }
@@ -675,7 +675,7 @@
 .ts-progress-percent-badge {
   font-size: 13px;
   font-weight: 800;
-  color: #2563eb;
+  color: var(--wp-admin-theme-color,var(--ts-primary,#3858e9));
 }
 
 .ts-progress-track-wrap {
@@ -690,7 +690,7 @@
 
 .ts-progress-track-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4f46e5 0%, #2563eb 50%, #38bdf8 100%);
+  background: linear-gradient(90deg, #4f46e5 0%, var(--wp-admin-theme-color,var(--ts-primary,#3858e9)) 50%, #38bdf8 100%);
   border-radius: 4px;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;

@@ -90,17 +90,7 @@ export function HomeGuidePanel({
             className="ts-btn ts-btn-secondary"
             onClick={() => onNavigateTab('gutenberg')}
           >
-            View Gutenberg Blocks
-          </button>
-        )}
-
-        {activeBuilders.elementor && (
-          <button
-            type="button"
-            className="ts-btn ts-btn-secondary"
-            onClick={() => onNavigateTab('elementor')}
-          >
-            View Elementor Widgets
+            Gutenberg Blocks Config
           </button>
         )}
 
