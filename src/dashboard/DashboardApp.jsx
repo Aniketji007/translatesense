@@ -155,7 +155,7 @@ export function DashboardApp() {
   const handleGenerateConfigSandbox = async (builder = activeTab, widgetSlug = '') => {
     setIsCreatingSandbox(true);
     try {
-      const res = await apiRequest(ENDPOINTS.DASHBOARD.GENERATE_SANDBOX, {
+      const res = await apiRequest(ENDPOINTS.OPEN_MAPPING_SANDBOX, {
         method: 'POST',
         data: { builder, widget_slug: widgetSlug },
       });

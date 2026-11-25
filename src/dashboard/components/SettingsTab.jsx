@@ -86,7 +86,7 @@ export function SettingsTab({
   const insertTag = (tag) => {
     const textarea = document.getElementById('ts-custom-prompt-editor');
     const currentVal =
-      settings.custom_prompt !== undefined && settings.custom_prompt !== ''
+      settings.custom_prompt !== undefined
         ? settings.custom_prompt
         : settings.default_prompt || '';
 
@@ -108,7 +108,7 @@ export function SettingsTab({
 
   const copyPromptToClipboard = () => {
     const val =
-      settings.custom_prompt !== undefined && settings.custom_prompt !== ''
+      settings.custom_prompt !== undefined
         ? settings.custom_prompt
         : settings.default_prompt || '';
 
@@ -128,7 +128,7 @@ export function SettingsTab({
   };
 
   const currentPromptVal =
-    settings.custom_prompt !== undefined && settings.custom_prompt !== ''
+    settings.custom_prompt !== undefined
       ? settings.custom_prompt
       : settings.default_prompt || '';
 
@@ -209,6 +209,18 @@ export function SettingsTab({
   const curSlugMode = ['keep_orignal', 'title_based', 'slug_translate'].includes(settings.slug_translation)
     ? settings.slug_translation
     : 'slug_translate';
+
+  const tokenTitle = token => {
+    const tokens = {
+      '{source_lang}': 'The language code of the original text (e.g. English: en).',
+      '{target_lang}': 'The language code of the target language (e.g. Hindi: hi).',
+      '{count}': 'The total number of text items to translate.',
+      '{json_strings}': 'The text content to translate, provided in JSON format.',
+      '[TS_HYPEN_PROTECTED]': '(Optional) Replace this token with a hyphen (-) in the translated content. This prevents hyphens from being removed or changed by the AI, ensuring proper formatting in your website content. Use it for any text that requires hyphens in the final output.',
+    };
+
+    return tokens[token] || `Insert ${token} into prompt template`;
+  };
 
   return (
     <div className="ts-settings-panel">
@@ -597,7 +609,64 @@ export function SettingsTab({
         </div>
       </div>
 
-      {/* 3. Create Post Settings Card */}
+      {/* 3. Custom AI Prompt Engineering*/}
+      <div className="ts-settings-card">
+        <div className="ts-settings-card-header">
+          <div className="ts-settings-card-title-group">
+            <h3>AI Prompt</h3>
+            <p>Customize system instructions, tone, and HTML formatting constraints delivered to OpenAI and Gemini.</p>
+          </div>
+        </div>
+        <div className="ts-prompt-studio">
+          <div className="ts-chips-container">
+            <span className="ts-chips-title">Click to insert token:</span>
+            {['{source_lang}', '{target_lang}', '{count}', '{json_strings}', '[TS_HYPEN_PROTECTED]'].map((token) => (
+              <button
+                key={token}
+                type="button"
+                className="ts-chip-btn"
+                title={tokenTitle(token)}
+                onClick={() => insertTag(token)}
+              >
+                {`+ ${token}`}
+              </button>
+            ))}
+          </div>
+          <div className="ts-prompt-editor-wrap">
+            <textarea
+              id="ts-custom-prompt-editor"
+              className="ts-prompt-textarea"
+              value={currentPromptVal}
+              placeholder="Enter custom prompt instructions..."
+              onChange={(e) => setSettings({ ...settings, custom_prompt: e.target.value })}
+              spellCheck="false"
+            />
+          </div>
+          <div className="ts-prompt-footer">
+            <span>
+              {`${currentPromptVal.length} characters • ${currentPromptVal.split('\n').length} lines`}
+            </span>
+            <div className="ts-prompt-actions">
+              <button
+                type="button"
+                className="ts-btn ts-btn-secondary ts-btn-md"
+                onClick={copyPromptToClipboard}
+              >
+                Copy Prompt
+              </button>
+              <button
+                type="button"
+                className="ts-btn ts-btn-primary ts-btn-sm"
+                onClick={() => setSettings({ ...settings, custom_prompt: settings?.default_prompt })}
+              >
+                Reset to Default
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Create Post Settings Card */}
       <div className="ts-settings-card">
         <div className="ts-settings-card-header">
           <div className="ts-settings-card-title-group">
@@ -655,63 +724,6 @@ export function SettingsTab({
               <option value="title_based">{ __( 'Generate from Translated Title', 'translatesense' ) }</option>
               <option value="keep_orignal">{ __( 'Keep Original Slug', 'translatesense' ) }</option>
             </select>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Custom AI Prompt Engineering Studio Card */}
-      <div className="ts-settings-card">
-        <div className="ts-settings-card-header">
-          <div className="ts-settings-card-title-group">
-            <h3>{ __( 'AI Prompt Engineering Studio', 'translatesense' ) }</h3>
-            <p>{ __( 'Customize system instructions, tone, and HTML formatting constraints delivered to OpenAI and Gemini.', 'translatesense' ) }</p>
-          </div>
-        </div>
-        <div className="ts-prompt-studio">
-          <div className="ts-chips-container">
-            <span className="ts-chips-title">{ __( 'Click to insert token:', 'translatesense' ) }</span>
-            {['{source_lang}', '{target_lang}', '{count}', '{json_strings}'].map((token) => (
-              <button
-                key={token}
-                type="button"
-                className="ts-chip-btn"
-                title={sprintf( /* translators: %s: Token. */ __( 'Insert %s into prompt template', 'translatesense' ), token )}
-                onClick={() => insertTag(token)}
-              >
-                {`+ ${token}`}
-              </button>
-            ))}
-          </div>
-          <div className="ts-prompt-editor-wrap">
-            <textarea
-              id="ts-custom-prompt-editor"
-              className="ts-prompt-textarea"
-              value={currentPromptVal}
-              placeholder={ __( 'Enter custom prompt instructions...', 'translatesense' ) }
-              onChange={(e) => setSettings({ ...settings, custom_prompt: e.target.value })}
-              spellCheck="false"
-            />
-          </div>
-          <div className="ts-prompt-footer">
-            <span>
-              {sprintf( /* translators: %1$s: Number of items, %2$s: Dynamic value. */ __( '%1$s characters • %2$s lines', 'translatesense' ), currentPromptVal.length, currentPromptVal.split('\n').length )}
-            </span>
-            <div className="ts-prompt-actions">
-              <button
-                type="button"
-                className="ts-btn ts-btn-secondary ts-btn-md"
-                onClick={copyPromptToClipboard}
-              >
-                { __( 'Copy Prompt', 'translatesense' ) }
-              </button>
-              <button
-                type="button"
-                className="ts-btn ts-btn-primary ts-btn-sm"
-                onClick={() => setSettings({ ...settings, custom_prompt: '' })}
-              >
-                { __( 'Reset to Default', 'translatesense' ) }
-              </button>
-            </div>
           </div>
         </div>
       </div>

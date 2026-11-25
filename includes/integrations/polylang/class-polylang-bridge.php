@@ -45,6 +45,31 @@ class Polylang_Bridge {
 	}
 
 	/**
+	 * Check if Polylang Media translation is enabled.
+	 *
+	 * Supports both legacy array options and Polylang 3.7+ ArrayAccess Options objects.
+	 *
+	 * @return bool
+	 */
+	public static function is_media_translation_enabled(): bool {
+		if ( ! self::is_polylang_active() || ! function_exists( 'PLL' ) ) {
+			return false;
+		}
+
+		$polylang = PLL();
+		if ( ! is_object( $polylang ) || ! isset( $polylang->options ) || empty( $polylang->model->post ) ) {
+			return false;
+		}
+
+		$options = $polylang->options;
+		if ( ( ! is_array( $options ) && ! ( $options instanceof \ArrayAccess ) ) || empty( $options['media_support'] ) ) {
+			return false;
+		}
+
+		return ! function_exists( 'pll_is_translated_post_type' ) || (bool) pll_is_translated_post_type( 'attachment' );
+	}
+
+	/**
 	 * Check if a post type is translated / supported by Polylang.
 	 *
 	 * @param string $post_type
@@ -55,12 +80,20 @@ class Polylang_Bridge {
 			return false;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification
+		$current_post_status = isset( $_GET['post_status'] ) ? sanitize_key( wp_unslash( $_GET['post_status'] ) ) : '';
+
+		if ( 'trash' === $current_post_status ) {
+			return false;
+		}
+
 		if ( self::is_polylang_active() && function_exists( 'pll_is_translated_post_type' ) ) {
 			return (bool) pll_is_translated_post_type( $post_type );
 		}
 
 		// Fallback for public post types when Polylang isn't fully initialized
 		$public_types = get_post_types( array( 'public' => true ), 'names' );
+
 		return in_array( $post_type, $public_types, true );
 	}
 
@@ -159,6 +192,23 @@ class Polylang_Bridge {
 			return pll_save_post_translations( $translations_array );
 		}
 		return true;
+	}
+
+	/**
+	 * Clear Polylang static page cache.
+	 */
+	public static function clear_static_page_cache() {
+		if ( function_exists( 'PLL' ) ) {
+			$polylang = PLL();
+
+			if (
+			isset( $polylang->model->languages ) &&
+			is_object( $polylang->model->languages ) &&
+			is_callable( array( $polylang->model->languages, 'clean_cache' ) )
+			) {
+				$polylang->model->languages->clean_cache();
+			}
+		}
 	}
 
 	/**
@@ -284,13 +334,24 @@ class Polylang_Bridge {
 
 		// Existing translations retain their editorial status. Bulk status
 		// preferences apply only to newly inserted target posts.
+		$post_status = 'draft';
+
 		if ( $is_existing ) {
 			$post_status = $target_post->post_status;
 		} else {
-			$requested_status = isset( $args['post_status'] ) ? sanitize_key( (string) $args['post_status'] ) : '';
-			$post_status      = in_array( $requested_status, $allowed_statuses, true )
-				? $requested_status
-				: ( in_array( $source_post->post_status, $allowed_statuses, true ) ? $source_post->post_status : 'draft' );
+			$requested_status = isset( $args['post_status'] )
+				? sanitize_key( (string) $args['post_status'] )
+				: '';
+
+			if ( 'publish' === $source_post->post_status ) {
+				$post_status = in_array( $requested_status, array( 'publish', 'draft' ), true )
+					? $requested_status
+					: 'publish';
+			} else {
+				$post_status = in_array( $source_post->post_status, $allowed_statuses, true )
+					? $source_post->post_status
+					: 'draft';
+			}
 		}
 
 		$translated_excerpt = isset( $args['post_excerpt'] ) && is_string( $args['post_excerpt'] )
@@ -332,17 +393,19 @@ class Polylang_Bridge {
 		// for an existing translation, even if a caller accidentally passes it.
 		if ( ! $is_existing ) {
 			$requested_slug = isset( $args['post_name'] ) ? sanitize_title( (string) $args['post_name'] ) : '';
-			if ( '' === $requested_slug ) {
-				$requested_slug = sanitize_title( $source_post->post_name . '-' . $target_lang );
+			if ( '' === $requested_slug && isset( $args['post_title'] ) && ! empty( $args['post_title'] ) ) {
+				$requested_slug = sanitize_title( $args['post_title'] );
 			}
 
-			$post_data['post_name'] = wp_unique_post_slug(
-				$requested_slug,
-				0,
-				$post_status,
-				$source_post->post_type,
-				$target_parent_id
-			);
+			if ( ! empty( $requested_slug ) ) {
+				$post_data['post_name'] = wp_unique_post_slug(
+					$requested_slug,
+					0,
+					$post_status,
+					$source_post->post_type,
+					$target_parent_id
+				);
+			}
 
 			// New target post: honor Polylang's post-field synchronization filter.
 			$sync_fields = array_keys( $post_data );
@@ -380,10 +443,17 @@ class Polylang_Bridge {
 		 * @param bool   $is_existing    Whether post is existing.
 		 * @param array  $post_data      Prepared wp_insert_post/wp_update_post data.
 		 */
-		do_action( 'translatesense_before_save_translation', $source_post_id, $target_post_id, $target_lang, $is_existing, $post_data );
+		$target_post_id = apply_filters( 'translatesense_before_save_translated_post', $target_post_id, $source_post_id, $target_lang, $is_existing, $post_data );
 
-		if ( $is_existing ) {
+		$has_target_post = ( $is_existing || $target_post_id > 0 );
+
+		if ( $has_target_post ) {
+			if ( ! isset( $post_data['ID'] ) ) {
+				$post_data['ID'] = $target_post_id;
+			}
+
 			$saved_id = wp_update_post( wp_slash( $post_data ), true );
+
 			if ( is_wp_error( $saved_id ) ) {
 				return $saved_id;
 			}
@@ -424,7 +494,9 @@ class Polylang_Bridge {
 			$target_post_id,
 			$target_lang,
 			! $is_existing,
-			array( 'sync_taxonomies' => empty( $args['skip_taxonomies_sync'] ) )
+			array(
+				'sync_taxonomies' => empty( $args['skip_taxonomies_sync'] ),
+			)
 		);
 
 		update_post_meta(
@@ -455,8 +527,9 @@ class Polylang_Bridge {
 		 * @param string $target_lang    Target language slug.
 		 * @param bool   $is_existing    Whether an existing translation was updated.
 		 * @param array  $sync_result    Synchronization result and warnings.
+		 * @param array  $args           Additional context arguments (provider, in_memory_translations, etc.).
 		 */
-		do_action( 'translatesense_after_save_translation', $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result );
+		$target_post_id = apply_filters( 'translatesense_after_save_translated_post', $target_post_id, $source_post_id, $target_lang, $is_existing, $sync_result, $args );
 
 		return $target_post_id;
 	}

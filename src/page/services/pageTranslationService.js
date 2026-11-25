@@ -30,18 +30,3 @@ export async function markPostTranslated(payload) {
   });
 }
 
-/**
- * Fallback server translation of post
- */
-export async function translatePostServer(postId, targetLang, provider) {
-  return await apiRequest(ENDPOINTS.TRANSLATE_POST, {
-    method: 'POST',
-    data: {
-      post_id: Number(postId),
-      target_lang: targetLang,
-      provider,
-      include_taxonomies: false,
-    },
-  });
-}
-

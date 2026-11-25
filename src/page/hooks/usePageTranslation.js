@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from '@wordpress/element';
 import { getEvaluatedProviders } from '../../services/providers/providerService';
-import { extractPostStrings, markPostTranslated, translatePostServer } from '../services/pageTranslationService';
+import { extractPostStrings, markPostTranslated } from '../services/pageTranslationService';
 import { getCoreInstance } from '../../services/core/coreService';
 import { parseHideReviewNotice } from '../../services/api/reviewService';
 import { isEmailOrUrl } from '../../utils/validation';
@@ -622,6 +622,40 @@ export function usePageTranslation(config = {}) {
         : 0;
       const totalStrs = isFullyCompleted ? successfulStrings.length : 0;
 
+      const inMemoryTranslations = {};
+      if (core && typeof core.getTranslatedStrings === 'function') {
+        const translatedStrings = core.getTranslatedStrings();
+        if (translatedStrings) {
+          const items =
+            typeof translatedStrings.values === 'function'
+              ? Array.from(translatedStrings.values())
+              : Object.values(translatedStrings);
+
+          items.forEach((resultItem) => {
+            if (
+              !resultItem ||
+              !resultItem.hash ||
+              resultItem.translated === null ||
+              resultItem.translated === undefined
+            ) {
+              return;
+            }
+
+            const widgetId = String(resultItem.widget_id || '');
+            if (
+              widgetId === 'post_title' ||
+              widgetId.startsWith('custom_field')
+            ) {
+              const hashKey = String(resultItem.hash).trim();
+              const translatedVal = String(resultItem.translated);
+              if (hashKey !== '' && translatedVal.trim() !== '') {
+                inMemoryTranslations[resultItem.hash] = resultItem.translated;
+              }
+            }
+          });
+        }
+      }
+
       markPostTranslated({
         post_id: postId,
         status: isFullyCompleted ? 'success' : 'incomplete',
@@ -629,6 +663,7 @@ export function usePageTranslation(config = {}) {
         total_strings: totalStrs,
         provider: selectedProvider || 'openai',
         time_take: translationStats.timeTakenMs || 0,
+        in_memory_translation: inMemoryTranslations,
       }).catch((err) => console.warn('[TranslateSense] Could not update stats:', err));
     }
 

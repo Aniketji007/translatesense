@@ -20,7 +20,13 @@ function disableTranslateButton(button) {
   button.classList.add('disabled', 'ts-btn-disabled');
   button.classList.remove('ts-btn-loading', 'is-loading');
 
-  const appliedText = __( 'Translations Applied', 'translatesense' );
+  const appliedText =
+    typeof window !== 'undefined' &&
+      window.wp &&
+      window.wp.i18n &&
+      typeof window.wp.i18n.__ === 'function'
+      ? window.wp.i18n.__('Translation Applied', 'translatesense')
+      : 'Translation Applied';
 
   button.textContent = appliedText;
   button.title = appliedText;

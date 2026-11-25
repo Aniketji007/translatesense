@@ -50,6 +50,7 @@ export function LanguageSelection({
           <Button
             variant="primary"
             disabled={selectedLanguages.length === 0}
+            title="Select at least one target language"
             onClick={onNext}
           >
             { __( 'Next: Choose Provider →', 'translatesense' ) }

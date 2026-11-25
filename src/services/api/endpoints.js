@@ -19,6 +19,7 @@ export const ENDPOINTS = {
   BULK_RETRY: 'bulk-retry',
   BULK_ACTIVE_BATCHES: 'bulk-active-batches',
   BULK_TRANSLATE_TERM: 'bulk-translate-term',
+  BULK_TRANSLATE_MEDIA: 'bulk-translate-media',
   MARK_TRANSLATED: 'mark-translated',
   DISMISS_INITIAL_PROMPT: 'dismiss-initial-prompt',
 };

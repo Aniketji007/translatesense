@@ -21,7 +21,6 @@ export function BulkProgressModal({
   isCompleted = false,
   statusText = '',
   progressPercent = 0,
-  completedJobsCount = 0,
   totalJobsCount = 0,
   formattedTimer = '',
   humanReadableTimer = '',
@@ -248,7 +247,7 @@ export function BulkProgressModal({
               <BulkProgress
                 statusText={statusText}
                 percent={progressPercent}
-                completedPosts={completedJobsCount}
+                completedPosts={statsSummary?.completed ?? 0}
                 totalPosts={totalJobsCount}
                 timerText={formattedTimer}
                 isChromeAi={isChromeAi}

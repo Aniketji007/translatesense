@@ -27,6 +27,13 @@ export async function translateBulkTerm(payload) {
   });
 }
 
+export async function translateBulkMedia(payload) {
+  return await apiRequest(ENDPOINTS.BULK_TRANSLATE_MEDIA, {
+    method: 'POST',
+    data: payload,
+  });
+}
+
 /**
  * Update an individual bulk translation job
  * @param {number} jobId

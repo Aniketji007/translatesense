@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from '@wordpress/element';
 import { getEvaluatedProviders } from '../../services/providers/providerService';
-import { startBulkTranslation, translateBulkTerm, updateBulkJob, skipBulkPost, retryFailedBatch } from '../services/bulkService';
+import { startBulkTranslation, skipBulkPost, retryFailedBatch } from '../services/bulkService';
 import { getActiveBatches, getBatchStatus } from '../services/batchService';
-import { extractStrings, translatePost } from '../../services/core/translationService';
-import { getCoreInstance } from '../../services/core/coreService';
 import { parseHideReviewNotice } from '../../services/api/reviewService';
-import { isEmailOrUrl } from '../../utils/validation';
 import { getPostProgress, getOverallProgress, calculateBatchStats } from '../utils/bulkCalculations';
 import { useElapsedTimer } from './useElapsedTimer';
-import { __, sprintf } from '@wordpress/i18n';
+import { runBulkTranslationWorkflow } from '../workflows/bulkTranslationWorkflow';
+import CapitalizeText from '../../components/CapitalizedText';
 
 export function useBulkTranslation(initialPostIds = [], options = {}) {
   const isPreviouslyRunning = Boolean(options.isPreviouslyRunning);
@@ -16,13 +14,16 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
   const bulkConfig =
     (typeof window !== 'undefined' && window.TranslateSenseBulkData) || {};
   const itemType =
-    options.type === 'term' || options.type === 'post'
+    options.type === 'term' || options.type === 'media' || options.type === 'post'
       ? options.type
-      : (bulkConfig.type === 'term' ? 'term' : 'post');
+      : (bulkConfig.type === 'term' ? 'term' : bulkConfig.type === 'media' ? 'media' : 'post');
   const subtype =
     options.subtype !== undefined ? options.subtype : (bulkConfig.subtype || '');
   const isTaxonomy = itemType === 'term';
-  const rawSingular = bulkConfig.itemSingular || (isTaxonomy ? 'term' : 'post');
+  const isMedia = itemType === 'media';
+  const isStandaloneRuntime = isTaxonomy || isMedia;
+  const rawSingular =
+    bulkConfig.itemSingular || (isTaxonomy ? 'term' : isMedia ? 'media item' : 'post');
   const itemTitlePrefix = rawSingular.charAt(0).toUpperCase() + rawSingular.slice(1);
 
   const [currentStep, setCurrentStep] = useState(isPreviouslyRunning ? 3 : 1);
@@ -48,7 +49,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
   const [isCompleted, setIsCompleted] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [statusText, setStatusText] = useState('Initializing...');
-  const [completedJobsCount, setCompletedJobsCount] = useState(0);
   const [totalJobsCount, setTotalJobsCount] = useState(0);
 
   const [statsSummary, setStatsSummary] = useState(null);
@@ -86,10 +86,10 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
   const pollTimerRef = useRef(null);
   const isPollingRef = useRef(false);
 
-  // Runtime browser detection: taxonomy runtime sessions and Chrome AI require keeping the window open
+  // Runtime browser detection: taxonomy/media runtime sessions and Chrome AI require keeping the window open
   const isQueueChromeAi = useMemo(() => {
     if (progressSessionType === 'new_queue') {
-      return selectedProvider === 'chrome_ai' || isTaxonomy;
+      return selectedProvider === 'chrome_ai' || isStandaloneRuntime;
     }
 
     const activeBatch = currentBatch || (activeBatches && activeBatches.find((b) => b.batch_id === currentBatchId));
@@ -122,7 +122,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     }
 
     return false;
-  }, [progressSessionType, selectedProvider, isTaxonomy, currentBatch, activeBatches, currentBatchId, postResultsMap]);
+  }, [progressSessionType, selectedProvider, isStandaloneRuntime, currentBatch, activeBatches, currentBatchId, postResultsMap]);
 
 
   // Load providers and active background batches (posts only) on mount
@@ -139,25 +139,11 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       }
     });
 
-    if (!isTaxonomy) {
-      getActiveBatches()
-        .then((res) => {
-          if (!mounted) return;
-          const batches = (res && res.batches) || [];
-          setActiveBatches(batches);
-          if (batches.length > 0 && !currentBatchId) {
-            setCurrentBatchId(batches[0].batch_id);
-            setCurrentBatch(batches[0]);
-          }
-        })
-        .catch(() => { });
-    }
-
     return () => {
       mounted = false;
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
     };
-  }, [isTaxonomy]);
+  }, [isStandaloneRuntime]);
 
   useEffect(() => {
     if (!postResultsMap || Object.keys(postResultsMap).length === 0) return;
@@ -179,14 +165,13 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     if (!batchData || !Array.isArray(batchData.items)) return;
 
     const firstItem = batchData.items[0];
-    const batchIsTaxonomy =
-      firstItem && firstItem.editor_type
-        ? firstItem.editor_type === 'taxonomy'
-        : isTaxonomy;
+    const batchEditorType = firstItem && firstItem.editor_type ? firstItem.editor_type : '';
+    const batchIsTaxonomy = batchEditorType ? batchEditorType === 'taxonomy' : isTaxonomy;
+    const batchIsMedia = batchEditorType ? batchEditorType === 'media' : isMedia;
     const prefix =
-      batchIsTaxonomy === isTaxonomy
+      batchIsTaxonomy === isTaxonomy && batchIsMedia === isMedia
         ? itemTitlePrefix
-        : (batchIsTaxonomy ? __( 'Term', 'translatesense' ) : __( 'Post', 'translatesense' ));
+        : (batchIsTaxonomy ? 'Term' : batchIsMedia ? 'Media' : 'Post');
 
     setPostResultsMap((prev) => {
       const updated = replace ? {} : { ...prev };
@@ -216,7 +201,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             item.target_post_title ||
             (item.status === 'already_exists' || item.status === 'completed'
               ? item.target_post_title || item.post_title
-              : item.progress_status || 'Processing...'),
+              : CapitalizeText({ text: item.status }) + ` #${pId}` || 'Processing...'),
           editorType: item.editor_type,
           status: item.status,
           completedStrings: item.completed_strings,
@@ -245,7 +230,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       setOrderedPostIds(itemsOrder);
     }
 
-  }, [isTaxonomy, itemTitlePrefix]);
+  }, [isTaxonomy, isMedia, itemTitlePrefix]);
 
   // Server background polling logic
   const pollStatus = useCallback(
@@ -280,11 +265,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             : Math.round(data.progress_percent || 0);
 
         setProgressPercent(pct);
-        const done =
-          (data.completed_jobs || 0) +
-          (data.already_exists_jobs || 0) +
-          (data.skipped_jobs || 0);
-        setCompletedJobsCount(done);
         setTotalJobsCount(data.total_jobs || (data.items ? data.items.length : 1));
         setStatusText(data.current_status || sprintf( /* translators: %s: Progress percentage. */ __( 'Translating content in background... (%s%%)', 'translatesense' ), percentage ));
 
@@ -440,11 +420,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
               : Math.round(data.progress_percent || 0);
 
           setProgressPercent(pct);
-          const done =
-            (data.completed_jobs || 0) +
-            (data.already_exists_jobs || 0) +
-            (data.skipped_jobs || 0);
-          setCompletedJobsCount(done);
           setTotalJobsCount(data.total_jobs || (data.items ? data.items.length : 1));
           setStatusText(
             data.current_status || sprintf( /* translators: %s: Progress percentage. */ __( 'Translating content in background... (%s%%)', 'translatesense' ), percentage )
@@ -482,478 +457,70 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     }
   }, [isPreviouslyRunning, targetBatchId, openBatchMonitor]);
 
-  // Runtime Browser Execution Workflow (Chrome AI & taxonomy runtime batches)
-  const runChromeAiTranslation = useCallback(
+  // Updates a single post's target language translation state immutably
+  const updatePostTranslation = useCallback((postId, targetLang, updates) => {
+    const pId = String(postId);
+    const tLang = String(targetLang);
+
+    setPostResultsMap((prev) => {
+      const currentPost = prev[pId];
+      if (!currentPost || !currentPost.translations || !currentPost.translations[tLang]) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [pId]: {
+          ...currentPost,
+          translations: {
+            ...currentPost.translations,
+            [tLang]: {
+              ...currentPost.translations[tLang],
+              ...updates,
+            },
+          },
+        },
+      };
+    });
+  }, []);
+
+  // Bulk translation workflow helpers are kept in this file to keep the hook focused.
+  const bulkTranslationContext = {
+    itemType,
+    subtype,
+    isTaxonomy,
+    isMedia,
+    itemTitlePrefix,
+    updatePostTranslation,
+    populateMapFromBatch,
+    stopTimer,
+    setTotalJobsCount,
+    setProgressPercent,
+    setStatusText,
+    setIsTranslating,
+    setIsCompleted,
+  };
+
+  const runBulkTranslation = useCallback(
     async (jobsList, batchId, providerOverride = null) => {
-      const activeProvider = providerOverride || selectedProvider || 'chrome_ai';
-      const useBrowserAi = activeProvider === 'chrome_ai';
-      const core = useBrowserAi ? getCoreInstance() : null;
-      const totalJobs = jobsList.length || 1;
-      let completedCount = 0;
-      let failedCount = 0;
-      const extractedCache = {};
-      let hasQueueJob = false;
-
-      // Track live state of each job for accurate, continuous overall progress calculations matching pollStatus
-      const runningJobs = jobsList.map((job) => {
-        const isResolvedSkip = job.status === 'already_exists' || job.status === 'skipped';
-        if (isResolvedSkip) {
-          completedCount++;
-        }
-
-        if (!hasQueueJob && job.status !== 'already_exists') {
-          hasQueueJob = true;
-        }
-
-        return {
-          id: job.id,
-          post_id: job.post_id,
-          target_language: job.target_language,
-          status: job.status || 'pending',
-          total_strings: Number(job.total_strings) || 0,
-          completed_strings: Number(job.completed_strings) || 0,
-        };
-      });
-
-      setCompletedJobsCount(completedCount);
-      setTotalJobsCount(totalJobs);
-
-      const initialPct = Math.round(getOverallProgress(runningJobs));
-      const runtimeLabel = useBrowserAi ? 'on-device translation' : 'translation';
-      setProgressPercent(initialPct);
-      setStatusText(
-        initialPct > 0
-          ? sprintf( /* translators: %1$s: Runtime label, %2$s: Initial percentage. */ __( 'Starting %1$s... (%2$s%%)', 'translatesense' ), runtimeLabel, initialPct )
-          : sprintf( /* translators: %s: Runtime label. */ __( 'Starting %s...', 'translatesense' ), runtimeLabel )
+      await runBulkTranslationWorkflow(
+        jobsList,
+        batchId,
+        providerOverride || selectedProvider || 'chrome_ai',
+        bulkTranslationContext
       );
-
-      for (let i = 0; i < jobsList.length; i++) {
-        const job = jobsList[i];
-        const postId = String(job.post_id);
-        const targetLang = String(job.target_language);
-        const jobId = job.id;
-        const postTitle = job.post_title || `${itemTitlePrefix} #${postId}`;
-
-        if (job.status === 'already_exists' || job.status === 'skipped') {
-          continue;
-        }
-
-        // If queue post is more than 1 day old, mark status as failed and do not translate
-        const normalizedCreatedAt =
-          typeof job.created_at === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(job.created_at)
-            ? `${job.created_at.replace(' ', 'T')}Z`
-            : job.created_at;
-        const jobCreated = normalizedCreatedAt ? new Date(normalizedCreatedAt).getTime() : 0;
-        const isOneDayOld = jobCreated > 0 && (Date.now() - jobCreated) >= 86400000;
-        if (isOneDayOld) {
-          failedCount++;
-          runningJobs[i].status = 'failed';
-          try {
-            await updateBulkJob(jobId, {
-              status: 'failed',
-              progress_status: 'Failed: Job expired (more than 1 day old)',
-              error_message: __( 'Translation job expired: queued for more than 1 day.', 'translatesense' ),
-            }, itemType);
-          } catch {
-            // Non-blocking UI progress sync
-          }
-          setPostResultsMap((prev) => {
-            const updated = { ...prev };
-            if (updated[postId] && updated[postId].translations[targetLang]) {
-              const t = { ...updated[postId].translations[targetLang] };
-              t.status = 'failed';
-              t.error = __( 'Translation job expired: queued for more than 1 day.', 'translatesense' );
-              t.progressPercent = 100;
-              t.progressStatus = 'Failed: Job expired (more than 1 day old)';
-              t.targetTitle = 'Failed: Job expired (more than 1 day old)';
-              updated[postId].translations[targetLang] = t;
-            }
-            return updated;
-          });
-          continue;
-        }
-
-        // Mark running in state and recalculate overall progress
-        runningJobs[i].status = 'running';
-        const startJobPct = Math.round(getOverallProgress(runningJobs));
-        setProgressPercent(startJobPct);
-
-        setPostResultsMap((prev) => {
-          const updated = { ...prev };
-          if (updated[postId] && updated[postId].translations[targetLang]) {
-            const t = { ...updated[postId].translations[targetLang] };
-            t.status = 'running';
-            t.progressStatus = isTaxonomy && !useBrowserAi
-              ? sprintf( /* translators: %s: Post title. */ __( 'Translating %s...', 'translatesense' ), postTitle )
-              : sprintf( /* translators: %s: Post title. */ __( 'Extracting strings for %s...', 'translatesense' ), postTitle );
-            t.targetTitle = t.progressStatus;
-            t.progressPercent = getPostProgress(runningJobs[i]);
-            updated[postId].translations[targetLang] = t;
-          }
-          return updated;
-        });
-
-        const jobStartTime = performance.now();
-        let rawStrings = [];
-        let postRes = null;
-        let totalStringsCount = 0;
-        let completedStringsCount = 0;
-        let totalCharacters = 0;
-        let sentStrings = [];
-
-        try {
-          if (isTaxonomy && !useBrowserAi) {
-            setStatusText(sprintf( /* translators: %1$s: Post title, %2$s: Dynamic value, %3$s: Job start percentage. */ __( 'Translating %1$s (%2$s)... (%3$s%%)', 'translatesense' ), postTitle, targetLang.toUpperCase(), startJobPct ));
-
-            postRes = await translateBulkTerm({
-              term_id: Number(postId),
-              taxonomy: subtype,
-              target_lang: targetLang,
-              provider: activeProvider,
-            });
-
-            totalStringsCount = Number(postRes.total_strings) || 0;
-            completedStringsCount = totalStringsCount;
-            totalCharacters = Number(postRes.total_characters) || 0;
-            sentStrings = Array.isArray(postRes.sent_data) ? postRes.sent_data : [];
-          } else {
-            setStatusText(sprintf( /* translators: %1$s: Post title, %2$s: Dynamic value, %3$s: Job start percentage. */ __( 'Extracting strings for %1$s (%2$s)... (%3$s%%)', 'translatesense' ), postTitle, targetLang.toUpperCase(), startJobPct ));
-            let sourceLanguage = 'en';
-            let itemTaxonomy = isTaxonomy ? subtype : '';
-            let itemIsTaxonomy = isTaxonomy;
-
-            const extractionKey = `${postId}:${targetLang}`;
-            if (extractedCache[extractionKey]) {
-              rawStrings = extractedCache[extractionKey].strings || [];
-              sourceLanguage = extractedCache[extractionKey].sourceLanguage || 'en';
-              itemTaxonomy = extractedCache[extractionKey].taxonomy || itemTaxonomy;
-              itemIsTaxonomy = extractedCache[extractionKey].isTaxonomy;
-            } else {
-              const extRes = await extractStrings(postId, '', targetLang, {
-                type: itemType,
-                subtype,
-                includeTaxonomies: !isTaxonomy,
-              });
-              rawStrings = extRes.strings || [];
-              sourceLanguage = extRes.source_language || 'en';
-              itemIsTaxonomy = extRes.editor_type === 'taxonomy' || isTaxonomy;
-              itemTaxonomy = extRes.taxonomy || itemTaxonomy;
-              extractedCache[extractionKey] = {
-                strings: rawStrings,
-                sourceLanguage,
-                taxonomy: itemTaxonomy,
-                isTaxonomy: itemIsTaxonomy,
-              };
-            }
-
-            const translatable = rawStrings.filter(
-              (s) => s.value && s.value.trim() && !isEmailOrUrl(s.value)
-            );
-
-            if (translatable.length === 0) {
-              console.error(`No translatable text found in ${itemIsTaxonomy ? 'taxonomy term' : 'post'}.`);
-            }
-
-            if (useBrowserAi && core) {
-              const chromeProvider =
-                typeof core.getProvider === 'function' ? core.getProvider('chrome_ai') : null;
-              if (!chromeProvider) {
-                throw new Error(__( 'Built-in AI translation provider is not registered.', 'translatesense' ));
-              }
-
-              if (
-                typeof chromeProvider.isLanguageSupported === 'function' &&
-                !chromeProvider.isLanguageSupported(sourceLanguage, targetLang)
-              ) {
-                const err = new Error(
-                  sprintf(
-                    /* translators: 1: Source language code, 2: Target language code, 3: AI provider name. */
-                    __( 'Language pair (%1$s → %2$s) is not supported by %3$s.', 'translatesense' ),
-                    sourceLanguage.toUpperCase(),
-                    targetLang.toUpperCase(),
-                    chromeProvider.title || __( 'Built-in AI', 'translatesense' )
-                  )
-                );
-                err.errorObj = { reason: err.message };
-                throw err;
-              }
-
-              if (typeof chromeProvider.checkAvailability === 'function') {
-                const availability = await chromeProvider.checkAvailability(sourceLanguage, targetLang);
-                if (availability && availability.available === false) {
-                  const reasonMsg =
-                    availability.reason ||
-                    sprintf(
-                    /* translators: 1: Source language code, 2: Target language code, 3: AI provider name. */
-                    __( 'Language pair (%1$s → %2$s) is not supported by %3$s.', 'translatesense' ),
-                    sourceLanguage.toUpperCase(),
-                    targetLang.toUpperCase(),
-                    chromeProvider.title || __( 'Built-in AI', 'translatesense' )
-                  );
-                  const err = new Error(reasonMsg);
-                  err.errorObj = availability;
-                  throw err;
-                }
-              }
-            }
-
-            const totalStrings = translatable.length;
-            totalCharacters = translatable.reduce(
-              (acc, s) => acc + (s.value ? s.value.length : 0),
-              0
-            );
-            let completedStrings = 0;
-            let completedCharacters = 0;
-
-            runningJobs[i].total_strings = totalStrings;
-            runningJobs[i].completed_strings = 0;
-            runningJobs[i].total_characters = totalCharacters;
-            runningJobs[i].completed_characters = 0;
-            runningJobs[i].status = 'running';
-
-            const extractDonePct = Math.round(getOverallProgress(runningJobs));
-            setProgressPercent(extractDonePct);
-            setStatusText(
-              sprintf( /* translators: %1$s: Total strings, %2$s: Post title, %3$s: Dynamic value, %4$s: Extract done percentage. */ __( 'Translating %1$s strings on-device for %2$s (%3$s)... (%4$s%%)', 'translatesense' ), totalStrings, postTitle, targetLang.toUpperCase(), extractDonePct )
-            );
-
-            setPostResultsMap((prev) => {
-              const updated = { ...prev };
-              if (updated[postId] && updated[postId].translations[targetLang]) {
-                const t = { ...updated[postId].translations[targetLang] };
-                t.status = 'running';
-                t.totalStrings = totalStrings;
-                t.completedStrings = 0;
-                t.totalCharacters = totalCharacters;
-                t.completedCharacters = 0;
-                t.progressPercent = getPostProgress(runningJobs[i]);
-                t.progressStatus = sprintf( /* translators: %s: Total strings. */ __( '0/%s strings translated', 'translatesense' ), totalStrings );
-                t.targetTitle = sprintf( /* translators: %s: Total strings. */ __( 'Translating 0/%s strings...', 'translatesense' ), totalStrings );
-                updated[postId].translations[targetLang] = t;
-              }
-              return updated;
-            });
-
-            const inMemoryTranslations = {};
-            const itemsToTranslate = translatable.map((s) => ({
-              hash: s.hash,
-              widget_id: s.name,
-              field: s.key,
-              content: s.value,
-            }));
-
-            if (core) {
-              await core.translate(
-                'chrome_ai',
-                {
-                  items: itemsToTranslate,
-                  sourceLang: sourceLanguage,
-                  targetLang,
-                  postId,
-                },
-                (resItem) => {
-                  if (resItem && resItem.translated && resItem.hash) {
-                    inMemoryTranslations[resItem.hash] = resItem.translated;
-                  }
-
-                  completedStrings++;
-                  const orig = translatable.find((s) => s.hash === resItem?.hash);
-                  if (orig && orig.value) {
-                    completedCharacters += orig.value.length;
-                  } else if (resItem && resItem.source) {
-                    completedCharacters += resItem.source.length;
-                  }
-
-                  runningJobs[i].completed_strings = completedStrings;
-                  runningJobs[i].total_strings = totalStrings;
-                  runningJobs[i].completed_characters = completedCharacters;
-                  runningJobs[i].total_characters = totalCharacters;
-                  runningJobs[i].status = 'running';
-
-                  const postPct = getPostProgress(runningJobs[i]);
-                  const overallPct = Math.round(getOverallProgress(runningJobs));
-
-                  setProgressPercent(overallPct);
-                  setStatusText(
-                    sprintf( /* translators: %1$s: Post title, %2$s: Dynamic value, %3$s: Completed strings, %4$s: Total strings, %5$s: Overall percentage. */ __( 'Translating on-device: %1$s (%2$s) - string %3$s of %4$s (%5$s%%)', 'translatesense' ), postTitle, targetLang.toUpperCase(), completedStrings, totalStrings, overallPct )
-                  );
-
-                  setPostResultsMap((prev) => {
-                    const updated = { ...prev };
-                    if (updated[postId] && updated[postId].translations[targetLang]) {
-                      const t = { ...updated[postId].translations[targetLang] };
-                      t.status = 'running';
-                      t.completedStrings = completedStrings;
-                      t.totalStrings = totalStrings;
-                      t.completedCharacters = completedCharacters;
-                      t.totalCharacters = totalCharacters;
-                      t.progressPercent = postPct;
-                      t.progressStatus = sprintf( /* translators: %1$s: Completed strings, %2$s: Total strings, %3$s: Post percentage. */ __( 'Translating string %1$s of %2$s (%3$s%%)', 'translatesense' ), completedStrings, totalStrings, postPct );
-                      t.targetTitle = sprintf( /* translators: %1$s: Completed strings, %2$s: Total strings, %3$s: Post percentage. */ __( 'Translating string %1$s of %2$s (%3$s%%)...', 'translatesense' ), completedStrings, totalStrings, postPct );
-                      updated[postId].translations[targetLang] = t;
-                    }
-                    return updated;
-                  });
-                }
-              );
-            }
-
-            setStatusText(sprintf( /* translators: %1$s: Post title, %2$s: Dynamic value. */ __( 'Saving %1$s (%2$s) to WordPress...', 'translatesense' ), postTitle, targetLang.toUpperCase() ));
-
-            setPostResultsMap((prev) => {
-              const updated = { ...prev };
-              if (updated[postId] && updated[postId].translations[targetLang]) {
-                const t = { ...updated[postId].translations[targetLang] };
-                t.progressStatus = itemIsTaxonomy
-                  ? __( 'Saving translated term to WordPress...', 'translatesense' )
-                  : __( 'Saving translated post to WordPress...', 'translatesense' );
-                t.targetTitle = t.progressStatus;
-                updated[postId].translations[targetLang] = t;
-              }
-              return updated;
-            });
-
-            postRes = itemIsTaxonomy
-              ? await translateBulkTerm({
-                term_id: Number(postId),
-                taxonomy: itemTaxonomy,
-                target_lang: targetLang,
-                provider: 'chrome_ai',
-                in_memory_translations: inMemoryTranslations,
-              })
-              : await translatePost({
-                post_id: postId,
-                target_lang: targetLang,
-                provider: 'chrome_ai',
-                in_memory_translations: inMemoryTranslations,
-                include_taxonomies: true,
-              });
-
-            totalStringsCount = rawStrings.length;
-            completedStringsCount = rawStrings.length;
-            sentStrings = translatable.map((s) => s.value);
-          }
-
-          await updateBulkJob(jobId, {
-            status: 'completed',
-            progress_status: 'Completed successfully',
-            total_strings: totalStringsCount,
-            completed_strings: completedStringsCount,
-            total_characters: totalCharacters,
-            completed_characters: totalCharacters,
-            sent_data: sentStrings,
-            time_take: Math.round(performance.now() - jobStartTime),
-            target_post_id: postRes.target_post_id,
-          }, itemType);
-
-          runningJobs[i].status = 'completed';
-          runningJobs[i].completed_strings = completedStringsCount;
-          runningJobs[i].total_strings = totalStringsCount;
-          runningJobs[i].completed_characters = totalCharacters;
-          runningJobs[i].total_characters = totalCharacters;
-
-          completedCount++;
-          setCompletedJobsCount(completedCount);
-
-          const postFinishPct = Math.round(getOverallProgress(runningJobs));
-          setProgressPercent(postFinishPct);
-
-          setPostResultsMap((prev) => {
-            const updated = { ...prev };
-            if (updated[postId] && updated[postId].translations[targetLang]) {
-              const t = { ...updated[postId].translations[targetLang] };
-              t.status = 'completed';
-              t.targetPostId = postRes.target_post_id;
-              t.targetTitle = postRes.translated_title || postTitle;
-              t.editUrl = postRes.edit_url;
-              t.viewUrl = postRes.view_url;
-              t.completedStrings = completedStringsCount;
-              t.totalStrings = totalStringsCount;
-              t.completedCharacters = totalCharacters;
-              t.totalCharacters = totalCharacters;
-              t.progressPercent = 100;
-              t.progressStatus = 'Completed successfully';
-              updated[postId].translations[targetLang] = t;
-            }
-            return updated;
-          });
-        } catch (err) {
-          failedCount++;
-
-          runningJobs[i].status = 'failed';
-          const postFailPct = Math.round(getOverallProgress(runningJobs));
-          setProgressPercent(postFailPct);
-
-          try {
-            await updateBulkJob(jobId, {
-              status: 'failed',
-              progress_status: `Failed: ${err.message}`,
-              error_message: err.message,
-              total_strings: rawStrings.length || 0,
-              time_take: Math.round(performance.now() - jobStartTime),
-            }, itemType);
-          } catch {
-            // Non-blocking UI progress sync
-          }
-
-          setPostResultsMap((prev) => {
-            const updated = { ...prev };
-            if (updated[postId] && updated[postId].translations[targetLang]) {
-              const t = { ...updated[postId].translations[targetLang] };
-              t.status = 'failed';
-              t.error = err.message;
-              t.errorObj = err.errorObj || null;
-              t.progressPercent = 100;
-              t.progressStatus = `Failed: ${err.message}`;
-              t.targetTitle = `Failed: ${err.message}`;
-              updated[postId].translations[targetLang] = t;
-            }
-            return updated;
-          });
-        }
-      }
-
-      const hasRunnableJobs = runningJobs.some(
-        (job) => job.status === 'completed' || job.status === 'failed'
-      );
-
-      setProgressPercent(100);
-      setStatusText(
-        failedCount > 0
-          ? sprintf( /* translators: %s: Error message. */ __( 'Completed with %s errors.', 'translatesense' ), failedCount )
-          : hasRunnableJobs
-            ? __( 'All translations completed successfully!', 'translatesense' )
-            : __( 'All selected translations already exist.', 'translatesense' )
-      );
-      setIsTranslating(false);
-      stopTimer();
-
-      // Fetch fresh batch state to ensure all jobs in the batch (both initial and retried) are accurately merged
-      let finalItems = runningJobs;
-
-      if (hasQueueJob) {
-        try {
-          const freshBatch = await getBatchStatus(batchId);
-          if (freshBatch && Array.isArray(freshBatch.items) && freshBatch.items.length > 0) {
-            finalItems = freshBatch.items;
-            populateMapFromBatch(freshBatch, false);
-            setCompletedJobsCount(
-              (freshBatch.completed_jobs || 0) +
-              (freshBatch.already_exists_jobs || 0) +
-              (freshBatch.skipped_jobs || 0)
-            );
-            setTotalJobsCount(freshBatch.total_jobs || freshBatch.items.length);
-          }
-        } catch {
-          // Fallback to runningJobs if getBatchStatus fails
-        }
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      setIsCompleted(true);
     },
-    [stopTimer, itemType, subtype, isTaxonomy, itemTitlePrefix, selectedProvider]
+    [
+      selectedProvider,
+      itemType,
+      subtype,
+      isTaxonomy,
+      isMedia,
+      itemTitlePrefix,
+      updatePostTranslation,
+      populateMapFromBatch,
+      stopTimer,
+    ]
   );
 
   // Start translation trigger from Step 2
@@ -1000,9 +567,9 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       });
     });
 
+    setPostResultsMap(initialMap);
     setOrderedPostIds(postIds.map(String));
     setTotalJobsCount(postIds.length * selectedLanguages.length);
-    setCompletedJobsCount(0);
 
     try {
       const batchRes = await startBulkTranslation({
@@ -1018,31 +585,37 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
 
       setCurrentBatchId(batchRes.batch_id);
 
-      if (Array.isArray(batchRes.jobs) && batchRes.jobs.length > 0) {
-        populateMapFromBatch(
-          {
-            subtype: batchRes.subtype || subtype,
-            provider: selectedProvider,
-            items: batchRes.jobs,
-          },
-          true
-        );
-        setTotalJobsCount(batchRes.jobs.length);
-        setCompletedJobsCount(
-          batchRes.jobs.filter(
-            (j) =>
-              j.status === 'completed' ||
-              j.status === 'already_exists' ||
-              j.status === 'skipped'
-          ).length
-        );
-        setProgressPercent(Math.round(getOverallProgress(batchRes.jobs)));
+      const batchJobs = Array.isArray(batchRes.jobs) ? batchRes.jobs : [];
+
+      if (!batchJobs || !batchJobs.length) {
+        setEndpointLoading(null);
+        setHideReviewNotice(true);
+        setIsTranslating(false);
+        setPostResultsMap({})
+        setStatusText(`Error: No job found`);
+        setErrorModal({
+          isOpen: true,
+          title: 'No job found',
+          message: `No job found to translate ${TranslateSenseBulkData?.itemSingular} in selected languages.`,
+        });
+        return;
       }
 
-      if (isChromeAi || isTaxonomy) {
-        runChromeAiTranslation(batchRes.jobs || [], batchRes.batch_id, selectedProvider);
+      populateMapFromBatch(
+        {
+          subtype: batchRes.subtype || subtype,
+          provider: selectedProvider,
+          items: batchJobs,
+        },
+        true
+      );
+      setTotalJobsCount(batchJobs.length);
+      setProgressPercent(Math.round(getOverallProgress(batchJobs)));
+
+      if (isChromeAi || isStandaloneRuntime) {
+        runBulkTranslation(batchJobs, batchRes.batch_id, selectedProvider);
       } else {
-        const hasQueueJobs = batchRes.jobs.some(job => job.status !== 'already_exists');
+        const hasQueueJobs = batchJobs.some((job) => job.status !== 'already_exists' && job.status !== 'skipped');
 
         if (hasQueueJobs) {
           pollStatus(batchRes.batch_id);
@@ -1070,11 +643,11 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     selectedProvider,
     itemType,
     subtype,
-    isTaxonomy,
+    isStandaloneRuntime,
     itemTitlePrefix,
     populateMapFromBatch,
     resetTimer,
-    runChromeAiTranslation,
+    runBulkTranslation,
     pollStatus,
   ]);
 
@@ -1111,7 +684,8 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
 
       if (!res.success) {
         setIsTranslating(false);
-        setStatusText(res.message || __( 'Failed to retry translations.', 'translatesense' ));
+        stopTimer();
+        setStatusText(res.message || 'Failed to retry translations.');
         return;
       }
 
@@ -1125,18 +699,14 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             : Math.round(res.batch.progress_percent || 0);
 
         setProgressPercent(pct);
-        const done =
-          (res.batch.completed_jobs || 0) +
-          (res.batch.already_exists_jobs || 0) +
-          (res.batch.skipped_jobs || 0);
-        setCompletedJobsCount(done);
         setTotalJobsCount(res.batch.total_jobs || (res.batch.items ? res.batch.items.length : 1));
         setStatusText(sprintf( /* translators: %s: Retried count. */ __( 'Restarted %s translation job(s)...', 'translatesense' ), res.retried_count ));
       }
 
-      // If Chrome AI or taxonomy runtime, execute retried jobs in browser
+      // If Chrome AI, taxonomy, or media runtime, execute retried jobs sequentially in browser
       if (isQueueChromeAi && Array.isArray(res.retried_jobs) && res.retried_jobs.length > 0) {
-        runChromeAiTranslation(res.retried_jobs, bId, selectedProvider);
+        const retryProvider = (res.batch && res.batch.provider) || selectedProvider;
+        runBulkTranslation(res.retried_jobs, bId, retryProvider);
       } else {
         // Backend provider (OpenAI / Gemini): resume live polling
         pollStatus(bId);
@@ -1151,10 +721,9 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     currentBatchId,
     startTimer,
     stopTimer,
-    rawSingular,
     populateMapFromBatch,
     isQueueChromeAi,
-    runChromeAiTranslation,
+    runBulkTranslation,
     selectedProvider,
     pollStatus,
   ]);
@@ -1179,7 +748,6 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     isCompleted,
     progressPercent,
     statusText,
-    completedJobsCount,
     totalJobsCount,
     formattedTimer,
     humanReadableTimer: humanReadable,
