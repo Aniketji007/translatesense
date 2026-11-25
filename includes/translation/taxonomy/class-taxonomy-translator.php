@@ -9,15 +9,16 @@ declare(strict_types=1);
 
 namespace TranslateSense\Includes\Translation\Taxonomy;
 
-use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
-use TranslateSense\Includes\Database\Hashing_Db;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
 use TranslateSense\Includes\Translation\Translate;
+use TranslateSense\Includes\Translation\Statics;
+use TranslateSense\Includes\Bulk\Bulk_Process;
+
 use WP_Error;
 use WP_Post;
 use WP_Term;
-use WP_User;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -28,8 +29,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * required by translated posts.
  */
 class Taxonomy_Translator {
-
-	const BROWSER_PROVIDERS = array( 'chrome_ai', 'chrome_local_ai', 'edge_ai' );
 
 	/**
 	 * Taxonomy translation warnings recorded during the most recent post translation pass.
@@ -60,20 +59,7 @@ class Taxonomy_Translator {
 		?int $user_id,
 		bool $enforce_permissions
 	) {
-		$target_lang = sanitize_key( $target_lang );
-		$languages   = Polylang_Bridge::get_languages();
-		if ( '' === $target_lang || ! isset( $languages[ $target_lang ] ) ) {
-			return new WP_Error( 'translatesense_invalid_taxonomy_language', __( 'The selected taxonomy target language is not configured in Polylang.', 'translatesense' ), array( 'status' => 400 ) );
-		}
-
-		if ( $enforce_permissions && null !== $user_id ) {
-			$user_obj = $user_id > 0 ? get_userdata( $user_id ) : null;
-			if ( ! $user_obj instanceof WP_User || ! $user_obj->exists() ) {
-				return new WP_Error( 'translatesense_taxonomy_invalid_user', __( 'The user account for taxonomy translation could not be verified.', 'translatesense' ), array( 'status' => 403 ) );
-			}
-		}
-
-		return true;
+		return Utils::validate_language_and_user( $target_lang, $user_id, $enforce_permissions, 'taxonomy' );
 	}
 
 	/**
@@ -97,7 +83,7 @@ class Taxonomy_Translator {
 		}
 
 		if ( $enforce_permissions ) {
-			if ( $post_id <= 0 || ! get_post( $post_id ) || ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $post_id ) ) {
+			if ( $post_id <= 0 || ! get_post( $post_id ) || ! Utils::user_has_cap( $user_id, 'edit_post', $post_id ) ) {
 				return new WP_Error( 'translatesense_taxonomy_source_forbidden', __( 'You are not allowed to translate taxonomy terms for this post.', 'translatesense' ), array( 'status' => 403 ) );
 			}
 		}
@@ -143,7 +129,7 @@ class Taxonomy_Translator {
 
 		$target_term_id = Taxonomy_Parser::get_translation_id( (int) $term->term_id, $target_lang );
 		if ( $target_term_id <= 0 ) {
-			if ( ! Taxonomy_Parser::user_has_cap( $user_id, (string) $taxonomy_object->cap->manage_terms ) ) {
+			if ( ! Utils::user_has_cap( $user_id, (string) $taxonomy_object->cap->manage_terms ) ) {
 				return new WP_Error(
 					'translatesense_taxonomy_create_forbidden',
 					sprintf(
@@ -164,7 +150,7 @@ class Taxonomy_Translator {
 		$needs_edit       = ( $target_parent_id > 0 && $target_term instanceof WP_Term && (int) $target_term->parent !== $target_parent_id )
 			|| self::has_missing_translatable_meta( $term, $target_term_id );
 
-		if ( $needs_edit && ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_term', $target_term_id ) ) {
+		if ( $needs_edit && ! Utils::user_has_cap( $user_id, 'edit_term', $target_term_id ) ) {
 			return new WP_Error(
 				'translatesense_taxonomy_edit_forbidden',
 				__( 'You are not allowed to update the translated taxonomy term or its configured metadata.', 'translatesense' ),
@@ -214,7 +200,7 @@ class Taxonomy_Translator {
 				continue;
 			}
 
-			if ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) {
+			if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) {
 				if ( $skip_unauthorized ) {
 					continue;
 				}
@@ -271,6 +257,8 @@ class Taxonomy_Translator {
 	 *
 	 * @param array<int, array<string, mixed>>   $items                  Extracted taxonomy string items.
 	 * @param array<string, array<int, WP_Term>> $authorized_tree        Authorized term map.
+	 * @param int                                $job_id                 Job ID.
+	 * @param int                                $term_id                Term ID.
 	 * @param string                             $source_lang            Source language slug.
 	 * @param string                             $target_lang            Target language slug.
 	 * @param string                             $provider               Provider ID.
@@ -280,12 +268,14 @@ class Taxonomy_Translator {
 	private static function ensure_items_translated(
 		array $items,
 		array $authorized_tree,
+		int $job_id,
+		int $term_id,
 		string $source_lang,
 		string $target_lang,
 		string $provider,
 		array &$in_memory_translations
 	) {
-		if ( empty( $items ) ) {
+		if ( empty( $items ) || ! empty( $in_memory_translations ) || ! $term_id ) {
 			return true;
 		}
 
@@ -297,7 +287,7 @@ class Taxonomy_Translator {
 			return true;
 		}
 
-		$uncached = array();
+		$term_texts = array();
 
 		foreach ( $items as $item ) {
 			$taxonomy = (string) ( $item['taxonomy'] ?? '' );
@@ -306,64 +296,26 @@ class Taxonomy_Translator {
 				continue;
 			}
 
-			$hash     = (string) $item['hash'];
-			$widget   = (string) $item['name'];
-			$value    = (string) $item['value'];
-			$raw      = (string) ( $item['source'] ?? $value );
-			$raw_hash = Hashing_Db::generate_hash( $widget, $raw );
+			$hash  = (string) $item['hash'];
+			$value = (string) $item['value'];
 
-			if ( ! isset( $in_memory_translations[ $hash ] ) && $raw_hash !== $hash && isset( $in_memory_translations[ $raw_hash ] ) ) {
-				$in_memory_translations[ $hash ] = $in_memory_translations[ $raw_hash ];
-			}
-
-			if ( isset( $in_memory_translations[ $hash ] ) && is_scalar( $in_memory_translations[ $hash ] ) && '' !== trim( (string) $in_memory_translations[ $hash ] ) ) {
-				$sanitized_res = Translate::translate_string(
-					$value,
-					$effective_source_lang,
-					$target_lang,
-					$widget,
-					array( 'in_memory_translations' => array( $hash => (string) $in_memory_translations[ $hash ] ) )
-				);
-				Hashing_Db::save_translation_result( $hash, $target_lang, (string) ( $sanitized_res['translated'] ?? '' ) );
-				continue;
-			}
-
-			$cached_res = Translate::translate_string( $raw, $effective_source_lang, $target_lang, $widget );
-			if ( ! empty( $cached_res['cached'] ) ) {
-				continue;
-			}
-
-			// Reuse generic translation-memory entries stored under string_hash by Translate::translate_batch().
-			$shared_tm = Hashing_Db::get_cached_translation( md5( $value ), $target_lang );
-			if ( null !== $shared_tm && '' !== trim( $shared_tm ) ) {
-				$in_memory_translations[ $hash ] = $shared_tm;
-				continue;
-			}
-
-			$uncached[ $hash ] = $value;
+			$term_texts[ $hash ] = $value;
 		}
 
-		if ( empty( $uncached ) ) {
-			return true;
-		}
-
-		$provider = sanitize_key( $provider );
-		if ( in_array( $provider, self::BROWSER_PROVIDERS, true ) ) {
+		if ( Utils::is_browser_provider( $provider ) ) {
 			return new WP_Error(
 				'translatesense_taxonomy_browser_translation_missing',
 				__( 'The browser AI translation for one or more taxonomy strings is missing. Please retry the translation.', 'translatesense' )
 			);
 		}
 
-		if ( '' === $provider ) {
-			$settings = get_option( 'translatesense_settings', array() );
-			$provider = isset( $settings['provider'] ) && '' !== sanitize_key( (string) $settings['provider'] )
-				? sanitize_key( (string) $settings['provider'] )
-				: 'openai';
-		}
+		$provider = Utils::get_default_provider( $provider );
 
-		$batch_values = array_values( array_unique( $uncached ) );
-		$batch_res    = Translate::translate_batch(
+		$batch_values = array_values( array_unique( $term_texts ) );
+		$start_time   = microtime( true );
+		$total_str    = count( $batch_values );
+
+		$batch_res = Translate::translate_batch(
 			$batch_values,
 			$effective_source_lang,
 			$target_lang,
@@ -374,59 +326,46 @@ class Taxonomy_Translator {
 			return $batch_res;
 		}
 
-		$value_map = array();
-		foreach ( $batch_values as $idx => $source_text ) {
-			if ( ! isset( $batch_res[ $idx ]['translated'] ) || ! is_string( $batch_res[ $idx ]['translated'] ) || '' === trim( $batch_res[ $idx ]['translated'] ) ) {
-				return new WP_Error(
-					'translatesense_taxonomy_translation_failed',
-					__( 'The AI provider did not return a valid taxonomy translation.', 'translatesense' )
-				);
-			}
-			$value_map[ $source_text ] = $batch_res[ $idx ]['translated'];
+		$receive_data = array();
+		$sent_data    = array();
+		$total_chars  = 0;
+
+		foreach ( $batch_values as $index => $batch_value ) {
+			$sent_data[]    = $batch_value;
+			$receive_data[] = isset( $batch_res[ $index ]['translated'] ) ? (string) $batch_res[ $index ]['translated'] : $batch_value;
+			$total_chars   += Utils::strlen_utf8( (string) $batch_value );
 		}
 
-		foreach ( $uncached as $hash => $source_text ) {
-			$translated                      = $value_map[ $source_text ];
-			$in_memory_translations[ $hash ] = $translated;
-			Hashing_Db::save_translation_result( $hash, $target_lang, $translated );
+		global $wpdb;
+		$table        = Bulk_Process::get_table_name();
+		$valid_job_id = ( $job_id > 0 && $term_id > 0 ) ? absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $term_id ) ) ) : 0; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		if ( $valid_job_id && $valid_job_id > 0 ) {
+			Bulk_Process::update_job(
+				$valid_job_id,
+				array(
+					'total_strings'   => $total_str,
+					'progress_status' => sprintf( 'Translating strings (%d found)...', $total_str ),
+					'sent_data'       => wp_json_encode( $sent_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+					'receive_data'    => wp_json_encode( $receive_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+					'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
+				)
+			);
+
+			$elapsed_ms = (int) round( ( microtime( true ) - $start_time ) * 1000 );
+			Statics::update_translation_statistics(
+				array(
+					'status'           => 'success',
+					'total_characters' => $total_chars,
+					'total_strings'    => $total_str,
+					'provider'         => $provider,
+					'time_take'        => $elapsed_ms,
+					'request_id'       => 'bulk_cron_job_' . $job_id,
+				)
+			);
 		}
 
 		return true;
-	}
-
-	/**
-	 * Ensure every required taxonomy string for a post is available in `$in_memory_translations`
-	 * or translation memory, translating any uncached strings in a single batch call.
-	 *
-	 * @param int                                $source_post_id         Source post ID.
-	 * @param array<string, array<int, WP_Term>> $authorized_tree        Authorized term map.
-	 * @param string                             $source_lang            Source language slug.
-	 * @param string                             $target_lang            Target language slug.
-	 * @param string                             $provider               Provider ID.
-	 * @param array                              $in_memory_translations Map indexed by hash (updated in place).
-	 * @param int|null                           $user_id                Optional user ID.
-	 * @param bool                               $enforce_permissions    Whether capability checks apply.
-	 * @return true|WP_Error
-	 */
-	private static function ensure_translations_available(
-		int $source_post_id,
-		array $authorized_tree,
-		string $source_lang,
-		string $target_lang,
-		string $provider,
-		array &$in_memory_translations,
-		?int $user_id,
-		bool $enforce_permissions
-	) {
-		$items = Taxonomy_Parser::extract_strings( $source_post_id, $target_lang, $user_id, $enforce_permissions );
-		return self::ensure_items_translated(
-			$items,
-			$authorized_tree,
-			$source_lang,
-			$target_lang,
-			$provider,
-			$in_memory_translations
-		);
 	}
 
 	/**
@@ -525,7 +464,7 @@ class Taxonomy_Translator {
 
 		foreach ( $ordered_terms as $term_id => $term ) {
 			if ( $enforce_permissions ) {
-				if ( ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_term', (int) $term_id ) ) {
+				if ( ! Utils::user_has_cap( $user_id, 'edit_term', (int) $term_id ) ) {
 					if ( $skip_unauthorized ) {
 						continue;
 					}
@@ -578,6 +517,7 @@ class Taxonomy_Translator {
 	 *
 	 * @param int[]  $term_ids               Term IDs to translate.
 	 * @param string $taxonomy               Taxonomy slug.
+	 * @param int    $job_id                 Job ID.
 	 * @param string $target_lang            Target language slug.
 	 * @param string $provider               AI provider ID.
 	 * @param array  $in_memory_translations Optional translation map indexed by hash.
@@ -587,6 +527,7 @@ class Taxonomy_Translator {
 	public static function translate_terms(
 		array $term_ids,
 		string $taxonomy,
+		int $job_id,
 		string $target_lang,
 		string $provider = '',
 		array $in_memory_translations = array(),
@@ -598,6 +539,14 @@ class Taxonomy_Translator {
 		$enforce_permissions = array_key_exists( 'enforce_permissions', $options ) ? (bool) $options['enforce_permissions'] : true;
 		$skip_unauthorized   = ! empty( $options['skip_unauthorized'] );
 
+		$primary_term_id = (int) ( ! empty( $term_ids ) ? reset( $term_ids ) : 0 );
+		$valid_job_id    = 0;
+		if ( $job_id > 0 && $primary_term_id > 0 ) {
+			global $wpdb;
+			$table        = Bulk_Process::get_table_name();
+			$valid_job_id = absint( $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE id = %d AND post_id = %d AND item_type = 'taxonomy'", $job_id, $primary_term_id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		}
+
 		$authorized_terms = self::build_authorized_terms_list(
 			$term_ids,
 			$taxonomy,
@@ -606,8 +555,11 @@ class Taxonomy_Translator {
 			$enforce_permissions,
 			$skip_unauthorized
 		);
+
 		if ( is_wp_error( $authorized_terms ) ) {
-			return $authorized_terms;
+			return $valid_job_id > 0
+				? Bulk_Process::fail_job( $valid_job_id, __( 'Error occurred during authorization check', 'translatesense' ), $authorized_terms )
+				: $authorized_terms;
 		}
 
 		$source_lang = sanitize_key( (string) ( $options['source_lang'] ?? '' ) );
@@ -621,17 +573,25 @@ class Taxonomy_Translator {
 			}
 		}
 
-		$items     = Taxonomy_Parser::extract_terms_strings( array_keys( $authorized_terms ), $taxonomy, $target_lang, $user_id, $enforce_permissions );
+		$items = ( isset( $options['extracted_items'] ) && is_array( $options['extracted_items'] ) )
+			? $options['extracted_items']
+			: Taxonomy_Parser::extract_terms_strings( array_keys( $authorized_terms ), $taxonomy, $target_lang, $user_id, $enforce_permissions );
+
 		$preloaded = self::ensure_items_translated(
 			$items,
 			array( $taxonomy => $authorized_terms ),
+			$valid_job_id,
+			$primary_term_id,
 			$source_lang,
 			$target_lang,
 			$provider,
 			$in_memory_translations
 		);
+
 		if ( is_wp_error( $preloaded ) ) {
-			return $preloaded;
+			return $valid_job_id > 0
+				? Bulk_Process::fail_job( $valid_job_id, __( 'Error occurred during AI Translation', 'translatesense' ), $preloaded )
+				: $preloaded;
 		}
 
 		$resolved_map = array();
@@ -646,9 +606,24 @@ class Taxonomy_Translator {
 				$enforce_permissions
 			);
 			if ( is_wp_error( $resolved_id ) ) {
-				return $resolved_id;
+				return $valid_job_id > 0
+					? Bulk_Process::fail_job( $valid_job_id, __( 'Failed to save translated taxonomy term', 'translatesense' ), $resolved_id )
+					: $resolved_id;
 			}
 			$resolved_map[ (int) $source_term_id ] = absint( $resolved_id );
+		}
+
+		if ( $valid_job_id > 0 ) {
+			Bulk_Process::update_job(
+				$valid_job_id,
+				array(
+					'status'          => 'completed',
+					'progress_status' => __( 'Taxonomy Translation completed', 'translatesense' ),
+					'error_message'   => null,
+					'target_post_id'  => ( $primary_term_id > 0 && isset( $resolved_map[ $primary_term_id ] ) ) ? absint( $resolved_map[ $primary_term_id ] ) : 0,
+					'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
+				)
+			);
 		}
 
 		return $resolved_map;
@@ -747,20 +722,6 @@ class Taxonomy_Translator {
 			update_post_meta( $source_post_id, '_translatesense_taxonomy_warnings', self::$last_taxonomy_warnings );
 		}
 
-		$preloaded = self::ensure_translations_available(
-			$source_post_id,
-			$authorized_tree,
-			$source_lang,
-			$target_lang,
-			$provider,
-			$in_memory_translations,
-			$user_id,
-			$enforce_permissions
-		);
-		if ( is_wp_error( $preloaded ) ) {
-			return $preloaded;
-		}
-
 		$map = array();
 		foreach ( $authorized_tree as $taxonomy => $terms ) {
 			foreach ( $terms as $source_term_id => $source_term ) {
@@ -798,7 +759,7 @@ class Taxonomy_Translator {
 				continue;
 			}
 
-			if ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) {
+			if ( $enforce_permissions && ! Utils::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) {
 				if ( $skip_unauthorized ) {
 					continue;
 				}
@@ -842,7 +803,7 @@ class Taxonomy_Translator {
 		if (
 			$target_post_id <= 0
 			|| ! get_post( $target_post_id )
-			|| ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $target_post_id ) )
+			|| ( $enforce_permissions && ! Utils::user_has_cap( $user_id, 'edit_post', $target_post_id ) )
 		) {
 			return new WP_Error( 'translatesense_invalid_target_post', __( 'You are not allowed to update taxonomy assignments for the translated post.', 'translatesense' ), array( 'status' => 403 ) );
 		}
@@ -856,7 +817,7 @@ class Taxonomy_Translator {
 			}
 
 			$taxonomy_object = get_taxonomy( $taxonomy );
-			if ( ! $taxonomy_object || ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) ) {
+			if ( ! $taxonomy_object || ( $enforce_permissions && ! Utils::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) ) {
 				return new WP_Error( 'translatesense_taxonomy_assign_forbidden', __( 'You are not allowed to assign translated taxonomy terms.', 'translatesense' ), array( 'status' => 403 ) );
 			}
 
@@ -901,7 +862,7 @@ class Taxonomy_Translator {
 				}
 
 				$taxonomy_object = get_taxonomy( $taxonomy );
-				if ( ! $taxonomy_object || ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) ) {
+				if ( ! $taxonomy_object || ( $enforce_permissions && ! Utils::user_has_cap( $user_id, (string) $taxonomy_object->cap->assign_terms ) ) ) {
 					continue;
 				}
 
@@ -944,7 +905,7 @@ class Taxonomy_Translator {
 			|| ! $target_post instanceof WP_Post
 			|| $source_post_id === $target_post_id
 			|| $source_post->post_type !== $target_post->post_type
-			|| ( $enforce_permissions && ( ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $source_post_id ) || ! Taxonomy_Parser::user_has_cap( $user_id, 'edit_post', $target_post_id ) ) )
+			|| ( $enforce_permissions && ( ! Utils::user_has_cap( $user_id, 'edit_post', $source_post_id ) || ! Utils::user_has_cap( $user_id, 'edit_post', $target_post_id ) ) )
 		) {
 			return new WP_Error( 'translatesense_invalid_taxonomy_post_pair', __( 'The source and translated posts are not a valid translation pair.', 'translatesense' ), array( 'status' => 403 ) );
 		}
@@ -997,37 +958,9 @@ class Taxonomy_Translator {
 			}
 
 			foreach ( (array) $values as $value ) {
-				add_term_meta( $target_term_id, $meta_key, wp_slash( self::safe_unserialize_meta( $value ) ), false );
+				add_term_meta( $target_term_id, $meta_key, wp_slash( Utils::safe_unserialize( $value ) ), false );
 			}
 		}
-	}
-
-	/**
-	 * Unserialize metadata values safely without instantiating PHP objects.
-	 *
-	 * @param mixed $value Raw metadata value.
-	 * @return mixed
-	 */
-	private static function safe_unserialize_meta( $value ) {
-		if ( ! is_string( $value ) || ! is_serialized( $value ) ) {
-			return $value;
-		}
-
-		$trimmed = trim( $value );
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Required to safely decode serialized metadata without instantiating PHP objects.
-		$unserialized = @unserialize(
-			$trimmed,
-			array(
-				'allowed_classes' => false,
-			)
-		);
-
-		if ( false !== $unserialized || 'b:0;' === $trimmed ) {
-			return $unserialized;
-		}
-
-		return $value;
 	}
 
 	/**
@@ -1066,7 +999,7 @@ class Taxonomy_Translator {
 			delete_term_meta( $target_term_id, $meta_key );
 
 			foreach ( (array) $source_values as $source_value ) {
-				if ( ! is_string( $source_value ) || '' === trim( $source_value ) || Custom_Field_Parser::is_only_numbers( $source_value ) ) {
+				if ( ! is_string( $source_value ) || '' === trim( $source_value ) || Utils::is_only_numbers( $source_value ) ) {
 					add_term_meta( $target_term_id, $meta_key, wp_slash( $source_value ), false );
 					continue;
 				}
@@ -1294,16 +1227,12 @@ class Taxonomy_Translator {
 	) {
 		$source_term_id = (int) $source_term->term_id;
 		$lock_key       = 'translatesense_term_lock_' . md5( $source_term->taxonomy . ':' . $source_term_id . ':' . $target_lang );
-		$lock           = get_option( $lock_key, 0 );
-		if ( $lock && ( time() - absint( $lock ) ) > 300 ) {
-			delete_option( $lock_key );
-		}
 
-		if ( ! add_option( $lock_key, time(), '', false ) ) {
+		if ( ! Utils::acquire_lock( $lock_key ) ) {
 			$existing_id = Taxonomy_Parser::get_translation_id( $source_term_id, $target_lang );
 			return $existing_id > 0
-				? $existing_id
-				: new WP_Error( 'translatesense_taxonomy_translation_locked', __( 'This taxonomy term is already being translated. Please retry shortly.', 'translatesense' ) );
+			? $existing_id
+			: new WP_Error( 'translatesense_taxonomy_translation_locked', __( 'This taxonomy term is already being translated. Please retry shortly.', 'translatesense' ) );
 		}
 
 		try {
@@ -1334,6 +1263,7 @@ class Taxonomy_Translator {
 				$target_parent_id,
 				$actual_source_lang,
 				$target_lang,
+				$custom_opts,
 				$model
 			);
 
@@ -1372,7 +1302,7 @@ class Taxonomy_Translator {
 
 			return $target_term_id;
 		} finally {
-			delete_option( $lock_key );
+			Utils::release_lock( $lock_key );
 		}
 	}
 
@@ -1386,6 +1316,7 @@ class Taxonomy_Translator {
 	 * @param int     $target_parent_id   Resolved target parent term ID.
 	 * @param string  $actual_source_lang Source language slug.
 	 * @param string  $target_lang        Target language slug.
+	 * @param array   $custom_opts        Custom options for translation.
 	 * @param object  $model              Polylang term model.
 	 * @return int|WP_Error Inserted or reused term ID, or error.
 	 */
@@ -1396,11 +1327,13 @@ class Taxonomy_Translator {
 		int $target_parent_id,
 		string $actual_source_lang,
 		string $target_lang,
+		array $custom_opts,
 		object $model
 	) {
-		$slug = sanitize_title( $translated_name );
-		if ( '' === $slug ) {
-			$slug = sanitize_title( $source_term->slug . '-' . $target_lang );
+		$slug = sanitize_title( Translate::translate_slug( $source_term->slug, $translated_name, $actual_source_lang, $target_lang, $custom_opts, 'taxonomy_term' ) );
+
+		if ( empty( $slug ) ) {
+			$slug = sanitize_title( $source_term->slug );
 		}
 
 		$inserted = wp_insert_term(
@@ -1551,7 +1484,7 @@ class Taxonomy_Translator {
 				continue;
 			}
 
-			if ( $enforce_permissions && ! Taxonomy_Parser::user_has_cap( $user, 'edit_term', $target_child_id ) ) {
+			if ( $enforce_permissions && ! Utils::user_has_cap( $user, 'edit_term', $target_child_id ) ) {
 				continue;
 			}
 

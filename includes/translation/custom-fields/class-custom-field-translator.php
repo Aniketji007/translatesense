@@ -61,6 +61,11 @@ class Custom_Field_Translator {
 		$applied        = array();
 
 		foreach ( $fields as $meta_key => $field_info ) {
+			// Never overwrite media keys when Polylang media translation is enabled.
+			if ( Polylang_Bridge::is_media_translation_enabled() && in_array( $meta_key, array( '_thumbnail_id', '_product_image_gallery' ), true ) ) {
+				continue;
+			}
+
 			$rule   = $resolved_rules[ $meta_key ] ?? null;
 			$action = $rule['action'] ?? Custom_Field_Rule_Resolver::ACTION_COPY;
 

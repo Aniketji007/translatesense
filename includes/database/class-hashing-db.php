@@ -680,26 +680,26 @@ class Hashing_Db {
 		switch ( $type ) {
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			case 'strings':
-				$wpdb->query( "DELETE FROM {$table_strings}" );
+				$wpdb->query( "TRUNCATE TABLE {$table_strings}" );
 				break;
 
 			case 'translations':
-				$wpdb->query( "DELETE FROM {$table_translations}" ); // phpcs:ignore 
+				$wpdb->query( "TRUNCATE TABLE {$table_translations}" );
 				break;
 
 			case 'packages':
-				$wpdb->query( "DELETE FROM {$table_packages}" );
+				$wpdb->query( "TRUNCATE TABLE {$table_packages}" );
 				break;
 
 			case 'logs':
-				$wpdb->query( "DELETE FROM {$table_queue}" );
+				$wpdb->query( "TRUNCATE TABLE {$table_queue}" );
 				break;
 
 			case 'all':
-				$wpdb->query( "DELETE FROM {$table_strings}" );
-				$wpdb->query( "DELETE FROM {$table_translations}" );
-				$wpdb->query( "DELETE FROM {$table_packages}" );
-				$wpdb->query( "DELETE FROM {$table_queue}" );
+				$wpdb->query( "TRUNCATE TABLE {$table_strings}" );
+				$wpdb->query( "TRUNCATE TABLE {$table_translations}" );
+				$wpdb->query( "TRUNCATE TABLE {$table_packages}" );
+				$wpdb->query( "TRUNCATE TABLE {$table_queue}" );
 				break;
 
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter

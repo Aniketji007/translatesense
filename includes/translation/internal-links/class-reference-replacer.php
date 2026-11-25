@@ -83,7 +83,7 @@ class Reference_Replacer {
 			$decoded = json_decode( $trimmed, true );
 			if ( is_array( $decoded ) && json_last_error() === JSON_ERROR_NONE ) {
 				$updated = $this->replace_array_references( $decoded, $url_map, $media_id_map, $media_url_map, '' );
-				$encoded = wp_json_encode( $updated );
+				$encoded = wp_json_encode( $updated, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 				return is_string( $encoded ) ? $encoded : $content;
 			}
 		}
@@ -246,7 +246,7 @@ class Reference_Replacer {
 					}
 
 					if ( $modified ) {
-						$encoded = wp_json_encode( $attrs );
+						$encoded = wp_json_encode( $attrs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 						if ( is_string( $encoded ) ) {
 							return '<!-- wp:' . $block_name . ' ' . $encoded . ' -->';
 						}

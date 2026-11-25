@@ -18,6 +18,9 @@ use TranslateSense\Includes\Content\Parser\Content_Parser;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\AI\Ai_Connector_Bridge;
+use TranslateSense\Includes\Helper\Utils;
+use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
+use TranslateSense\Includes\Translation\Custom_Fields\Custom_Field_Translator;
 use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -43,6 +46,12 @@ class Translate {
 	 * @var bool
 	 */
 	private static $initialized = false;
+
+	/**
+	 * Default prompt template for AI batch translation.
+	 */
+	public const DEFAULT_PROMPT = "You are a professional multilingual translator..\n\n### Translation Rules\n\n1. Instruction 1: Translate each provided string semantically from `{source_lang}` to `{target_lang}`. Provide accurate, natural, meaning-based translations without assuming the content type.\n\nInstruction 2: Do not translate or modify content inside square brackets [], including shortcodes and dynamic placeholders. Preserve actual URLs containing recognizable domains or hostnames unchanged. However, translate standalone human-readable paths and slugs such as `hello/word/` and `about-us`. Do not treat every slash-separated or hyphenated string as a URL.\n\nInstruction 3: Preserve all HTML tags, structure and technical attributes such as class, id, data-*, href and src. Translate visible text and user-facing attribute values without altering the HTML structure.\n\nInstruction 4: Return a JSON object using the original numeric keys and their translated strings as values. Preserve all keys and entries exactly.\n\nInstruction 5: Do not unnecessarily escape double quotes. Return valid JSON with escaping only where required by JSON syntax.\n\nInstruction 6: Translate every input string, even if its value is already in the target language. Ensure the JSON is complete and well-formed.\n\nInstruction 7: Decode &lt; and &gt; into < and > where they represent encoded HTML markup. Preserve other entities, whitespace and line breaks.Instruction 8: If a string contains `[TS_HYPEN_PROTECTED]`, translate all surrounding human-readable content naturally while preserving the placeholder exactly in its original position. Never translate, remove, modify, duplicate or generate this placeholder if it is absent from the original string.\n\n### Output Format\n\nReturn ONLY a valid JSON object:\n\n{\"translations\":[\"translated string 1\",\"translated string 2\"]}\n\nThe `translations` array MUST contain exactly {count} items. Return valid JSON only, without explanations or additional text.\n\nStrings to translate:\n\n{json_strings}";
+
 
 	/**
 	 * Initialize builder instances.
@@ -184,21 +193,10 @@ class Translate {
 			}
 		}
 
-		// Step 3.3: Check DB Cache.
-		$cached = Hashing_Db::get_cached_translation( $hash, $target_lang );
-		if ( null !== $cached ) {
-			return array(
-				'translated' => Dom_Filter::replace_filtered_content( (string) $source_string, self::sanitize_string( $source_string, $cached ) ),
-				'cached'     => true,
-				'hash'       => $hash,
-			);
-		}
-
 		if ( $filtered_string === $source_string ) {
 			$filtered_string = Dom_Filter::filter_dom_content( (string) $source_string );
-			$filtered_hash   = Hashing_Db::generate_hash( (string) $widget_id, (string) $filtered_string );
+			$filtered_hash   = md5( (string) $filtered_string );
 
-			// Step 3.3: Check DB Cache.
 			$cached = Hashing_Db::get_cached_translation( $filtered_hash, $target_lang );
 			if ( null !== $cached ) {
 				return array(
@@ -219,19 +217,13 @@ class Translate {
 	/**
 	 * Sanitize translated text.
 	 *
-	 * @param string $text
+	 * @param string $source_string - source string.
+	 * @param string $translated_string - translated string.
 	 * @return string
 	 */
-
-	/**
-	 * Sanitize translated text nodes and replace them in the original HTML.
-	 *
-	 * Original HTML tags and attributes are preserved.
-	 *
-	 * @param string $source_string     Original HTML.
-	 * @param string $translated_string Translated HTML with matching structure.
-	 * @return string
-	 */
+	public static function sanitize_translated_text( string $source_string, string $translated_string ) {
+		return self::sanitize_string( $source_string, $translated_string );
+	}
 
 	/**
 	 * Sanitize translated content while preserving source formatting.
@@ -268,6 +260,12 @@ class Translate {
 		 * content does not contain HTML markup.
 		 */
 		if ( ! self::contains_html_markup( $source_string ) ) {
+
+			$sanitized_value = sanitize_text_field( $translated_string );
+
+			if ( $sanitized_value === $translated_string ) {
+				return $sanitized_value;
+			}
 
 			$filtered_string = wp_strip_all_tags(
 				$translated_string,
@@ -505,7 +503,7 @@ class Translate {
 	/**
 	 * Split HTML into tags and text nodes while recording byte offsets.
 	 *
-	 * This scanner recognizes quoted attributes containing ">" characters.
+	 * This scanner recognizes quoted attributes containing " > " characters.
 	 *
 	 * @param string $html HTML fragment.
 	 * @return array
@@ -623,32 +621,7 @@ class Translate {
 	 * @return bool
 	 */
 	public static function is_email_or_url( string $str ): bool {
-		$trimmed = trim( wp_strip_all_tags( html_entity_decode( $str, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
-
-		if ( '' === $trimmed ) {
-			return false;
-		}
-
-		if ( filter_var( $trimmed, FILTER_VALIDATE_EMAIL ) || 0 === stripos( $trimmed, 'mailto:' ) ) {
-			return true;
-		}
-		if ( preg_match( '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $trimmed ) ) {
-			return true;
-		}
-		if ( filter_var( $trimmed, FILTER_VALIDATE_URL ) ) {
-			return true;
-		}
-		if ( preg_match( '/^(https?:\/\/|ftp:\/\/|\/\/|www\.|tel:|sms:|javascript:|callto:|whatsapp:)/i', $trimmed ) ) {
-			return true;
-		}
-		if ( preg_match( '/^(\/|\.\/|\.\.\/|#)?[^\s]*\.(png|jpe?g|gif|svg|webp|avif|pdf|mp4|webm|zip|tar|gz|css|js|woff2?|ttf|eot)(\?.*)?$/i', $trimmed ) ) {
-			return true;
-		}
-		if ( preg_match( '/^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\/[^\s]*$/i', $trimmed ) ) {
-			return true;
-		}
-
-		return false;
+		return Utils::is_email_or_url( $str );
 	}
 
 	/**
@@ -664,12 +637,16 @@ class Translate {
 		$results = array();
 		$hashes  = array();
 
-		$requested_provider = isset( $custom_options['provider'] ) ? sanitize_key( (string) $custom_options['provider'] ) : '';
-		if ( 'google' === $requested_provider ) {
-			$requested_provider = 'gemini';
+		// Validate provider.
+		$provider = isset( $custom_options['provider'] )
+		? sanitize_key( (string) $custom_options['provider'] )
+		: '';
+
+		if ( 'google' === $provider ) {
+			$provider = 'gemini';
 		}
 
-		if ( '' === $requested_provider || ! in_array( $requested_provider, array( 'openai', 'gemini' ), true ) ) {
+		if ( ! in_array( $provider, array( 'openai', 'gemini' ), true ) ) {
 			return new \WP_Error(
 				'invalid_provider',
 				__( 'Invalid translation provider.', 'translatesense' ),
@@ -677,62 +654,73 @@ class Translate {
 			);
 		}
 
+		// Generate source hashes.
 		foreach ( $strings_array as $idx => $str ) {
-			$hashes[ $idx ] = md5( $str );
+			$hashes[ $idx ] = md5( (string) $str );
 		}
 
-		// Step 3.2b: Check in-memory translations batch.
+		// Check in-memory translations.
 		if ( ! empty( $custom_options['in_memory_translations'] ) && is_array( $custom_options['in_memory_translations'] ) ) {
 			$in_memory = $custom_options['in_memory_translations'];
+
 			foreach ( $strings_array as $idx => $str ) {
-				$h = $hashes[ $idx ];
-				if ( isset( $in_memory[ $h ] ) && '' !== trim( (string) $in_memory[ $h ] ) ) {
+				$hash = $hashes[ $idx ];
+
+				if ( isset( $in_memory[ $hash ] ) && '' !== trim( (string) $in_memory[ $hash ] ) ) {
 					$results[ $idx ] = array(
-						'translated' => (string) $in_memory[ $h ],
+						'translated' => (string) $in_memory[ $hash ],
 						'cached'     => false,
-						'hash'       => $h,
+						'hash'       => $hash,
 					);
 				} elseif ( isset( $in_memory[ $str ] ) && '' !== trim( (string) $in_memory[ $str ] ) ) {
 					$results[ $idx ] = array(
 						'translated' => (string) $in_memory[ $str ],
 						'cached'     => false,
-						'hash'       => $h,
+						'hash'       => $hash,
 					);
 				}
 			}
 		}
 
-		// Step 3.3: Batch Cache Lookup for remaining uncached strings.
+		// Check database cache for remaining strings.
 		$remaining_hashes = array();
-		foreach ( $hashes as $idx => $h ) {
+
+		foreach ( $hashes as $idx => $hash ) {
 			if ( ! isset( $results[ $idx ] ) ) {
-				$remaining_hashes[ $idx ] = $h;
+				$remaining_hashes[] = $hash;
 			}
 		}
 
-		$cached_map = ! empty( $remaining_hashes ) ? Hashing_Db::get_cached_translations_batch( array_values( $remaining_hashes ), $target_lang ) : array();
+		$cached_map = ! empty( $remaining_hashes )
+		? Hashing_Db::get_cached_translations_batch( $remaining_hashes, $target_lang )
+		: array();
 
+		// Prepare strings for translation.
 		$to_translate = array();
+
 		foreach ( $strings_array as $idx => $str ) {
 			if ( isset( $results[ $idx ] ) ) {
 				continue;
 			}
 
-			$h = $hashes[ $idx ];
+			$hash = $hashes[ $idx ];
+
 			if ( self::is_email_or_url( (string) $str ) ) {
 				$results[ $idx ] = array(
 					'translated' => $str,
 					'cached'     => true,
-					'hash'       => $h,
+					'hash'       => $hash,
 				);
-			} elseif ( isset( $cached_map[ $h ] ) ) {
+			} elseif ( isset( $cached_map[ $hash ] ) ) {
 				$results[ $idx ] = array(
-					'translated' => $cached_map[ $h ],
+					'translated' => $cached_map[ $hash ],
 					'cached'     => true,
-					'hash'       => $h,
+					'hash'       => $hash,
 				);
 			} else {
-				$to_translate[ $idx ] = $str;
+				$protected = self::protect_hyphenated_value( $str );
+
+				$to_translate[ $idx ] = $protected['text'];
 			}
 		}
 
@@ -741,39 +729,88 @@ class Translate {
 			return $results;
 		}
 
-		// Translate uncached strings via provider.
+		// Execute provider batch translation.
 		$settings = get_option( 'translatesense_settings', array() );
-		$provider = $requested_provider;
 
-		// Execute provider batch translation preserving array keys / indices.
-		$translated_batch = self::execute_provider_batch_translation( $to_translate, $source_lang, $target_lang, $provider, $settings );
+		$translated_batch = self::execute_provider_batch_translation(
+			$to_translate,
+			$source_lang,
+			$target_lang,
+			$provider,
+			$settings
+		);
 
 		if ( is_wp_error( $translated_batch ) ) {
 			return $translated_batch;
 		}
 
+		// Process translated results.
 		foreach ( $to_translate as $idx => $str ) {
-			$h     = $hashes[ $idx ];
-			$trans = isset( $translated_batch[ $idx ] ) && '' !== trim( (string) $translated_batch[ $idx ] ) ? (string) $translated_batch[ $idx ] : (string) $str;
+			$hash         = $hashes[ $idx ];
+			$original_str = (string) $strings_array[ $idx ];
+			$valid        = true;
 
-			if ( ! empty( $trans ) && self::should_cache_provider( $provider ) ) {
-				$trans_hase = md5( $trans );
-				if ( $trans_hase !== $h ) {
-					Hashing_Db::save_translation_result( $h, $target_lang, $trans );
+			$trans = isset( $translated_batch[ $idx ] ) && '' !== trim( (string) $translated_batch[ $idx ] )
+			? (string) $translated_batch[ $idx ]
+			: $original_str;
+
+			// Decode Unicode escapes.
+			if ( false !== strpos( $trans, '\u' ) && class_exists( Dom_Filter::class ) ) {
+				$trans = Dom_Filter::decode_unicode_escapes( $trans );
+			}
+
+			// Restore protected hyphens.
+			$trans = str_replace( '[TS_HYPEN_PROTECTED]', '-', $trans );
+
+			// Save translations to cache.
+			if ( '' !== trim( $trans ) && self::should_cache_provider( $provider ) ) {
+				if ( md5( $trans ) !== $hash ) {
+					Hashing_Db::save_translation_result( $hash, $target_lang, $trans );
 				}
 			}
 
 			$results[ $idx ] = array(
 				'translated' => $trans,
 				'cached'     => false,
-				'hash'       => $h,
+				'hash'       => $hash,
 			);
 		}
 
-		// Maintain original order.
+		// Maintain original input order.
 		ksort( $results );
+
 		return $results;
 	}
+
+
+	/**
+	 * Protect hyphens in standalone human-readable values.
+	 *
+	 * @param string $value Original translation string.
+	 * @return array Protected text and hyphen count.
+	 */
+	private static function protect_hyphenated_value( $value ) {
+		$value = (string) $value;
+
+		// Skip empty values, URLs, and non-hyphenated values.
+		if (
+		'' === $value ||
+		self::is_email_or_url( $value ) ||
+		false === strpos( $value, '-' ) ||
+		! preg_match( '/\A[\p{L}\p{M}\p{N}]+(?:-[\p{L}\p{M}\p{N}]+)+\z/u', $value )
+		) {
+			return array(
+				'text'  => $value,
+				'count' => 0,
+			);
+		}
+
+		return array(
+			'text'  => str_replace( '-', '[TS_HYPEN_PROTECTED]', $value ),
+			'count' => substr_count( $value, '-' ),
+		);
+	}
+
 
 	/**
 	 * Determine if provider results should be cached in translations table.
@@ -785,11 +822,6 @@ class Translate {
 		$no_cache_providers = array( 'gemini', 'openai' );
 		return in_array( $provider, $no_cache_providers, true );
 	}
-
-	/**
-	 * Default prompt template for AI batch translation.
-	 */
-	public const DEFAULT_PROMPT = "You are a professional HTML-safe translator. Translate the JSON array of strings from {source_lang} to {target_lang}.\nPreserve all HTML tags, placeholders, and formatting.\nOutput ONLY a valid JSON object matching this schema: {\"translations\": [\"...\", \"...\"]}\nLength of translations array MUST EXACTLY MATCH input array length ({count} items):\n\n{json_strings}";
 
 	/**
 	 * Provider batch translation dispatcher preserving array indices.
@@ -853,7 +885,7 @@ class Translate {
 	 */
 	public static function build_batch_translation_prompt( string $source_lang, string $target_lang, array $values_seq, array $settings = array() ): string {
 		$template = ! empty( $settings['custom_prompt'] ) ? (string) $settings['custom_prompt'] : self::DEFAULT_PROMPT;
-		$json_str = wp_json_encode( array( 'strings' => $values_seq ) );
+		$json_str = wp_json_encode( array( 'strings' => $values_seq ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		$replacements = array(
 			'{source_lang}'  => $source_lang,
@@ -863,5 +895,98 @@ class Translate {
 		);
 
 		return str_replace( array_keys( $replacements ), array_values( $replacements ), $template );
+	}
+
+	/**
+	 * Translate slug based on the slug translation setting.
+	 *
+	 * @param string $slug        Original post, taxonomy, or media slug.
+	 * @param string $title       Translated post title, taxonomy name, or media title.
+	 * @param string $source_lang Source language of the post, taxonomy, or media.
+	 * @param string $target_lang Target language to translate slug to.
+	 * @param array  $custom_opts Custom options for translation.
+	 * @param string $key         Type of the field to translate.
+	 * @return string
+	 */
+	public static function translate_slug( string $slug, string $title, string $source_lang, string $target_lang, array $custom_opts = array(), string $key = 'post_name' ): string {
+		$mode = Utils::get_slug_translation();
+
+		if ( 'keep_orignal' === $mode ) {
+			return empty( trim( $slug ) ) ? Dom_Filter::decode_html_string( $title ) : Dom_Filter::decode_html_string( $slug );
+		} elseif ( 'title_based' === $mode ) {
+			return empty( trim( $title ) ) ? Dom_Filter::decode_html_string( $slug ) : Dom_Filter::decode_html_string( $title );
+		} elseif ( 'slug_translate' === $mode ) {
+			if ( empty( trim( $slug ) ) ) {
+				return '';
+			}
+
+			$res = self::translate_string(
+				$slug,
+				$source_lang,
+				$target_lang,
+				$key,
+				$custom_opts
+			);
+
+			$slug = ! empty( $res['translated'] ) ? (string) $res['translated'] : $slug;
+
+			return Dom_Filter::decode_html_string( $slug );
+		}
+
+		return '';
+	}
+
+	public static function update_pending_translation( int $source_id, int $post_id, array $custom_opts ) {
+		if ( $source_id <= 0 || $post_id <= 0 ) {
+			return;
+		}
+
+		$user_id = ( array_key_exists( 'user_id', $custom_opts ) && null !== $custom_opts['user_id'] )
+			? (int) $custom_opts['user_id']
+			: null;
+
+		if ( ! Utils::user_has_cap( $user_id, 'edit_post', $post_id ) || ! Utils::user_has_cap( $user_id, 'edit_post', $source_id ) ) {
+			return;
+		}
+
+		$source_lang = Polylang_Bridge::get_post_language( $source_id );
+		$target_lang = Polylang_Bridge::get_post_language( $post_id );
+		$is_existing = true;
+
+		$front_page_id = absint( get_option( 'page_on_front' ) );
+
+		if ( $front_page_id && in_array( $front_page_id, array( $source_id, $post_id ) ) ) {
+			$post_name           = get_post_field( 'post_name', $post_id );
+			$elementor_post_name = 'elementor-' . $post_id;
+
+			if ( $post_name === $elementor_post_name ) {
+				$source_post_title = get_the_title( $source_id );
+				$source_title_hash = Hashing_Db::generate_hash( 'post_title', $source_post_title );
+
+				if ( isset( $custom_opts['in_memory_translations'][ $source_title_hash ] ) ) {
+					$translated_title = $custom_opts['in_memory_translations'][ $source_title_hash ];
+
+					if ( ! empty( $translated_title ) ) {
+						wp_update_post(
+							array(
+								'ID'        => $post_id,
+								'post_name' => sanitize_title( $translated_title ),
+							)
+						);
+					}
+				}
+
+				Polylang_Bridge::clear_static_page_cache();
+			}
+		}
+
+		Custom_Field_Translator::apply_target_metadata(
+			$source_id,
+			$post_id,
+			$source_lang,
+			$target_lang,
+			$is_existing,
+			$custom_opts
+		);
 	}
 }

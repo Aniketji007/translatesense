@@ -19,7 +19,7 @@ export function PostResultItem({
   itemMeta = {},
 }) {
   const [expanded, setExpanded] = useState(true);
-  const { isTaxonomy, singular: itemSingular, singularTitle: itemSingularTitle } = getBulkItemLabels(itemMeta);
+  const { isTaxonomy, isMedia, singular: itemSingular, singularTitle: itemSingularTitle } = getBulkItemLabels(itemMeta);
 
   const {
     postTitle = `${itemSingularTitle} #${postId}`,
@@ -70,7 +70,7 @@ export function PostResultItem({
       >
         <div className="ts-post-source-info">
           <div className="ts-post-icon-box">
-            <span className={`dashicons ${isTaxonomy ? 'dashicons-tag' : 'dashicons-media-text'}`} />
+            <span className={`dashicons ${isTaxonomy ? 'dashicons-tag' : isMedia ? 'dashicons-format-image' : 'dashicons-media-text'}`} />
           </div>
           <span className="ts-source-title-text">{postTitle}</span>
           <span className="ts-post-id-tag">#{postId}</span>

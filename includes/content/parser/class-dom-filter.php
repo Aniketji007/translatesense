@@ -75,6 +75,44 @@ class Dom_Filter {
 	}
 
 	/**
+	 * Decode Unicode escape sequences (\uXXXX) into UTF-8 characters.
+	 *
+	 * Handles both standard \uXXXX and UTF-16 surrogate pairs (\uD800..\uDBFF\uDC00..\uDFFF).
+	 *
+	 * @param string $text Input text containing possible unicode escape sequences.
+	 * @return string Decoded UTF-8 text.
+	 */
+	public static function decode_unicode_escapes( string $text ): string {
+		if ( '' === $text || false === strpos( $text, '\u' ) ) {
+			return $text;
+		}
+
+		// Handle UTF-16 surrogate pairs (e.g. \uD83D\uDE00 -> emoji)
+		$surrogate_pattern = '/\\\\u([dD][89abAB][0-9a-fA-F]{2})\\\\u([dD][c-fC-F][0-9a-fA-F]{2})/i';
+		$text              = preg_replace_callback(
+			$surrogate_pattern,
+			static function ( $m ) {
+				$high = hexdec( $m[1] );
+				$low  = hexdec( $m[2] );
+				$code = 0x10000 + ( ( $high - 0xD800 ) << 10 ) + ( $low - 0xDC00 );
+				return mb_chr( $code, 'UTF-8' );
+			},
+			$text
+		);
+
+		// Handle standard BMP \uXXXX
+		$text = preg_replace_callback(
+			'/\\\\u([0-9a-fA-F]{4})/i',
+			static function ( $m ) {
+				return mb_chr( (int) hexdec( $m[1] ), 'UTF-8' );
+			},
+			$text
+		);
+
+		return $text;
+	}
+
+	/**
 	 * Decode HTML entities and clean selected invisible characters.
 	 *
 	 * @param string $text Input string.
@@ -86,8 +124,10 @@ class Dom_Filter {
 			return $text;
 		}
 
+		$decoded = self::decode_unicode_escapes( $string );
+
 		$decoded = html_entity_decode(
-			$text,
+			$decoded,
 			ENT_QUOTES | ENT_HTML5,
 			'UTF-8'
 		);

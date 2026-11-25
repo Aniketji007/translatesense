@@ -24,8 +24,8 @@ function disableTranslateButton(button) {
       window.wp &&
       window.wp.i18n &&
       typeof window.wp.i18n.__ === 'function'
-      ? window.wp.i18n.__('Translations Applied', 'translatesense')
-      : 'Translations Applied';
+      ? window.wp.i18n.__('Translation Applied', 'translatesense')
+      : 'Translation Applied';
 
   button.innerHTML = `${appliedText}`;
   button.title = appliedText;

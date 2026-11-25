@@ -149,7 +149,6 @@ class Polylang_Synchronizer {
 	 *     @type bool     $success           Whether all available operations succeeded.
 	 *     @type bool     $taxonomies_synced Whether taxonomy copy ran.
 	 *     @type bool     $post_meta_synced  Whether metadata copy ran.
-	 *     @type bool     $media_synced      Whether featured media was translated.
 	 *     @type string[] $warnings          Non-fatal warnings.
 	 *     @type bool     $skipped           Whether generic synchronization was intentionally skipped.
 	 * }
@@ -160,7 +159,6 @@ class Polylang_Synchronizer {
 			'success'           => true,
 			'taxonomies_synced' => false,
 			'post_meta_synced'  => false,
-			'media_synced'      => false,
 			'warnings'          => array(),
 			'skipped'           => false,
 		);
@@ -246,18 +244,6 @@ class Polylang_Synchronizer {
 
 			if ( ! $post_meta_sync_enabled ) {
 				self::sync_acf_structural_fields( $source_post_id, $target_post_id );
-			}
-
-			// Some Polylang versions/integrations may not route the featured
-			// image through pll_translate_post_meta. Ensure it is translated
-			// once more through the same guarded media resolver.
-			$source_thumbnail_id = (int) get_post_thumbnail_id( $source_post_id );
-			if ( $source_thumbnail_id > 0 ) {
-				$target_thumbnail_id = self::resolve_media_translation( $source_thumbnail_id, $target_lang );
-				if ( $target_thumbnail_id > 0 ) {
-					set_post_thumbnail( $target_post_id, $target_thumbnail_id );
-					$result['media_synced'] = ( $target_thumbnail_id !== $source_thumbnail_id );
-				}
 			}
 
 			// Notify integrations only after the actual synchronization calls
@@ -455,12 +441,42 @@ class Polylang_Synchronizer {
 	 * @return mixed
 	 */
 	public static function translate_post_meta( $value, $key, $lang ) {
-		if ( '_thumbnail_id' !== $key || ! is_numeric( $value ) ) {
-			return $value;
+		if ( '_thumbnail_id' === $key && is_numeric( $value ) ) {
+			$translated_id = self::resolve_media_translation( absint( $value ), (string) $lang );
+			return $translated_id > 0 ? $translated_id : $value;
 		}
 
-		$translated_id = self::resolve_media_translation( absint( $value ), (string) $lang );
-		return $translated_id > 0 ? $translated_id : $value;
+		if ( '_product_image_gallery' === $key ) {
+			if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
+				return $value;
+			}
+
+			$ids = array();
+			if ( is_string( $value ) ) {
+				$ids = array_filter( array_map( 'trim', explode( ',', $value ) ) );
+			} elseif ( is_array( $value ) ) {
+				$ids = $value;
+			}
+
+			if ( empty( $ids ) ) {
+				return $value;
+			}
+
+			$translated_ids = array();
+			foreach ( $ids as $id ) {
+				$id_int = absint( $id );
+				if ( $id_int <= 0 ) {
+					continue;
+				}
+				$translated_id    = self::resolve_media_translation( $id_int, (string) $lang );
+				$translated_ids[] = $translated_id > 0 ? $translated_id : $id_int;
+			}
+
+			$translated_ids = array_values( array_unique( array_filter( $translated_ids ) ) );
+			return is_array( $value ) ? $translated_ids : implode( ',', $translated_ids );
+		}
+
+		return $value;
 	}
 
 	/**
@@ -482,7 +498,7 @@ class Polylang_Synchronizer {
 
 		// Respect Polylang's Media Support setting. When disabled, media IDs
 		// remain shared rather than creating language-specific attachments.
-		if ( ! isset( $polylang->options ) || ! is_array( $polylang->options ) || empty( $polylang->options['media_support'] ) ) {
+		if ( ! Polylang_Bridge::is_media_translation_enabled() ) {
 			return $attachment_id;
 		}
 
@@ -983,7 +999,7 @@ class Polylang_Synchronizer {
 		}
 
 		$data = self::walk_elementor_media_data( $data, $target_lang, '' );
-		$json = wp_json_encode( $data );
+		$json = wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 
 		return is_string( $json ) ? $json : $content;
 	}

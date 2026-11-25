@@ -38,7 +38,7 @@ function SparklesIcon({ size = 18, color = 'currentColor' }) {
   );
 }
 
-function LayersIcon({ size = 18, color = '#2563eb' }) {
+function LayersIcon({ size = 18, color = '#3858e9' }) {
   return (
     <svg
       width={size}
@@ -114,6 +114,25 @@ function CheckIcon({ size = 10, color = '#ffffff' }) {
       aria-hidden="true"
     >
       <polyline points="1.5 5 4.5 8 10.5 1.5" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon({ size = 14, color = 'currentColor' }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
     </svg>
   );
 }
@@ -254,12 +273,6 @@ export function UnifiedBulkSelection({
       return (
         <div className="ts-badge-with-info">
           <span className="ts-provider-badge on-device-badge">On Device</span>
-          <span
-            className="ts-info-icon-small"
-            title="Runs on-device via Chrome Built-in AI"
-          >
-            ⓘ
-          </span>
         </div>
       );
     }
@@ -281,6 +294,25 @@ export function UnifiedBulkSelection({
     !selectedProvider ||
     !isProviderAvailable ||
     isTranslating;
+
+  const getDisableBtnTitle = () => {
+    if (targetLangsCount === 0) {
+      return 'Select at least one target language';
+    }
+
+    if (!selectedProvider) {
+      return 'Please select a translation provider';
+    }
+    if (!isProviderAvailable) {
+      return 'Selected provider is not available';
+    }
+
+    if (isTranslating) {
+      return 'Bulk translation is already in progress';
+    }
+
+    return '';
+  };
 
   return (
     <Modal
@@ -311,6 +343,7 @@ export function UnifiedBulkSelection({
             className="ts-btn ts-btn-primary button-primary"
             disabled={isStartDisabled}
             onClick={onStartTranslation}
+            title={getDisableBtnTitle()}
           >
             <span className="ts-start-icon">
               <TranslateIcon size={16} />
@@ -379,10 +412,15 @@ export function UnifiedBulkSelection({
         <div className="ts-bulk-columns">
           {/* Left Column: Target Languages */}
           <div className="ts-bulk-panel ts-bulk-languages-panel">
+            <div className="ts-bulk-step-badge ts-bulk-step-1" aria-label="Step 1">
+              <span className="ts-step-number">1</span>
+              <span className="ts-step-text">Step</span>
+            </div>
+
             <div className="ts-bulk-panel-header">
               <div className="ts-panel-title-group">
                 <div className="ts-panel-icon-circle">
-                  <GlobeIcon size={19} color="#2563eb" />
+                  <GlobeIcon size={19} color="#3858e9" />
                 </div>
                 <div>
                   <h3 className="ts-panel-title">Target Languages</h3>
@@ -477,14 +515,26 @@ export function UnifiedBulkSelection({
                 })
               )}
             </div>
+
+            {/* Arrow connecting Language Selection to Provider Selection */}
+            <div className="ts-bulk-step-arrow" aria-hidden="true">
+              <div className="ts-bulk-step-arrow-circle">
+                <ArrowRightIcon size={14} color="#3858e9" />
+              </div>
+            </div>
           </div>
 
           {/* Right Column: AI Provider */}
           <div className="ts-bulk-panel ts-bulk-provider-panel">
+            <div className="ts-bulk-step-badge ts-bulk-step-2" aria-label="Step 2">
+              <span className="ts-step-number">2</span>
+              <span className="ts-step-text">Step</span>
+            </div>
+
             <div className="ts-bulk-panel-header">
               <div className="ts-panel-title-group">
-                <div className="ts-panel-icon-circle">
-                  <SparklesIcon size={18} color="#2563eb" />
+                <div className="ts-panel-icon-circle ts-provider-icon-circle">
+                  <SparklesIcon size={18} color="#3858e9" />
                 </div>
                 <div>
                   <h3 className="ts-panel-title">AI Provider</h3>
@@ -537,7 +587,7 @@ export function UnifiedBulkSelection({
         <div className="ts-bulk-summary-bar">
           <div className="ts-summary-item">
             <span className="ts-summary-icon">
-              <LayersIcon size={18} color="#2563eb" />
+              <LayersIcon size={18} color="#3858e9" />
             </span>
             <div className="ts-summary-text">
               <span className="ts-summary-num">{postsCount}</span>
@@ -549,7 +599,7 @@ export function UnifiedBulkSelection({
 
           <div className="ts-summary-item">
             <span className="ts-summary-icon">
-              <GlobeIcon size={19} color="#2563eb" />
+              <GlobeIcon size={19} color="#3858e9" />
             </span>
             <div className="ts-summary-text">
               <span className="ts-summary-num">{targetLangsCount}</span>
@@ -561,17 +611,11 @@ export function UnifiedBulkSelection({
 
           <div className="ts-summary-item">
             <span className="ts-summary-icon">
-              <TranslateIcon size={18} color="#2563eb" />
+              <TranslateIcon size={18} color="#3858e9" />
             </span>
             <div className="ts-summary-text">
               <span className="ts-summary-num">{totalJobs}</span>
               <span className="ts-summary-lbl">Translation Jobs</span>
-              <span
-                className="ts-summary-info-tooltip"
-                title={`${postsCount} ${itemPlural} × ${targetLangsCount} target languages = ${totalJobs} jobs`}
-              >
-                ⓘ
-              </span>
             </div>
           </div>
         </div>

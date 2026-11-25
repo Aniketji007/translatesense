@@ -29,6 +29,19 @@ export function ProviderSelection({
   const isProviderAvailable = Boolean(selectedProviderObj?.isAvailable);
   const isTranslateDisabled = !selectedProvider || !isProviderAvailable || isTranslating;
 
+  const getDisableBtnTitle = () => {
+    if (!selectedProvider) {
+      return 'Please select a translation provider';
+    }
+    if (!isProviderAvailable) {
+      return 'Selected provider is not available';
+    }
+    if (isTranslating) {
+      return 'Bulk translation is already in progress';
+    }
+    return '';
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -54,6 +67,7 @@ export function ProviderSelection({
               variant="primary"
               onClick={onStartTranslation}
               disabled={isTranslateDisabled}
+              title={getDisableBtnTitle()}
             >
               Start Bulk Translation
             </Button>

@@ -12,6 +12,7 @@ namespace TranslateSense\Includes\Content\Parser\Custom_Fields;
 use TranslateSense\Includes\XML\Xml_Engine;
 use TranslateSense\Includes\XML\Custom_Field_Rule_Resolver;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Helper\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -135,17 +136,7 @@ class Custom_Field_Parser {
 	 * @return bool
 	 */
 	public static function is_only_numbers( $value ): bool {
-		if ( is_numeric( $value ) ) {
-			return true;
-		}
-
-		if ( ! is_string( $value ) ) {
-			return false;
-		}
-
-		$plain = trim( wp_strip_all_tags( $value ) );
-
-		return '' !== $plain && is_numeric( $plain );
+		return Utils::is_only_numbers( $value );
 	}
 
 	/**

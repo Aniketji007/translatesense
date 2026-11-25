@@ -134,8 +134,8 @@ export const DashboardIcons = {
   ),
   radioChecked: ({ size = 18, className = '' } = {}) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={`ts-radio-icon checked ${className}`} aria-hidden="true">
-      <circle cx={12} cy={12} r={10} stroke="#2563eb" strokeWidth={2} fill="rgba(37, 99, 235, 0.08)" />
-      <path d="M8 12.5l2.5 2.5 5.5-5.5" stroke="#2563eb" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={12} cy={12} r={10} stroke="#3858e9" strokeWidth={2} fill="rgba(37, 99, 235, 0.08)" />
+      <path d="M8 12.5l2.5 2.5 5.5-5.5" stroke="#3858e9" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   radioUnchecked: ({ size = 18, className = '' } = {}) => (

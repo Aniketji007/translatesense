@@ -11,8 +11,10 @@ namespace TranslateSense\Includes\Bulk;
 
 use TranslateSense\Includes\Content\Parser\Content_Parser;
 use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Manager;
+use TranslateSense\Includes\Content\Parser\Media\Media_Parser;
 use TranslateSense\Includes\Content\Parser\Taxonomy\Taxonomy_Parser;
 use TranslateSense\Includes\Translation\Translate;
+use TranslateSense\Includes\Translation\Media\Media_Translator;
 use TranslateSense\Includes\Translation\Taxonomy\Taxonomy_Translator;
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
@@ -20,6 +22,8 @@ use TranslateSense\Includes\Admin\Editor_Integration;
 use TranslateSense\Includes\Translation\Statics;
 use TranslateSense\Includes\Content\Processor\Block_Processor;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Helper\Utils;
+use TranslateSense\Includes\Integrations\WC\Product_Attribute_Translator;
 
 use WP_Error;
 
@@ -224,13 +228,17 @@ class Bulk_Process {
 
 		$subtype = sanitize_key( (string) ( $options['subtype'] ?? '' ) );
 		$type    = sanitize_key( (string) ( $options['type'] ?? '' ) );
-		if ( 'term' !== $type && '' !== $subtype && taxonomy_exists( $subtype ) ) {
+		if ( 'media' === $type || 'attachment' === $subtype ) {
+			$type    = 'media';
+			$subtype = 'attachment';
+		} elseif ( 'term' !== $type && '' !== $subtype && taxonomy_exists( $subtype ) ) {
 			$type = 'term';
 		} elseif ( 'term' !== $type ) {
 			$type = 'post';
 		}
 
-		$is_term = ( 'term' === $type );
+		$is_term  = ( 'term' === $type );
+		$is_media = ( 'media' === $type );
 		if ( $is_term && '' === $subtype && ! empty( $post_ids ) ) {
 			$first_term = get_term( absint( reset( $post_ids ) ) );
 			if ( $first_term instanceof \WP_Term ) {
@@ -252,43 +260,51 @@ class Bulk_Process {
 			);
 		}
 
-		$is_chrome_ai = ( 'chrome_ai' === $provider || 'chrome_local_ai' === $provider );
-		$is_backend   = ! $is_chrome_ai && ! $is_term;
+		if ( $is_media && ! Polylang_Bridge::is_media_translation_enabled() ) {
+			return array(
+				'batch_id'   => '',
+				'type'       => 'media',
+				'subtype'    => 'attachment',
+				'total_jobs' => 0,
+				'jobs'       => array(),
+				'post_ids'   => array(),
+				'is_backend' => false,
+				'provider'   => $provider,
+				'error'      => __( 'Polylang Media translation is not enabled.', 'translatesense' ),
+			);
+		}
+
+		$is_chrome_ai = Utils::is_browser_provider( $provider );
+		$is_backend   = ! $is_chrome_ai && ! $is_term && ! $is_media;
 
 		if ( $is_term ) {
 			$filtered_terms = Taxonomy_Parser::filter_linked_terms( $post_ids, $subtype );
 			$ordered_terms  = Taxonomy_Parser::order_terms_parent_first( $filtered_terms, $subtype );
 			$post_ids       = array_keys( $ordered_terms );
+		} elseif ( $is_media ) {
+			$post_ids = Media_Parser::filter_linked_attachments( $post_ids );
 		} else {
 			$post_ids = self::filter_linked_posts( $post_ids );
 		}
 
 		$now_utc          = gmdate( 'Y-m-d H:i:s' );
 		$created_by       = absint( get_current_user_id() );
-		$item_type        = $is_term ? 'taxonomy' : 'post';
+		$item_type        = $is_term ? 'taxonomy' : ( $is_media ? 'media' : 'post' );
 		$created_jobs     = array();
 		$has_pending_jobs = false;
-		$languages        = ! $is_term ? Polylang_Bridge::get_languages() : array();
+		$languages        = ( ! $is_term && ! $is_media ) ? Polylang_Bridge::get_languages() : array();
 		$seen_pairs       = array();
 		$cutoff           = time() - DAY_IN_SECONDS;
 		$cutoff_mysql     = gmdate( 'Y-m-d H:i:s', $cutoff );
-		$clean_languages  = array();
-		foreach ( $target_languages as $language ) {
-			if ( is_string( $language ) || is_numeric( $language ) ) {
-				$language = sanitize_key( (string) $language );
-				if ( '' !== $language ) {
-					$clean_languages[] = $language;
-				}
-			}
-		}
-		$target_languages = array_values( array_unique( $clean_languages ) );
+		$target_languages = array_values( array_unique( $target_languages ) );
 
 		foreach ( $post_ids as $p_id ) {
-			$item_id     = (int) $p_id;
-			$source_term = $is_term ? get_term( $item_id, $subtype ) : null;
-			$source_post = ! $is_term ? get_post( $item_id ) : null;
+			$item_id          = (int) $p_id;
+			$source_term      = $is_term ? get_term( $item_id, $subtype ) : null;
+			$source_post      = ! $is_term ? get_post( $item_id ) : null;
+			$source_item_lang = '';
 
-			if ( $is_term ? ( ! $source_term instanceof \WP_Term ) : ( ! $source_post instanceof \WP_Post ) ) {
+			if ( $is_term ? ( ! $source_term instanceof \WP_Term ) : ( ! $source_post instanceof \WP_Post || ( $is_media && 'attachment' !== $source_post->post_type ) ) ) {
 				continue;
 			}
 			$item_subtype = $is_term ? (string) $source_term->taxonomy : (string) $source_post->post_type;
@@ -313,9 +329,13 @@ class Bulk_Process {
 				: (string) get_edit_post_link( $item_id, 'raw' );
 
 			foreach ( $target_languages as $lang ) {
+				if ( ! is_string( $lang ) || is_numeric( $lang ) ) {
+					continue;
+				}
+
 				$target_lang = sanitize_key( $lang );
 
-				if ( '' === $target_lang ) {
+				if ( '' === $target_lang || ( $item_has_language && $source_item_lang === $target_lang ) ) {
 					continue;
 				}
 
@@ -325,7 +345,7 @@ class Bulk_Process {
 				}
 				$seen_pairs[ $pair_key ] = true;
 
-				if ( ! $is_term && $item_has_language ) {
+				if ( ! $is_term && ! $is_media && $item_has_language ) {
 					// A recent pending job already covers this post and language.
 					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 					$pending_job_id = $wpdb->get_var(
@@ -361,6 +381,19 @@ class Bulk_Process {
 						? 'Source term already uses target language'
 						: ( $has_existing_target
 							? ( $term_state['needs_update'] ? 'Queued to update existing translation' : 'Already exists' )
+							: 'Queued' );
+					$target_post_id  = $has_existing_target ? $existing_target_id : 0;
+				} elseif ( $is_media ) {
+					$media_state         = Media_Translator::attachment_has_completed_translation( $item_id, $target_lang );
+					$existing_target_id  = (int) $media_state['target_attachment_id'];
+					$has_existing_target = $media_state['exists'] && ! $media_state['is_same_lang'] && $existing_target_id > 0;
+					$should_skip         = $media_state['is_same_lang'] || ( $media_state['exists'] && ! $media_state['needs_update'] );
+
+					$job_status      = $should_skip ? 'already_exists' : 'processing';
+					$progress_status = $media_state['is_same_lang']
+						? 'Source media already uses target language'
+						: ( $has_existing_target
+							? ( $media_state['needs_update'] ? 'Queued to update existing translation' : 'Already exists' )
 							: 'Queued' );
 					$target_post_id  = $has_existing_target ? $existing_target_id : 0;
 				} else {
@@ -417,18 +450,22 @@ class Bulk_Process {
 				if ( $source_term instanceof \WP_Term ) {
 					$target_term_obj                = $has_existing_target ? get_term( $target_post_id, $source_term->taxonomy ) : null;
 					$temp_data['editor_type']       = 'taxonomy';
-					$temp_data['post_title']        = ! empty( $source_term->name ) ? $source_term->name : sprintf( '#%d', $item_id );
+					$temp_data['post_title']        = ! empty( $source_term->name ) ? Dom_Filter::decode_html_string( $source_term->name ) : sprintf( '#%d', $item_id );
 					$temp_data['target_post_title'] = ( $target_term_obj instanceof \WP_Term ) ? Dom_Filter::decode_html_string( $target_term_obj->name ) : '';
 					$temp_data['view_url']          = $has_existing_target ? self::get_safe_term_link( $target_post_id, $source_term->taxonomy ) : '';
 					$temp_data['edit_url']          = $has_existing_target ? (string) get_edit_term_link( $target_post_id, $source_term->taxonomy ) : '';
 				} else {
 					$raw_source_title               = get_the_title( $item_id );
 					$raw_target_title               = $has_existing_target ? get_the_title( $target_post_id ) : '';
-					$temp_data['editor_type']       = Editor_Integration::get_post_editor_type( $has_existing_target ? $target_post_id : $item_id );
-					$temp_data['post_title']        = ! empty( $raw_source_title ) ? $raw_source_title : sprintf( '#%d', $item_id );
+					$temp_data['editor_type']       = $is_media ? 'media' : Editor_Integration::get_post_editor_type( $has_existing_target ? $target_post_id : $item_id );
+					$temp_data['post_title']        = ! empty( $raw_source_title ) ? Dom_Filter::decode_html_string( $raw_source_title ) : sprintf( '#%d', $item_id );
 					$temp_data['target_post_title'] = ! empty( $raw_target_title ) ? Dom_Filter::decode_html_string( $raw_target_title ) : '';
-					$temp_data['view_url']          = ( $has_existing_target && ! $is_trashed_target ) ? get_permalink( $target_post_id ) : '';
-					$temp_data['edit_url']          = ( $has_existing_target && $target_post_id && ! $is_trashed_target ) ? Editor_Integration::get_post_edit_link( $target_post_id ) : '';
+					$temp_data['view_url']          = ( $has_existing_target && ! $is_trashed_target )
+						? ( $is_media ? Utils::get_safe_attachment_url( $target_post_id ) : get_permalink( $target_post_id ) )
+						: '';
+					$temp_data['edit_url']          = ( $has_existing_target && $target_post_id && ! $is_trashed_target )
+						? ( $is_media ? (string) get_edit_post_link( $target_post_id, 'raw' ) : Editor_Integration::get_post_edit_link( $target_post_id ) )
+						: '';
 				}
 
 				// Existing translations are informational only; do not persist them as
@@ -536,10 +573,14 @@ class Bulk_Process {
 			$target_lang  = sanitize_key( (string) $row['target_language'] );
 			$item_type    = ! empty( $row['item_type'] ) ? sanitize_key( (string) $row['item_type'] ) : 'post';
 			$is_term      = ( 'taxonomy' === $item_type );
+			$is_media     = ( 'media' === $item_type );
 			$provider     = sanitize_key( (string) $row['provider'] );
 			$required_cap = $is_term ? 'edit_term' : 'edit_post';
 
 			if ( $post_id <= 0 || ! current_user_can( $required_cap, $post_id ) ) {
+				continue;
+			}
+			if ( $is_media && ! Polylang_Bridge::is_media_translation_enabled() ) {
 				continue;
 			}
 
@@ -579,6 +620,13 @@ class Bulk_Process {
 						$progress_status   = 'Already exists';
 					}
 				}
+			} elseif ( $is_media ) {
+				$media_state = Media_Translator::attachment_has_completed_translation( $post_id, $target_lang );
+				if ( $media_state['exists'] && ! $media_state['is_same_lang'] && ! $media_state['needs_update'] && ! empty( $media_state['target_attachment_id'] ) ) {
+					$is_already_exists = true;
+					$target_id         = (int) $media_state['target_attachment_id'];
+					$progress_status   = 'Already exists';
+				}
 			} else {
 				$existing_trans_id = self::get_existing_translation_post_id( $post_id, $target_lang );
 				if ( $existing_trans_id > 0 && $existing_trans_id !== $post_id ) {
@@ -599,31 +647,31 @@ class Bulk_Process {
 				'updated_at'        => $now_utc,
 			);
 
-			// A taxonomy job is executed by the browser, so claim its retry atomically
+			// Taxonomy and media jobs are executed by the browser, so claim their retry atomically
 			// to prevent two browser sessions from processing the same job.
-			$retry_where        = $is_term
+			$is_client_driven   = $is_term || $is_media;
+			$retry_where        = $is_client_driven
 				? array(
 					'id'     => $job_id,
 					'status' => (string) $row['status'],
 				)
 				: array( 'id' => $job_id );
-			$retry_where_format = $is_term ? array( '%d', '%s' ) : array( '%d' );
+			$retry_where_format = $is_client_driven ? array( '%d', '%s' ) : array( '%d' );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$updated = $wpdb->update(
+			$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$table,
 				$update_data,
 				$retry_where,
 				array( '%s', '%s', '%d', '%s', '%d', '%s' ),
 				$retry_where_format
 			);
-			if ( $is_term && 1 !== $updated ) {
+			if ( $is_client_driven && 1 !== $updated ) {
 				continue;
 			}
 
 			if ( 'pending' === $new_status ) {
-				$is_chrome_ai = ( 'chrome_ai' === $provider || 'chrome_local_ai' === $provider );
-				if ( ! $is_chrome_ai && ! $is_term ) {
+				$is_chrome_ai = Utils::is_browser_provider( $provider );
+				if ( ! $is_chrome_ai && ! $is_client_driven ) {
 					$has_backend_queue = true;
 				}
 
@@ -700,9 +748,8 @@ class Bulk_Process {
 	}
 
 	/**
-	 * Reconcile taxonomy jobs started by the browser that did not report a final
-	 * status. Taxonomy jobs have no server-side worker, so only stale jobs are
-	 * considered and each translation relationship is checked before recovery.
+	 * Reconcile browser-driven taxonomy and media jobs that did not report a final
+	 * status before the recovery timeout.
 	 *
 	 * @return int Number of reconciled jobs.
 	 */
@@ -718,7 +765,7 @@ class Bulk_Process {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$jobs = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT id, post_id, target_language, updated_at FROM {$table} WHERE item_type = 'taxonomy' AND status = 'processing' AND updated_at < %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT id, item_type, post_id, target_language, updated_at FROM {$table} WHERE item_type IN ('taxonomy', 'media') AND status = 'processing' AND updated_at < %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$cutoff
 			),
 			ARRAY_A
@@ -727,32 +774,40 @@ class Bulk_Process {
 		$reconciled = 0;
 		foreach ( (array) $jobs as $job ) {
 			$job_id      = absint( $job['id'] ?? 0 );
-			$term_id     = absint( $job['post_id'] ?? 0 );
+			$item_type   = sanitize_key( (string) ( $job['item_type'] ?? 'taxonomy' ) );
+			$is_media    = ( 'media' === $item_type );
+			$item_id     = absint( $job['post_id'] ?? 0 );
 			$target_lang = sanitize_key( (string) ( $job['target_language'] ?? '' ) );
 			$updated_at  = (string) ( $job['updated_at'] ?? '' );
-			$term        = $term_id > 0 ? get_term( $term_id ) : null;
 
-			if ( $job_id <= 0 || ! $term instanceof \WP_Term || '' === $target_lang ) {
+			$term     = ( ! $is_media && $item_id > 0 ) ? get_term( $item_id ) : null;
+			$is_valid = $job_id > 0 && '' !== $target_lang && ( $is_media ? Media_Parser::is_valid_attachment( $item_id ) : $term instanceof \WP_Term );
+
+			if ( ! $is_valid ) {
 				$updates = array(
 					'status'          => 'failed',
-					'progress_status' => __( 'Failed: Taxonomy job could not be recovered', 'translatesense' ),
-					'error_message'   => __( 'The taxonomy source term or target language is no longer valid.', 'translatesense' ),
+					'progress_status' => $is_media ? __( 'Failed: Media job could not be recovered', 'translatesense' ) : __( 'Failed: Taxonomy job could not be recovered', 'translatesense' ),
+					'error_message'   => __( 'The source item or target language is no longer valid.', 'translatesense' ),
 					'updated_at'      => $now,
 				);
 			} else {
-				$term_state = Taxonomy_Translator::term_has_completed_translation( $term_id, (string) $term->taxonomy, $target_lang );
-				if ( $term_state['exists'] && ! $term_state['needs_update'] ) {
+				$state     = $is_media
+					? Media_Translator::attachment_has_completed_translation( $item_id, $target_lang )
+					: Taxonomy_Translator::term_has_completed_translation( $item_id, (string) $term->taxonomy, $target_lang );
+				$target_id = (int) ( $is_media ? $state['target_attachment_id'] : $state['target_term_id'] );
+
+				if ( $state['exists'] && ! $state['needs_update'] ) {
 					$updates = array(
 						'status'          => 'completed',
 						'progress_status' => __( 'Completed successfully (recovered)', 'translatesense' ),
 						'error_message'   => null,
-						'target_post_id'  => (int) $term_state['target_term_id'],
+						'target_post_id'  => $target_id,
 						'updated_at'      => $now,
 					);
 				} else {
 					$updates = array(
 						'status'          => 'failed',
-						'progress_status' => __( 'Failed: Taxonomy job timed out', 'translatesense' ),
+						'progress_status' => $is_media ? __( 'Failed: Media job timed out', 'translatesense' ) : __( 'Failed: Taxonomy job timed out', 'translatesense' ),
 						'error_message'   => __( 'The browser translation did not finish before the recovery timeout. Retry this job to continue.', 'translatesense' ),
 						'updated_at'      => $now,
 					);
@@ -766,7 +821,7 @@ class Bulk_Process {
 				$updates,
 				array(
 					'id'         => $job_id,
-					'item_type'  => 'taxonomy',
+					'item_type'  => $item_type,
 					'status'     => 'processing',
 					'updated_at' => $updated_at,
 				),
@@ -1113,6 +1168,11 @@ class Bulk_Process {
 
 			// Synchronize dynamic custom-field packages and refresh package list.
 			Custom_Field_Manager::ensure_package_prepared( $post_id, $source_lang, $editor_type );
+
+			if ( 'product' === $source_post->post_type ) {
+				Product_Attribute_Translator::ensure_product_package_prepared( $post_id, $source_lang, $editor_type );
+			}
+
 			$packages = Hashing_Db::get_post_package( $post_id, $source_lang, $editor_type, $package_options );
 
 			if ( ! is_array( $packages ) ) {
@@ -1129,6 +1189,31 @@ class Bulk_Process {
 				$packages = array_merge( $packages, $taxonomy_strings );
 			}
 
+			// Runtime featured-image and WooCommerce gallery strings (extracted in memory only; never persisted as package rows).
+			if ( Polylang_Bridge::is_media_translation_enabled() ) {
+				$media_strings = Media_Parser::extract_featured_image_strings(
+					$post_id,
+					$target_lang,
+					$perm_context['user_id'],
+					$perm_context['enforce_permissions']
+				);
+				if ( ! empty( $media_strings ) ) {
+					$packages = array_merge( $packages, $media_strings );
+				}
+
+				if ( 'product' === $source_post->post_type ) {
+					$gallery_strings = Media_Parser::extract_product_gallery_strings(
+						$post_id,
+						$target_lang,
+						$perm_context['user_id'],
+						$perm_context['enforce_permissions']
+					);
+					if ( ! empty( $gallery_strings ) ) {
+						$packages = array_merge( $packages, $gallery_strings );
+					}
+				}
+			}
+
 			$packages = array_values( $packages );
 			foreach ( $packages as $package ) {
 				if ( ! is_array( $package ) ) {
@@ -1136,28 +1221,28 @@ class Bulk_Process {
 				}
 			}
 
-			// Extract pure strings indexed by array index.
-			$settings         = get_option( 'translatesense_settings', array() );
-			$raw_slug_trans   = ! empty( $settings['slug_translation'] ) ? sanitize_key( (string) $settings['slug_translation'] ) : 'slug_translate';
-			$slug_translation = in_array( $raw_slug_trans, array( 'keep_orignal', 'title_based', 'slug_translate' ), true ) ? $raw_slug_trans : 'slug_translate';
+			// Extract pure strings indexed by array index
+			$slug_translation = Utils::get_slug_translation();
 			$strings_to_send  = array();
+			$total_chars      = 0;
 
 			foreach ( $packages as $idx => $pkg ) {
-				$pkg_name = sanitize_key( is_array( $pkg ) ? ( $pkg['name'] ?? ( $pkg['widget_name'] ?? '' ) ) : '' );
-				if ( ( $is_retranslation || 'slug_translate' !== $slug_translation ) && 'post_name' === $pkg_name ) {
+				$pkg_name      = sanitize_key( is_array( $pkg ) ? ( $pkg['name'] ?? ( $pkg['widget_name'] ?? '' ) ) : '' );
+				$is_slug_field = 'post_name' === $pkg_name
+					|| ( isset( $pkg['term_field'] ) && 'slug' === $pkg['term_field'] )
+					|| ( isset( $pkg['media_field'] ) && 'post_name' === $pkg['media_field'] );
+
+				if ( ( $is_retranslation || 'slug_translate' !== $slug_translation ) && $is_slug_field ) {
 					continue;
 				}
 				if ( isset( $pkg['value'] ) && ! empty( $pkg['value'] ) ) {
 					$str                     = (string) $pkg['value'];
 					$strings_to_send[ $idx ] = $str;
+					$total_chars            += Utils::strlen_utf8( $str );
 				}
 			}
 
-			$total_str   = count( $strings_to_send );
-			$total_chars = 0;
-			foreach ( $strings_to_send as $str_to_count ) {
-				$total_chars += function_exists( 'mb_strlen' ) ? mb_strlen( (string) $str_to_count, 'UTF-8' ) : strlen( (string) $str_to_count );
-			}
+			$total_str = count( $strings_to_send );
 
 			// Check if cancellation was requested before calling AI.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
@@ -1191,7 +1276,7 @@ class Bulk_Process {
 					'progress_status' => $is_retranslation
 						? sprintf( 'Updating existing translation (%d strings)...', $total_str )
 						: sprintf( 'Translating strings (%d found)...', $total_str ),
-					'sent_data'       => wp_json_encode( $strings_to_send ),
+					'sent_data'       => wp_json_encode( $strings_to_send, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 					'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
 				)
 			);
@@ -1273,7 +1358,16 @@ class Bulk_Process {
 				}
 			}
 
-			// Final pre-save check: ensure cancellation was not requested immediately before DB write.
+			// Update receive_data in queue table immediately upon receiving AI response
+			self::update_job(
+				$job_id,
+				array(
+					'receive_data' => wp_json_encode( $translated_content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+					'updated_at'   => gmdate( 'Y-m-d H:i:s' ),
+				)
+			);
+
+			// Final pre-save check: ensure cancellation was not requested immediately before DB write
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$pre_save_status = $wpdb->get_var(
 				$wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $job_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -1345,7 +1439,7 @@ class Bulk_Process {
 					$completed_label,
 					$total_str,
 					$target_post_id,
-					wp_json_encode( $translated_content ),
+					wp_json_encode( $translated_content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
 					gmdate( 'Y-m-d H:i:s' ),
 					$job_id
 				)
@@ -1503,12 +1597,29 @@ class Bulk_Process {
 		$table = self::get_table_name();
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		return $wpdb->get_row(
+		$job = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$table} WHERE id = %d LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$job_id
 			)
 		);
+
+		if ( $job ) {
+			if ( ! empty( $job->receive_data ) && false !== strpos( $job->receive_data, '\u' ) ) {
+				$decoded = json_decode( $job->receive_data, true );
+				if ( is_array( $decoded ) ) {
+					$job->receive_data = wp_json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+				}
+			}
+			if ( ! empty( $job->sent_data ) && false !== strpos( $job->sent_data, '\u' ) ) {
+				$decoded = json_decode( $job->sent_data, true );
+				if ( is_array( $decoded ) ) {
+					$job->sent_data = wp_json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+				}
+			}
+		}
+
+		return $job;
 	}
 
 	/**
@@ -1534,6 +1645,29 @@ class Bulk_Process {
 		);
 
 		return false !== $result;
+	}
+
+	/**
+	 * Mark an active queue job as failed and return the originating WP_Error.
+	 *
+	 * @param int      $job_id          Queue job ID.
+	 * @param string   $progress_status Human-readable failure progress status.
+	 * @param WP_Error $error           Failure error object.
+	 * @return WP_Error
+	 */
+	public static function fail_job( int $job_id, string $progress_status, WP_Error $error ): WP_Error {
+		if ( $job_id > 0 ) {
+			self::update_job(
+				$job_id,
+				array(
+					'progress_status' => $progress_status,
+					'status'          => 'failed',
+					'error_message'   => $error->get_error_message(),
+				)
+			);
+		}
+
+		return $error;
 	}
 
 	/**
@@ -1604,6 +1738,7 @@ class Bulk_Process {
 			$post_id      = (int) $row['post_id'];
 			$row_type     = ! empty( $row['item_type'] ) ? sanitize_key( (string) $row['item_type'] ) : 'post';
 			$is_taxonomy  = ( 'taxonomy' === $row_type );
+			$is_media     = ( 'media' === $row_type );
 			$required_cap = $is_taxonomy ? 'edit_term' : 'edit_post';
 
 			if ( $post_id <= 0 || ! is_user_logged_in() || ! current_user_can( $required_cap, $post_id ) ) {
@@ -1635,7 +1770,7 @@ class Bulk_Process {
 			if ( $is_taxonomy ) {
 				$source_term       = get_term( $post_id );
 				$term_taxonomy     = ( $source_term instanceof \WP_Term ) ? (string) $source_term->taxonomy : '';
-				$post_title        = ( $source_term instanceof \WP_Term ) ? $source_term->name : sprintf( '#%d', $post_id );
+				$post_title        = ( $source_term instanceof \WP_Term ) ? Dom_Filter::decode_html_string( $source_term->name ) : sprintf( '#%d', $post_id );
 				$target_term       = ( $target_post_id > 0 && '' !== $term_taxonomy ) ? get_term( $target_post_id, $term_taxonomy ) : null;
 				$target_post_title = ( $target_term instanceof \WP_Term ) ? Dom_Filter::decode_html_string( $target_term->name ) : '';
 				$editor_type       = 'taxonomy';
@@ -1649,16 +1784,20 @@ class Bulk_Process {
 				}
 			} else {
 				$post              = get_post( $post_id );
-				$post_title        = $post ? $post->post_title : sprintf( '#%d', $post_id );
+				$post_title        = $post ? Dom_Filter::decode_html_string( $post->post_title ) : sprintf( '#%d', $post_id );
 				$target_post       = $target_post_id ? get_post( $target_post_id ) : null;
 				$target_post_title = $target_post ? Dom_Filter::decode_html_string( $target_post->post_title ) : '';
 				$is_trashed_target = ( $target_post instanceof \WP_Post && 'trash' === $target_post->post_status );
-				$editor_type       = $target_post_id ? Editor_Integration::get_post_editor_type( $target_post_id ) : ( $row['editor_type'] ?? 'classic' );
-				$edit_url          = ( $target_post_id && ! $is_trashed_target ) ? Editor_Integration::get_post_edit_link( $target_post_id ) : '';
+				$editor_type       = $is_media ? 'media' : ( $target_post_id ? Editor_Integration::get_post_editor_type( $target_post_id ) : ( $row['editor_type'] ?? 'classic' ) );
+				$edit_url          = ( $target_post_id && ! $is_trashed_target )
+					? ( $is_media ? (string) get_edit_post_link( $target_post_id, 'raw' ) : Editor_Integration::get_post_edit_link( $target_post_id ) )
+					: '';
 				$source_edit_url   = $post ? (string) get_edit_post_link( $post_id, 'raw' ) : '';
-				$view_url          = ( $target_post_id && ! $is_trashed_target && current_user_can( 'edit_post', $target_post_id ) ) ? get_permalink( $target_post_id ) : '';
+				$view_url          = ( $target_post_id && ! $is_trashed_target && current_user_can( 'edit_post', $target_post_id ) )
+					? ( $is_media ? Utils::get_safe_attachment_url( $target_post_id ) : get_permalink( $target_post_id ) )
+					: '';
 
-				if ( $target_post_id && ! get_post( $target_post_id ) ) {
+				if ( $target_post_id && ( $is_media ? ! Media_Parser::is_valid_attachment( $target_post_id ) : ! get_post( $target_post_id ) ) ) {
 					self::update_job( (int) $row['id'], array( 'status' => 'failed' ) );
 					$status = 'failed';
 				}
@@ -1679,7 +1818,7 @@ class Bulk_Process {
 				$sent_arr = json_decode( $row['sent_data'], true );
 				if ( is_array( $sent_arr ) ) {
 					foreach ( $sent_arr as $item_text ) {
-						$t_chars += mb_strlen( (string) $item_text );
+						$t_chars += Utils::strlen_utf8( (string) $item_text );
 					}
 				}
 			}
@@ -1714,6 +1853,8 @@ class Bulk_Process {
 				'source_edit_url'      => $source_edit_url,
 				'view_url'             => $view_url,
 				'error_message'        => $row['error_message'],
+				'sent_data'            => ! empty( $row['sent_data'] ) ? json_decode( $row['sent_data'], true ) : null,
+				'receive_data'         => ! empty( $row['receive_data'] ) ? json_decode( $row['receive_data'], true ) : null,
 				'created_at'           => ! empty( $row['created_at'] ) ? str_replace( ' ', 'T', (string) $row['created_at'] ) . 'Z' : '',
 				'updated_at'           => ! empty( $row['updated_at'] ) ? str_replace( ' ', 'T', (string) $row['updated_at'] ) . 'Z' : '',
 			);

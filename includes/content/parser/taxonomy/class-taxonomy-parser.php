@@ -9,11 +9,10 @@ declare(strict_types=1);
 
 namespace TranslateSense\Includes\Content\Parser\Taxonomy;
 
-use TranslateSense\Includes\Content\Parser\Custom_Fields\Custom_Field_Parser;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
 use TranslateSense\Includes\Database\Hashing_Db;
+use TranslateSense\Includes\Helper\Utils;
 use TranslateSense\Includes\Integrations\Polylang\Polylang_Bridge;
-use TranslateSense\Includes\Translation\Translate;
 use TranslateSense\Includes\XML\Custom_Field_Rule_Resolver;
 use TranslateSense\Includes\XML\Xml_Engine;
 use WP_Post;
@@ -415,13 +414,7 @@ class Taxonomy_Parser {
 	 * @return bool
 	 */
 	public static function user_has_cap( $user, string $capability, ...$args ): bool {
-		if ( '' === $capability ) {
-			return false;
-		}
-
-		return null === $user
-			? current_user_can( $capability, ...$args )
-			: user_can( $user, $capability, ...$args );
+		return Utils::user_has_cap( $user, $capability, ...$args );
 	}
 
 	/**
@@ -455,8 +448,8 @@ class Taxonomy_Parser {
 		$value = (string) $filtered;
 		if (
 			'' === trim( $value )
-			|| Translate::is_email_or_url( $value )
-			|| ( 'meta' === $term_field && Custom_Field_Parser::is_only_numbers( $value ) )
+			|| Utils::is_email_or_url( $value )
+			|| ( 'meta' === $term_field && Utils::is_only_numbers( $value ) )
 		) {
 			return null;
 		}
@@ -514,10 +507,15 @@ class Taxonomy_Parser {
 				return array();
 			}
 
-			foreach ( array(
+			$fields = array(
 				'name'        => (string) $term->name,
 				'description' => (string) $term->description,
-			) as $field => $raw_val ) {
+			);
+			if ( 'slug_translate' === Utils::get_slug_translation() ) {
+				$fields['slug'] = (string) $term->slug;
+			}
+
+			foreach ( $fields as $field => $raw_val ) {
 				$item = self::format_string_item( $term, 'taxonomy_term', 'term_' . (int) $term->term_id . '_' . $field, $raw_val, $field );
 				if ( null !== $item ) {
 					$strings[] = $item;

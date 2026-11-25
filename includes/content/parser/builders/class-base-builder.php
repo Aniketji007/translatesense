@@ -11,6 +11,7 @@ namespace TranslateSense\Includes\Content\Parser\Builders;
 
 use TranslateSense\Includes\Database\Hashing_Db;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Helper\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -90,47 +91,7 @@ abstract class Base_Builder {
 	 * @return bool
 	 */
 	public function is_email_or_url( string $str ): bool {
-		$trimmed = trim( wp_strip_all_tags( html_entity_decode( $str, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
-
-		if ( '' === $trimmed ) {
-			return false;
-		}
-
-		// 1. Email validation or mailto: links
-		if ( filter_var( $trimmed, FILTER_VALIDATE_EMAIL ) ) {
-			return true;
-		}
-		if ( 0 === stripos( $trimmed, 'mailto:' ) ) {
-			return true;
-		}
-		if ( preg_match( '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $trimmed ) ) {
-			return true;
-		}
-
-		// 2. Direct URL validation
-		if ( filter_var( $trimmed, FILTER_VALIDATE_URL ) ) {
-			return true;
-		}
-
-		// 3. Common URL protocols & schemas (http, https, ftp, //, www, tel, sms, javascript, etc.)
-		if ( preg_match( '/^(https?:\/\/|ftp:\/\/|\/\/|www\.)/i', $trimmed ) ) {
-			return true;
-		}
-		if ( preg_match( '/^(tel:|sms:|javascript:|callto:|whatsapp:)/i', $trimmed ) ) {
-			return true;
-		}
-
-		// 4. Common media / asset file URLs or paths
-		if ( preg_match( '/^(\/|\.\/|\.\.\/|#)?[^\s]*\.(png|jpe?g|gif|svg|webp|avif|pdf|mp4|webm|zip|tar|gz|css|js|woff2?|ttf|eot)(\?.*)?$/i', $trimmed ) ) {
-			return true;
-		}
-
-		// 5. Domain-like strings (e.g. domain.com/path)
-		if ( preg_match( '/^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\/[^\s]*$/i', $trimmed ) ) {
-			return true;
-		}
-
-		return false;
+		return Utils::is_email_or_url( $str );
 	}
 
 	/**
