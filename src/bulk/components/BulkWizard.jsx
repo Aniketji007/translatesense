@@ -36,7 +36,6 @@ export function BulkWizard({
     isCompleted,
     progressPercent,
     statusText,
-    completedJobsCount,
     totalJobsCount,
     formattedTimer,
     humanReadableTimer,
@@ -139,7 +138,7 @@ export function BulkWizard({
           actionUrl={errorModal.actionUrl}
           actionLabel={errorModal.actionLabel}
           icon={errorModal.icon}
-          onClose={() =>
+          onClose={() => {
             setErrorModal({
               isOpen: false,
               type: 'error',
@@ -153,6 +152,10 @@ export function BulkWizard({
               actionUrl: '',
               actionLabel: '',
             })
+            if (!postResultsMap || Object.keys(postResultsMap).length <= 0) {
+              handleModalClose();
+            }
+          }
           }
         />
       ) : currentStep === 1 ? (
@@ -260,7 +263,6 @@ export function BulkWizard({
           isCompleted={isCompleted}
           statusText={statusText}
           progressPercent={progressPercent}
-          completedJobsCount={completedJobsCount}
           totalJobsCount={totalJobsCount}
           formattedTimer={formattedTimer}
           humanReadableTimer={humanReadableTimer}

@@ -404,7 +404,7 @@
       '<div class="ts-header-icon-box">' +
       (safeLogoSrc
         ? '<img src="' + safeLogoSrc + '" alt="TranslateSense" class="ts-header-icon-img" />'
-        : '<span class="dashicons dashicons-translation" style="font-size: 22px; width: 22px; height: 22px; color: #2563eb;"></span>') +
+        : '<span class="dashicons dashicons-translation" style="font-size: 22px; width: 22px; height: 22px; color: #3858e9;"></span>') +
       '</div>' +
       '<div class="ts-header-text-wrap">' +
       '<h2 class="ts-modal-title ts-common-title">Translate Page Content</h2>' +
@@ -496,7 +496,7 @@
         if (elementorButton) {
           translateBtn.disabled = true;
           translateBtn.innerHTML =
-            '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span> Opening Elementor...';
+            '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></span> Opening Elementor...';
 
           elementorButton.click();
         } else {
@@ -508,7 +508,7 @@
           if ($goToEditLink && $goToEditLink.length) {
             translateBtn.disabled = true;
             translateBtn.innerHTML =
-              '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span> Opening Elementor...';
+              '<span class="ts-spinner-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></span> Opening Elementor...';
 
             $goToEditLink[0].click();
           } else {
