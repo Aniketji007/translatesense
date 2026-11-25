@@ -913,6 +913,18 @@ class Translate {
 	}
 
 	public static function update_pending_translation( int $source_id, int $post_id, array $custom_opts ) {
+		if ( $source_id <= 0 || $post_id <= 0 ) {
+			return;
+		}
+
+		$user_id = ( array_key_exists( 'user_id', $custom_opts ) && null !== $custom_opts['user_id'] )
+			? (int) $custom_opts['user_id']
+			: null;
+
+		if ( ! Utils::user_has_cap( $user_id, 'edit_post', $post_id ) || ! Utils::user_has_cap( $user_id, 'edit_post', $source_id ) ) {
+			return;
+		}
+
 		$source_lang = Polylang_Bridge::get_post_language( $source_id );
 		$target_lang = Polylang_Bridge::get_post_language( $post_id );
 		$is_existing = true;

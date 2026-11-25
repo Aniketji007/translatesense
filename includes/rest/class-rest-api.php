@@ -2234,10 +2234,24 @@ class Rest_Api {
 	 */
 	public static function permission_mark_translated( WP_REST_Request $request ) {
 
-		return self::require_edit_post(
-			self::get_request_post_id( $request ),
+		$post_id = self::get_request_post_id( $request );
+		$can     = self::require_edit_post(
+			$post_id,
 			__( 'You are not allowed to mark this post as translated.', 'translatesense' )
 		);
+
+		if ( is_wp_error( $can ) ) {
+			return $can;
+		}
+
+		$source_id = absint( get_post_meta( $post_id, '_translatesense_source_id', true ) );
+		if ( $source_id > 0 && $source_id !== $post_id && get_post( $source_id ) && ! current_user_can( 'edit_post', $source_id ) ) {
+			return self::permission_error(
+				__( 'You are not allowed to mark a translation linked to this source post.', 'translatesense' )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -4577,14 +4591,27 @@ class Rest_Api {
 		}
 
 		// Receive and validate in_memory_translation parameter.
-		$raw_in_memory             = $request->get_param( 'in_memory_translation' );
-		$in_memory_translation     = is_array( $raw_in_memory ) ? $raw_in_memory : array();
+		$raw_in_memory         = $request->get_param( 'in_memory_translation' );
+		$in_memory_translation = self::parse_translation_payload( $raw_in_memory );
+		if ( is_wp_error( $in_memory_translation ) ) {
+			return $in_memory_translation;
+		}
 		$filter_memory_translation = array();
 
 		// Use $source_id from '_translatesense_source_id' if available, falling back to $post_id.
 		$source_id      = absint( get_post_meta( $post_id, '_translatesense_source_id', true ) );
 		$source_post_id = $source_id > 0 ? $source_id : $post_id;
 		$source_post    = get_post( $source_post_id );
+
+		if ( $source_id > 0 && $source_id !== $post_id && $source_post instanceof \WP_Post && ! current_user_can( 'edit_post', $source_post_id ) ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'You do not have permission to access this source post.', 'translatesense' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
 
 		if ( ! empty( $in_memory_translation ) && $source_post instanceof \WP_Post ) {
 			$editor_type    = Content_Parser::detect_builder( $source_post->post_content, $source_post_id );
@@ -4607,7 +4634,10 @@ class Rest_Api {
 					$value
 				);
 
-				if ( isset( $in_memory_translation[ $package_hash ] ) ) {
+				if (
+					isset( $in_memory_translation[ $package_hash ] ) &&
+					is_string( $in_memory_translation[ $package_hash ] )
+				) {
 					$translated_value = (string) $in_memory_translation[ $package_hash ];
 					$filtered_value   = Translate::sanitize_translated_text(
 						$source_string,
@@ -4628,7 +4658,10 @@ class Rest_Api {
 					$post_title
 				);
 
-				if ( isset( $in_memory_translation[ $post_title_hash ] ) ) {
+				if (
+					isset( $in_memory_translation[ $post_title_hash ] ) &&
+					is_string( $in_memory_translation[ $post_title_hash ] )
+				) {
 					$translated_slug = (string) $in_memory_translation[ $post_title_hash ];
 					$filtered_value  = sanitize_text_field( (string) $translated_slug );
 
