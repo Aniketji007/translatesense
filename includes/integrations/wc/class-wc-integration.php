@@ -203,6 +203,49 @@ final class WC_Integration {
 		// Make the cloned CRUD object a new product.
 		$target_product->set_id( 0 );
 
+		// Apply prepared post_data and pll_sync_post_fields constraints before saving
+		// so draft-intended products are never transiently published or expose excluded fields.
+		$post_data     = is_array( $post_data ) ? $post_data : array();
+		$target_status = ! empty( $post_data['post_status'] )
+			? sanitize_key( (string) $post_data['post_status'] )
+			: 'draft';
+		$target_product->set_status( $target_status );
+
+		if ( array_key_exists( 'post_title', $post_data ) ) {
+			$target_product->set_name( (string) $post_data['post_title'] );
+		}
+		if ( array_key_exists( 'post_content', $post_data ) ) {
+			$target_product->set_description( (string) $post_data['post_content'] );
+		}
+		if ( array_key_exists( 'post_excerpt', $post_data ) ) {
+			$target_product->set_short_description( (string) $post_data['post_excerpt'] );
+		}
+
+		$target_product->set_slug(
+			! empty( $post_data['post_name'] ) ? sanitize_title( (string) $post_data['post_name'] ) : ''
+		);
+		$target_product->set_parent_id(
+			array_key_exists( 'post_parent', $post_data ) ? absint( $post_data['post_parent'] ) : 0
+		);
+		$target_product->set_menu_order(
+			array_key_exists( 'menu_order', $post_data ) ? (int) $post_data['menu_order'] : 0
+		);
+		$target_product->set_reviews_allowed(
+			array_key_exists( 'comment_status', $post_data ) && 'open' === $post_data['comment_status']
+		);
+
+		if ( method_exists( $target_product, 'set_post_password' ) ) {
+			$target_product->set_post_password(
+				array_key_exists( 'post_password', $post_data ) ? (string) $post_data['post_password'] : ''
+			);
+		}
+
+		if ( array_key_exists( 'post_date', $post_data ) && ! empty( $post_data['post_date'] ) && '0000-00-00 00:00:00' !== $post_data['post_date'] ) {
+			$target_product->set_date_created( (string) $post_data['post_date'] );
+		} else {
+			$target_product->set_date_created( null );
+		}
+
 		// Reset statistics that should not be inherited by a translation.
 		$target_product->set_total_sales( 0 );
 		$target_product->set_rating_counts( array() );

@@ -445,9 +445,9 @@ class Polylang_Bridge {
 		 */
 		$target_post_id = apply_filters( 'translatesense_before_save_translated_post', $target_post_id, $source_post_id, $target_lang, $is_existing, $post_data );
 
-		if ( $is_existing || $target_post_id > 0 ) {
-			$is_existing = true;
+		$has_target_post = ( $is_existing || $target_post_id > 0 );
 
+		if ( $has_target_post ) {
 			if ( ! isset( $post_data['ID'] ) ) {
 				$post_data['ID'] = $target_post_id;
 			}

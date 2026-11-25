@@ -498,10 +498,16 @@ class Content_Parser {
 		$target_lang = Polylang_Bridge::get_post_language( $post_id );
 
 		if ( $source_id > 0 && $source_post instanceof \WP_Post ) {
+			if ( ! current_user_can( 'edit_post', $post_id ) || ! current_user_can( 'edit_post', $source_id ) ) {
+				return false;
+			}
+
 			if ( ! empty( $target_lang ) ) {
 				self::$finalized_posts[ $post_id ] = false;
 				$custom_opts                       = array(
 					'in_memory_translations' => $pending_memory_translations,
+					'user_id'                => get_current_user_id(),
+					'skip_unauthorized'      => true,
 				);
 				Translate::update_pending_translation( $source_id, $post_id, $custom_opts );
 			}
