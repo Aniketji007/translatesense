@@ -303,7 +303,7 @@ class Gutenberg_Builder extends Base_Builder {
 		$dom              = new DOMDocument( '1.0', 'UTF-8' );
 		$previous_setting = libxml_use_internal_errors( true );
 		$wrapped          = '<?xml encoding="UTF-8"><body>' . $html . '</body>';
-		$loaded           = $dom->loadHTML( $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+		$loaded           = $dom->loadHTML( $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET );
 		libxml_clear_errors();
 		libxml_use_internal_errors( $previous_setting );
 
@@ -432,7 +432,7 @@ class Gutenberg_Builder extends Base_Builder {
 			'<?xml encoding="UTF-8"><div id="ts-fragment-root">' .
 			$html .
 			'</div>',
-			LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+			LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET
 		);
 
 		libxml_clear_errors();
@@ -884,7 +884,7 @@ class Gutenberg_Builder extends Base_Builder {
 				if ( $allow_html && false !== strpos( $new_content, '<' ) && class_exists( 'DOMDocument' ) ) {
 					$frag_doc = new DOMDocument();
 					libxml_use_internal_errors( true );
-					$frag_doc->loadHTML( '<?xml encoding="UTF-8"><body>' . $new_content . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+					$frag_doc->loadHTML( '<?xml encoding="UTF-8"><body>' . $new_content . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET );
 					libxml_clear_errors();
 					$frag_body = $frag_doc->getElementsByTagName( 'body' )->item( 0 );
 					if ( $frag_body && $frag_body->hasChildNodes() ) {
