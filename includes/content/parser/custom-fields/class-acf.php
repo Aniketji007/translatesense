@@ -6,6 +6,7 @@ namespace TranslateSense\Includes\Content\Parser\Custom_Fields;
 
 use TranslateSense\Includes\XML\Custom_Field_Rule_Resolver;
 use TranslateSense\Includes\Content\Parser\Dom_Filter;
+use TranslateSense\Includes\Helper\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -171,7 +172,7 @@ class Acf {
 			case 'link':
 				$raw_val = get_post_meta( $post_id, $current_path, true );
 				if ( is_string( $raw_val ) && is_serialized( $raw_val ) ) {
-					$raw_val = self::safe_unserialize_meta( $raw_val );
+					$raw_val = Utils::safe_unserialize( $raw_val );
 				}
 				if ( is_array( $raw_val ) && ! empty( $raw_val['title'] ) && is_string( $raw_val['title'] ) && '' !== trim( $raw_val['title'] ) ) {
 					if ( ! Custom_Field_Parser::is_only_numbers( $raw_val['title'] ) ) {
@@ -207,7 +208,7 @@ class Acf {
 
 				$layout_order = get_post_meta( $post_id, $current_path, true );
 				if ( is_string( $layout_order ) && is_serialized( $layout_order ) ) {
-					$layout_order = self::safe_unserialize_meta( $layout_order );
+					$layout_order = Utils::safe_unserialize( $layout_order );
 				}
 
 				if ( is_array( $layout_order ) ) {
@@ -279,33 +280,5 @@ class Acf {
 				);
 			}
 		}
-	}
-
-	/**
-	 * Unserialize metadata values safely without instantiating PHP objects.
-	 *
-	 * @param mixed $value Raw metadata value.
-	 * @return mixed Unserialized value, or the original value when it is not serialized data.
-	 */
-	private static function safe_unserialize_meta( $value ) {
-		if ( ! is_string( $value ) || ! is_serialized( $value ) ) {
-			return $value;
-		}
-
-		$trimmed = trim( $value );
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize, WordPress.PHP.NoSilencedErrors.Discouraged -- Required to safely decode serialized metadata without instantiating PHP objects; malformed data is handled by the return check below.
-		$unserialized = @unserialize(
-			$trimmed,
-			array(
-				'allowed_classes' => false,
-			)
-		);
-
-		if ( false !== $unserialized || 'b:0;' === $trimmed ) {
-			return $unserialized;
-		}
-
-		return $value;
 	}
 }
