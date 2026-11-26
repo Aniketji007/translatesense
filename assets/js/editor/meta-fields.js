@@ -422,7 +422,7 @@
       let repeaterField = element.closest('.acf-field.acf-field-repeater');
 
       const repeaterPaths = [];
-      parent = element.parentElement;
+      let parent = element.parentElement;
 
       while (parent) {
 
@@ -658,7 +658,7 @@
         (options.options && options.options.provider) ||
         this.provider;
 
-      if (options.sourcePageData.allowedFields) {
+      if (options.sourcePageData && options.sourcePageData.allowedFields) {
         this.allowedFields = options.sourcePageData.allowedFields;
       }
 
