@@ -3531,7 +3531,7 @@ class Rest_Api {
 			$expected_masked = self::mask_api_key( $existing_key );
 			$provider_id     = str_replace( '_api_key', '', $key );
 
-			// 1. If the submitted API key is empty, do not update the existing saved API key.
+			// 1. If the submitted API key is empty, clear the existing saved API key.
 			if ( '' === $value ) {
 				if ( isset( $updated[ $key ] ) ) {
 					unset( $updated[ $key ] );

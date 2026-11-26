@@ -127,7 +127,7 @@ class Ai_Connector_Bridge {
 			return $custom_error;
 		}
 
-		if ( ! in_array( $provider, array( 'openai', 'gemini' ) ) ) {
+		if ( ! in_array( $provider, array( 'openai', 'gemini' ), true ) ) {
 			$custom_error->add( 'invalid_provider', __( 'Invalid Provider', 'translatesense' ) );
 			return $custom_error;
 		}
@@ -918,7 +918,7 @@ class Ai_Connector_Bridge {
 		$provider_id   = sanitize_key( $id );
 		$core_provider = ( 'gemini' === $provider_id ) ? 'google' : $provider_id;
 
-		if ( ! in_array( $core_provider, array( 'google', 'openai' ) ) ) {
+		if ( ! in_array( $core_provider, array( 'google', 'openai' ), true ) ) {
 			return array();
 		}
 
