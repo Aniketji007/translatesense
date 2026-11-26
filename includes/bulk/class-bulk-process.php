@@ -1,4 +1,9 @@
 <?php
+/**
+ * Background queue processing for bulk translation.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -26,6 +31,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Background queue processing for bulk translation.
+ */
 class Bulk_Process {
 
 	const CRON_HOOK            = 'translatesense_bulk_process_cron';
@@ -44,6 +52,8 @@ class Bulk_Process {
 
 	/**
 	 * Add custom batch intervals (every minute / 30 seconds).
+	 *
+	 * @param mixed $schedules Existing cron schedules.
 	 */
 	public static function add_cron_intervals( $schedules ) {
 		if ( ! isset( $schedules[ self::CRON_INTERVAL ] ) ) {
@@ -68,8 +78,8 @@ class Bulk_Process {
 	/**
 	 * Check if a translated post already exists for a post and target language.
 	 *
-	 * @param int    $post_id
-	 * @param string $target_lang
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target language code.
 	 * @return int Target post ID if exists, or 0 if not
 	 */
 	public static function get_existing_translation_post_id( int $post_id, string $target_lang ): int {
@@ -99,7 +109,7 @@ class Bulk_Process {
 			return array();
 		}
 
-		// If Polylang is not active, posts cannot be linked translations via Polylang
+		// If Polylang is not active, posts cannot be linked translations via Polylang.
 		if ( ! class_exists( Polylang_Bridge::class ) || ! Polylang_Bridge::is_polylang_active() ) {
 			return $clean_post_ids;
 		}
@@ -116,10 +126,10 @@ class Bulk_Process {
 				continue;
 			}
 
-			// Retrieve all linked translations for this post
+			// Retrieve all linked translations for this post.
 			$translations = (array) Polylang_Bridge::get_post_translations( $post_id );
 
-			// If no linked translations found, keep the post as-is
+			// If no linked translations found, keep the post as-is.
 			if ( empty( $translations ) ) {
 				if ( ! isset( $filtered_lookup[ $post_id ] ) ) {
 					$filtered_post_ids[]         = $post_id;
@@ -128,18 +138,18 @@ class Bulk_Process {
 				continue;
 			}
 
-			// Create a unique group key based on sorted translation post IDs
+			// Create a unique group key based on sorted translation post IDs.
 			$group_ids = array_values( array_unique( array_filter( array_map( 'absint', $translations ) ) ) );
 			sort( $group_ids );
 			$group_key = implode( '_', $group_ids );
 
-			// If this translation group has already been handled, skip
+			// If this translation group has already been handled, skip.
 			if ( isset( $processed_group_keys[ $group_key ] ) ) {
 				continue;
 			}
 			$processed_group_keys[ $group_key ] = true;
 
-			// Posts from this translation group that were passed in the user's post_ids
+			// Posts from this translation group that were passed in the user's post_ids.
 			$selected_in_group = array();
 			foreach ( $group_ids as $pid ) {
 				if ( isset( $selected_lookup[ $pid ] ) ) {
@@ -151,11 +161,11 @@ class Bulk_Process {
 				continue;
 			}
 
-			// Identify default language post ID for this group
+			// Identify default language post ID for this group.
 			$default_post_id      = isset( $translations[ $default_lang ] ) ? absint( $translations[ $default_lang ] ) : 0;
 			$default_in_user_list = ( $default_post_id > 0 && in_array( $default_post_id, $selected_in_group, true ) );
 
-			// Check which selected posts have package strings saved in translatesense_packages
+			// Check which selected posts have package strings saved in translatesense_packages.
 			$posts_with_packages = array();
 			if ( class_exists( Hashing_Db::class ) ) {
 				foreach ( $selected_in_group as $pid ) {
@@ -188,6 +198,15 @@ class Bulk_Process {
 		return $filtered_post_ids;
 	}
 
+	/**
+	 * Create batch.
+	 *
+	 * @param array  $post_ids Post ids.
+	 * @param array  $target_languages List of target language codes.
+	 * @param string $provider AI provider ID.
+	 * @param array  $options Options array.
+	 * @return array
+	 */
 	public static function create_batch( array $post_ids, array $target_languages, string $provider = 'openai', array $options = array() ): array {
 		global $wpdb;
 
@@ -565,7 +584,7 @@ class Bulk_Process {
 				continue;
 			}
 
-			// Validate if language is assigned now
+			// Validate if language is assigned now.
 			$has_lang = true;
 			if ( $is_term ) {
 				if ( function_exists( 'pll_get_term_language' ) ) {
@@ -586,7 +605,7 @@ class Bulk_Process {
 				continue;
 			}
 
-			// Check if target translation already exists
+			// Check if target translation already exists.
 			$is_already_exists = false;
 			$target_id         = 0;
 			$progress_status   = 'Queued';
@@ -656,7 +675,7 @@ class Bulk_Process {
 					$has_backend_queue = true;
 				}
 
-				// Build job record for client execution if needed
+				// Build job record for client execution if needed.
 				$retried_jobs[] = array_merge( $row, $update_data );
 				++$retried_count;
 			}
@@ -1031,17 +1050,23 @@ class Bulk_Process {
 	/**
 	 * Process exactly one backend job. The public worker owns the global lock
 	 * and decides whether to claim another job in the same execution.
+	 *
+	 * @return void
+	 *
+	 * @throws \Exception When the post of a queued job no longer exists.
+	 * @throws \UnexpectedValueException When the translation package or provider response is invalid.
+	 * @throws \RuntimeException When the translation provider request fails.
 	 */
 	private static function process_next_backend_job(): void {
 		global $wpdb;
 		$table = self::get_table_name();
 
-		// Fail any queue post more than 1 day old so it is not translated
+		// Fail any queue post more than 1 day old so it is not translated.
 		self::cleanup_expired_jobs();
 
 		// Do not reset stale running jobs solely by age: an AI request may legitimately take longer than 10 minutes.
 
-		// Clean up any stale cancelling jobs older than 10 minutes
+		// Clean up any stale cancelling jobs older than 10 minutes.
 		$stale_cancelling_cutoff = gmdate( 'Y-m-d H:i:s', time() - ( 10 * MINUTE_IN_SECONDS ) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$wpdb->query(
@@ -1059,7 +1084,7 @@ class Bulk_Process {
 		);
 
 		if ( ! $job ) {
-			// No more pending jobs, remove cron if everything is completed/failed/skipped
+			// No more pending jobs, remove cron if everything is completed/failed/skipped.
 			self::unschedule_cron_if_idle();
 			return;
 		}
@@ -1072,7 +1097,7 @@ class Bulk_Process {
 		$existing_target_post_id = absint( $job['target_post_id'] );
 		$is_retranslation        = $existing_target_post_id > 0 && $existing_target_post_id !== $post_id;
 
-		// Double-check: if queue post is more than 1 day old, fail it immediately and do not translate
+		// Double-check: if queue post is more than 1 day old, fail it immediately and do not translate.
 		$created_ts = ! empty( $job['created_at'] ) ? strtotime( $job['created_at'] . ' UTC' ) : 0;
 		if ( $created_ts > 0 && ( time() - $created_ts ) >= DAY_IN_SECONDS ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -1095,7 +1120,7 @@ class Bulk_Process {
 			return;
 		}
 
-		// Atomically claim and mark as running
+		// Atomically claim and mark as running.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$claimed = $wpdb->query(
 			$wpdb->prepare(
@@ -1107,7 +1132,7 @@ class Bulk_Process {
 		);
 
 		if ( ! $claimed ) {
-			// Job was claimed by another thread or already skipped
+			// Job was claimed by another thread or already skipped.
 			if ( ! self::has_pending_or_running_jobs() ) {
 				self::unschedule_cron_if_idle();
 			}
@@ -1141,7 +1166,7 @@ class Bulk_Process {
 				$packages = Content_Parser::parse( '', $post_id, $source_lang, $editor_type );
 			}
 
-			// Synchronize dynamic custom-field packages and refresh package list
+			// Synchronize dynamic custom-field packages and refresh package list.
 			Custom_Field_Manager::ensure_package_prepared( $post_id, $source_lang, $editor_type );
 
 			if ( 'product' === $source_post->post_type ) {
@@ -1219,14 +1244,14 @@ class Bulk_Process {
 
 			$total_str = count( $strings_to_send );
 
-			// Check if cancellation was requested before calling AI
+			// Check if cancellation was requested before calling AI.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$pre_ai_status = $wpdb->get_var(
 				$wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $job_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			);
 
 			if ( 'cancelling' === $pre_ai_status || 'skipped' === $pre_ai_status ) {
-				// Cancellation requested: skip immediately without calling AI
+				// Cancellation requested: skip immediately without calling AI.
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 				$wpdb->query(
 					$wpdb->prepare(
@@ -1243,7 +1268,7 @@ class Bulk_Process {
 				return;
 			}
 
-			// Save AI request data with clean source strings array
+			// Save AI request data with clean source strings array.
 			self::update_job(
 				$job_id,
 				array(
@@ -1271,14 +1296,14 @@ class Bulk_Process {
 				throw new \UnexpectedValueException( 'The translation provider returned an invalid response.' );
 			}
 
-			// Check if cancellation was requested while AI was processing
+			// Check if cancellation was requested while AI was processing.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$post_ai_status = $wpdb->get_var(
 				$wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $job_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			);
 
 			if ( 'cancelling' === $post_ai_status || 'skipped' === $post_ai_status ) {
-				// Cancellation requested: DO NOT apply AI response to target post and DO NOT save translation
+				// Cancellation requested: DO NOT apply AI response to target post and DO NOT save translation.
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 				$wpdb->query(
 					$wpdb->prepare(
@@ -1306,10 +1331,10 @@ class Bulk_Process {
 
 				$translated_str = (string) $ai_response[ $idx ]['translated'];
 
-				// Save translated content in smart indexed format
+				// Save translated content in smart indexed format.
 				$translated_content[ $idx ] = $translated_str;
 
-				// Match index with packages array to resolve hash
+				// Match index with packages array to resolve hash.
 				if ( isset( $packages[ $idx ] ) ) {
 					$pkg  = $packages[ $idx ];
 					$hash = is_array( $pkg ) ? ( $pkg['hash'] ?? ( $pkg['package_hash'] ?? '' ) ) : '';
@@ -1398,7 +1423,7 @@ class Bulk_Process {
 				$completed_label = __( 'Translation completed with synchronization warnings. Review the target post.', 'translatesense' );
 			}
 
-			// If target post contains Gutenberg blocks, mark for block processor check
+			// If target post contains Gutenberg blocks, mark for block processor check.
 			if ( $target_post_id > 0 ) {
 				$target_post = get_post( $target_post_id );
 				if ( $target_post && function_exists( 'has_blocks' ) && has_blocks( $target_post->post_content ) ) {
@@ -1436,7 +1461,7 @@ class Bulk_Process {
 				)
 			);
 		} catch ( \Throwable $e ) {
-			// Check if failure occurred during or after a cancellation request
+			// Check if failure occurred during or after a cancellation request.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$err_status = $wpdb->get_var(
 				$wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $job_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -1546,11 +1571,11 @@ class Bulk_Process {
 	/**
 	 * Synchronously translate a complete post (Title, Content, Elementor/Gutenberg data) and create Polylang linked post.
 	 *
-	 * @param int    $post_id
-	 * @param string $target_lang
-	 * @param string $provider
-	 * @param array  $in_memory_translations
-	 * @param array  $options
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target language code.
+	 * @param string $provider AI provider ID.
+	 * @param array  $in_memory_translations In memory translations.
+	 * @param array  $options Options array.
 	 * @return array|WP_Error
 	 */
 	public static function execute_post_translation_sync( int $post_id, string $target_lang, string $provider, array $in_memory_translations = array(), array $options = array() ) {
@@ -1560,7 +1585,7 @@ class Bulk_Process {
 	/**
 	 * Get a single job row by ID.
 	 *
-	 * @param int $job_id
+	 * @param int $job_id Job ID.
 	 * @return object|null
 	 */
 	public static function get_job( int $job_id ) {
@@ -1600,8 +1625,8 @@ class Bulk_Process {
 	/**
 	 * Update a job row in the bulk translation table.
 	 *
-	 * @param int   $job_id
-	 * @param array $data
+	 * @param int   $job_id Job ID.
+	 * @param array $data Data array.
 	 * @return bool
 	 */
 	public static function update_job( int $job_id, array $data ): bool {
@@ -1648,8 +1673,8 @@ class Bulk_Process {
 	/**
 	 * Get aggregated batch status for 5-second polling endpoint.
 	 *
-	 * @param string $batch_id
-	 * @param int    $post_id
+	 * @param string $batch_id Batch ID.
+	 * @param int    $post_id Post ID.
 	 * @return array
 	 */
 	public static function get_batch_status( string $batch_id, int $post_id = 0 ): array {
@@ -1840,7 +1865,7 @@ class Bulk_Process {
 
 		$pending_strings = max( 0, $total_strings - $completed_strings );
 
-		// Calculate overall batch progress percentage (post-weighted: each post contributes equally)
+		// Calculate overall batch progress percentage (post-weighted: each post contributes equally).
 		$overall_progress = 0;
 		if ( $total_jobs > 0 ) {
 			$total_progress_sum = 0;
@@ -1942,7 +1967,7 @@ class Bulk_Process {
 			);
 		}
 
-		// Verify job records exist for this batch and post
+		// Verify job records exist for this batch and post.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$jobs = $wpdb->get_results(
 			$wpdb->prepare(
@@ -1978,7 +2003,7 @@ class Bulk_Process {
 			);
 		}
 
-		// Validate provider: MUST be OpenAI or Gemini server-side background provider
+		// Validate provider: MUST be OpenAI or Gemini server-side background provider.
 		foreach ( $jobs as $j ) {
 			$prov = strtolower( (string) $j['provider'] );
 			if ( ! in_array( $prov, array( 'openai', 'gemini' ), true ) ) {
@@ -1990,7 +2015,7 @@ class Bulk_Process {
 			}
 		}
 
-		// Check if any job is pending or running
+		// Check if any job is pending or running.
 		$has_active = false;
 		foreach ( $jobs as $j ) {
 			if ( in_array( $j['status'], array( 'pending', 'running' ), true ) ) {
@@ -2033,10 +2058,10 @@ class Bulk_Process {
 			)
 		);
 
-		// If no active jobs left, unschedule cron
+		// If no active jobs left, unschedule cron.
 		self::unschedule_cron_if_idle();
 
-		// Return updated batch status
+		// Return updated batch status.
 		$updated_status = self::get_batch_status( $batch_id );
 
 		return array(

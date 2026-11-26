@@ -1,4 +1,9 @@
 <?php
+/**
+ * Parses post content into translatable strings.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -68,14 +73,14 @@ class Content_Parser {
 		// Hook before post update to capture existing post_content before it is overwritten in DB
 		add_action( 'post_updated', array( __CLASS__, 'capture_post_updated' ), 10, 3 );
 
-		// Hook into post save lifecycle to check for content modifications
+		// Hook into post save lifecycle to check for content modifications.
 		add_action( 'save_post', array( __CLASS__, 'handle_save_post' ), 25, 2 );
 
-		// Hook into elementor post save lifecycle to check for element modifications
+		// Hook into elementor post save lifecycle to check for element modifications.
 		add_action( 'elementor/document/before_save', array( __CLASS__, 'handle_elementor_save_post' ), 10, 2 );
 		add_action( 'elementor/document/after_save', array( __CLASS__, 'handle_elementor_after_save_post' ), 10, 2 );
 
-		// Hook into permanent post deletion lifecycle to purge package data
+		// Hook into permanent post deletion lifecycle to purge package data.
 		add_action( 'before_delete_post', array( __CLASS__, 'handle_delete_post' ), 10, 1 );
 	}
 
@@ -108,8 +113,8 @@ class Content_Parser {
 	/**
 	 * Register or override a builder parser instance.
 	 *
-	 * @param string       $slug
-	 * @param Base_Builder $builder
+	 * @param string       $slug Slug.
+	 * @param Base_Builder $builder Builder name.
 	 */
 	public static function register_builder( string $slug, Base_Builder $builder ): void {
 		self::$builders[ sanitize_key( $slug ) ] = $builder;
@@ -118,7 +123,7 @@ class Content_Parser {
 	/**
 	 * Get a builder parser instance by slug.
 	 *
-	 * @param string $slug
+	 * @param string $slug Slug.
 	 * @return Base_Builder|null
 	 */
 	public static function get_builder( string $slug ): ?Base_Builder {
@@ -130,8 +135,8 @@ class Content_Parser {
 	/**
 	 * Automatically detect builder type from post ID or content structure.
 	 *
-	 * @param mixed $content
-	 * @param int   $post_id
+	 * @param mixed $content Content to process.
+	 * @param int   $post_id Post ID.
 	 * @return string 'gutenberg' | 'elementor' | 'classic'
 	 */
 	public static function detect_builder( $content = '', int $post_id = 0 ): string {
@@ -147,7 +152,7 @@ class Content_Parser {
 			return 'elementor';
 		}
 
-		// Check Gutenberg blocks
+		// Check Gutenberg blocks.
 		if ( is_array( $content ) || ( is_string( $content ) && function_exists( 'has_blocks' ) && has_blocks( $content ) ) ) {
 			return 'gutenberg';
 		}
@@ -158,21 +163,21 @@ class Content_Parser {
 	/**
 	 * Parse content for translatable strings using the appropriate builder.
 	 *
-	 * @param mixed  $content Content string, block array, or Elementor JSON/array
-	 * @param int    $post_id Post ID (optional)
-	 * @param string $lang    Source language code (optional, auto-detected if empty)
-	 * @param string $builder Builder slug (optional, auto-detected if empty)
+	 * @param mixed  $content Content string, block array, or Elementor JSON/array.
+	 * @param int    $post_id Post ID (optional).
+	 * @param string $lang Source language code (optional, auto-detected if empty).
+	 * @param string $builder Builder slug (optional, auto-detected if empty).
 	 * @return array Extracted strings array
 	 */
 	public static function parse( $content = '', int $post_id = 0, string $lang = '', string $builder = '' ): array {
 		self::init_builders();
 
-		// Auto-detect source language
+		// Auto-detect source language.
 		if ( empty( $lang ) && $post_id > 0 && class_exists( 'TranslateSense\\Includes\\Integrations\\Polylang\\Polylang_Bridge' ) ) {
 			$lang = Polylang_Bridge::get_post_language( $post_id );
 		}
 
-		// If content is empty and post_id is provided, retrieve content from post
+		// If content is empty and post_id is provided, retrieve content from post.
 		if ( empty( $content ) && $post_id > 0 ) {
 			$post = get_post( $post_id );
 			if ( $post ) {
@@ -180,7 +185,7 @@ class Content_Parser {
 			}
 		}
 
-		// Auto-detect builder
+		// Auto-detect builder.
 		if ( empty( $builder ) ) {
 			$builder = self::detect_builder( $content, $post_id );
 		}
@@ -201,7 +206,7 @@ class Content_Parser {
 
 		$extracted = array();
 
-		// Save and append core post fields (post_title, post_name, post_excerpt)
+		// Save and append core post fields (post_title, post_name, post_excerpt).
 		if ( $post_id > 0 && ! empty( $lang ) && class_exists( Hashing_Db::class ) ) {
 			$post_obj = get_post( $post_id );
 			if ( $post_obj ) {
@@ -281,6 +286,12 @@ class Content_Parser {
 		return array_values( (array) $extracted );
 	}
 
+	/**
+	 * Check whether is save package.
+	 *
+	 * @param mixed $post_id Post ID.
+	 * @return bool
+	 */
 	public static function is_save_package( $post_id ): bool {
 		if ( ! $post_id ) {
 			return false;
@@ -308,7 +319,7 @@ class Content_Parser {
 			return false;
 		}
 
-		// Check all linked Polylang translation posts
+		// Check all linked Polylang translation posts.
 		if ( class_exists( 'TranslateSense\\Includes\\Integrations\\Polylang\\Polylang_Bridge' ) && Polylang_Bridge::is_polylang_active() ) {
 			$default_lang = Polylang_Bridge::get_default_language();
 			$post_lang    = Polylang_Bridge::get_post_language( $post_id );
@@ -318,11 +329,11 @@ class Content_Parser {
 				foreach ( $translations as $lang => $linked_post_id ) {
 					$linked_post_id = (int) $linked_post_id;
 					if ( $linked_post_id > 0 && $linked_post_id !== (int) $post_id ) {
-						// If any linked post is in Polylang default language and already has packages saved, return false
+						// If any linked post is in Polylang default language and already has packages saved, return false.
 						if ( $lang === $default_lang && class_exists( Hashing_Db::class ) && Hashing_Db::has_post_packages( $linked_post_id ) ) {
 							return false;
 						}
-						// If this post is not default language, and another linked post already has packages saved, return false
+						// If this post is not default language, and another linked post already has packages saved, return false.
 						if ( $post_lang !== $default_lang && class_exists( Hashing_Db::class ) && Hashing_Db::has_post_packages( $linked_post_id ) ) {
 							return false;
 						}
@@ -345,8 +356,8 @@ class Content_Parser {
 	 * Compares new update data with existing saved data for _elementor_data.
 	 * If they are not the same, triggers delete_post_packages (does not re-parse content).
 	 *
-	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document $document Elementor document
-	 * @param array                                                            $data     Post data
+	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document $document Elementor document.
+	 * @param array                                                            $data Post data.
 	 */
 	public static function handle_elementor_save_post( $document, $data ): void {
 		if ( ! isset( $data ) || ! is_array( $data ) || count( $data ) === 0 ) {
@@ -366,7 +377,7 @@ class Content_Parser {
 		// Detect source language
 		$lang = Polylang_Bridge::get_post_language( $post_id );
 
-		// Extract new elements data from payload
+		// Extract new elements data from payload.
 		$new_elements = null;
 		if ( isset( $data['elements'] ) ) {
 			$new_elements = $data['elements'];
@@ -384,27 +395,28 @@ class Content_Parser {
 
 		$new_data_array = is_string( $new_elements ) ? json_decode( $new_elements, true ) : $new_elements;
 
-		// Get existing saved _elementor_data from post meta
+		// Get existing saved _elementor_data from post meta.
 		$existing_raw        = get_post_meta( $post_id, '_elementor_data', true );
 		$existing_data_array = is_string( $existing_raw ) && '' !== trim( $existing_raw )
 			? json_decode( $existing_raw, true )
 			: ( is_array( $existing_raw ) ? $existing_raw : null );
 
-		// Compare new and existing _elementor_data
+		// Compare new and existing _elementor_data.
 		$is_changed = false;
 		if ( empty( $new_data_array ) && empty( $existing_data_array ) ) {
 			$is_changed = false;
 		} elseif ( empty( $new_data_array ) || empty( $existing_data_array ) ) {
 			$is_changed = true;
 		} else {
-			$is_changed = ( $new_data_array != $existing_data_array );
+			// Loose comparison on purpose: only values matter here, not key order.
+			$is_changed = ( $new_data_array != $existing_data_array ); // phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual
 		}
 
-		// If new or existing data not same, trigger only delete_post_packages (do not parse here)
+		// If new or existing data not same, trigger only delete_post_packages (do not parse here).
 		if ( $is_changed && class_exists( Hashing_Db::class ) ) {
 			Hashing_Db::delete_post_packages( $post_id, ! empty( $lang ) ? $lang : null, 'elementor' );
 		} else {
-			// Elements condition is false: delete post_title / post_name package if changed
+			// Elements condition is false: delete post_title / post_name package if changed.
 			$override_meta = array();
 			if ( isset( $data['settings']['post_title'] ) && is_string( $data['settings']['post_title'] ) ) {
 				$override_meta['post_title'] = $data['settings']['post_title'];
@@ -420,7 +432,7 @@ class Content_Parser {
 	 * @param \Elementor\Core\DocumentTypes\Page|\Elementor\Core\Base\Document|mixed $document Elementor document.
 	 * @param array|null                                                             $data     Post data.
 	 */
-	public static function handle_elementor_after_save_post( $document, $data = null ): void {
+	public static function handle_elementor_after_save_post( $document, $data = null ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( ! $document || ! is_object( $document ) || ! method_exists( $document, 'get_id' ) ) {
 			return;
 		}
@@ -547,8 +559,8 @@ class Content_Parser {
 	 * If they are not the same, triggers delete_post_packages (does not re-parse content).
 	 * If content did not change (delete condition false), deletes post_name or post_title package if value changed.
 	 *
-	 * @param int           $post_id Post ID
-	 * @param \WP_Post|null $post    Post object
+	 * @param int           $post_id Post ID.
+	 * @param \WP_Post|null $post Post object.
 	 */
 	public static function handle_save_post( int $post_id, $post = null ): void {
 
@@ -568,7 +580,7 @@ class Content_Parser {
 			return;
 		}
 
-		// Detect source language
+		// Detect source language.
 		$lang = '';
 		if ( class_exists( 'TranslateSense\\Includes\\Integrations\\Polylang\\Polylang_Bridge' ) ) {
 			$lang = Polylang_Bridge::get_post_language( $post_id );
@@ -579,13 +591,13 @@ class Content_Parser {
 			return;
 		}
 
-		// Detect editor type / builder
+		// Detect editor type / builder.
 		$builder = self::detect_builder( $post->post_content, $post_id );
 
-		// Elementor content (_elementor_data) is handled in handle_elementor_save_post
+		// Elementor content (_elementor_data) is handled in handle_elementor_save_post.
 		if ( 'elementor' === $builder ) {
 			unset( self::$existing_post_content[ $post_id ] );
-			// If an Elementor post is saved via WP admin, check and delete changed title or slug
+			// If an Elementor post is saved via WP admin, check and delete changed title or slug.
 			self::check_and_delete_changed_metadata_packages( $post_id, $post );
 			return;
 		}
@@ -593,7 +605,7 @@ class Content_Parser {
 		$existing_content = self::$existing_post_content[ $post_id ] ?? null;
 		unset( self::$existing_post_content[ $post_id ] );
 
-		// If there is no existing content recorded (e.g. brand new post), check metadata
+		// If there is no existing content recorded (e.g. brand new post), check metadata.
 		if ( null === $existing_content ) {
 			self::check_and_delete_changed_metadata_packages( $post_id, $post );
 			return;
@@ -601,15 +613,15 @@ class Content_Parser {
 
 		$new_content = (string) $post->post_content;
 
-		// Normalize line breaks for accurate comparison
+		// Normalize line breaks for accurate comparison.
 		$normalized_new      = str_replace( "\r\n", "\n", $new_content );
 		$normalized_existing = str_replace( "\r\n", "\n", (string) $existing_content );
 
-		// If new or existing data not same, trigger only delete_post_packages (do not parse here)
+		// If new or existing data not same, trigger only delete_post_packages (do not parse here).
 		if ( $normalized_new !== $normalized_existing && class_exists( Hashing_Db::class ) ) {
 			Hashing_Db::delete_post_packages( $post_id, ! empty( $lang ) ? $lang : null, ! empty( $builder ) ? $builder : null );
 		} else {
-			// Content condition is false: delete post_title / post_name package if value changed
+			// Content condition is false: delete post_title / post_name package if value changed.
 			self::check_and_delete_changed_metadata_packages( $post_id, $post );
 		}
 	}
@@ -645,7 +657,7 @@ class Content_Parser {
 		$packages_table = Hashing_Db::get_packages_table();
 		$strings_table  = Hashing_Db::get_strings_table();
 
-		// Fetch currently saved post_title and post_name packages for this post
+		// Fetch currently saved post_title and post_name packages for this post.
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$saved_rows = $wpdb->get_results(
 			$wpdb->prepare(

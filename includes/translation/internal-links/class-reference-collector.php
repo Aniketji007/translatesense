@@ -1,4 +1,9 @@
 <?php
+/**
+ * Collects content references that need to be translated.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -44,12 +49,12 @@ class Reference_Collector {
 	/**
 	 * Recursively extract references from arbitrary value.
 	 *
-	 * @param mixed    $value
-	 * @param string[] $urls
-	 * @param int[]    $attachment_ids
-	 * @param string[] $media_urls
-	 * @param string   $parent_key
-	 * @param int      $depth
+	 * @param mixed    $value Value.
+	 * @param string[] $urls List of URLs.
+	 * @param int[]    $attachment_ids Attachment ids.
+	 * @param string[] $media_urls Media urls.
+	 * @param string   $parent_key Parent key.
+	 * @param int      $depth Nesting depth.
 	 */
 	protected function extract_from_value( $value, array &$urls, array &$attachment_ids, array &$media_urls, string $parent_key = '', int $depth = 0 ): void {
 		if ( $depth > 30 || null === $value ) {
@@ -62,7 +67,7 @@ class Reference_Collector {
 				return;
 			}
 
-			// Check if string is JSON data (e.g. Elementor data)
+			// Check if string is JSON data (e.g. Elementor data).
 			if ( ( ( 0 === strpos( $trimmed, '[' ) ) && ( ']' === substr( $trimmed, -1 ) ) ) ||
 				( ( 0 === strpos( $trimmed, '{' ) ) && ( '}' === substr( $trimmed, -1 ) ) ) ) {
 				$decoded = json_decode( $trimmed, true );
@@ -72,7 +77,7 @@ class Reference_Collector {
 				}
 			}
 
-			// Standard text / HTML / Gutenberg content
+			// Standard text / HTML / Gutenberg content.
 			$this->extract_from_html_and_blocks( $trimmed, $urls, $attachment_ids, $media_urls );
 			return;
 		}
@@ -85,12 +90,12 @@ class Reference_Collector {
 	/**
 	 * Extract references from structured array (e.g. Elementor or block trees).
 	 *
-	 * @param array    $data
-	 * @param string[] $urls
-	 * @param int[]    $attachment_ids
-	 * @param string[] $media_urls
-	 * @param string   $parent_key
-	 * @param int      $depth
+	 * @param array    $data Data array.
+	 * @param string[] $urls List of URLs.
+	 * @param int[]    $attachment_ids Attachment ids.
+	 * @param string[] $media_urls Media urls.
+	 * @param string   $parent_key Parent key.
+	 * @param int      $depth Nesting depth.
 	 */
 	protected function extract_from_array( array $data, array &$urls, array &$attachment_ids, array &$media_urls, string $parent_key = '', int $depth = 0 ): void {
 		$is_media_context = (bool) preg_match( '/image|media|gallery|video|audio|background|poster|attachment|icon|slide/i', $parent_key );
@@ -98,7 +103,7 @@ class Reference_Collector {
 		foreach ( $data as $key => $item ) {
 			$key_str = (string) $key;
 
-			// Check media IDs in media contexts
+			// Check media IDs in media contexts.
 			if ( ( $is_media_context || preg_match( '/image|media|gallery|video|audio|background|poster|attachment/i', $key_str ) )
 				&& in_array( $key_str, array( 'id', 'image_id', 'attachment_id' ), true )
 				&& is_numeric( $item ) ) {
@@ -109,7 +114,7 @@ class Reference_Collector {
 				continue;
 			}
 
-			// Check media URLs in media contexts
+			// Check media URLs in media contexts.
 			if ( ( $is_media_context || preg_match( '/image|media|photo|poster|background/i', $key_str ) )
 				&& 'url' === $key_str
 				&& is_string( $item ) && '' !== trim( $item ) ) {
@@ -117,14 +122,14 @@ class Reference_Collector {
 				continue;
 			}
 
-			// Check link URLs
+			// Check link URLs.
 			if ( in_array( $key_str, array( 'url', 'link', 'href', 'button_link', 'website_link' ), true )
 				&& is_string( $item ) && '' !== trim( $item ) ) {
 				$urls[] = trim( $item );
 				continue;
 			}
 
-			// Recurse into arrays
+			// Recurse into arrays.
 			if ( is_array( $item ) ) {
 				$this->extract_from_array( $item, $urls, $attachment_ids, $media_urls, $key_str, $depth + 1 );
 			} elseif ( is_string( $item ) ) {
@@ -136,15 +141,15 @@ class Reference_Collector {
 	/**
 	 * Extract references from HTML content and Gutenberg blocks.
 	 *
-	 * @param string   $content
-	 * @param string[] $urls
-	 * @param int[]    $attachment_ids
-	 * @param string[] $media_urls
+	 * @param string   $content Content to process.
+	 * @param string[] $urls List of URLs.
+	 * @param int[]    $attachment_ids Attachment ids.
+	 * @param string[] $media_urls Media urls.
 	 */
 	protected function extract_from_html_and_blocks( string $content, array &$urls, array &$attachment_ids, array &$media_urls ): void {
 		// 1. Gutenberg block comment attributes
 		if ( false !== strpos( $content, '<!-- wp:' ) ) {
-			// Image block: <!-- wp:image {"id":123,...} -->
+			// Image block: <!-- wp:image {"id":123,...} -->.
 			if ( preg_match_all( '/<!--\s+wp:(?:image|cover|video|audio|file)\b\s+(\{.*?\})\s*-->/s', $content, $block_matches ) ) {
 				foreach ( $block_matches[1] as $json_str ) {
 					$attrs = json_decode( $json_str, true );
@@ -164,7 +169,7 @@ class Reference_Collector {
 				}
 			}
 
-			// Media-text block: <!-- wp:media-text {"mediaId":123,...} -->
+			// Media-text block: <!-- wp:media-text {"mediaId":123,...} -->.
 			if ( preg_match_all( '/<!--\s+wp:media-text\b\s+(\{.*?\})\s*-->/s', $content, $media_text_matches ) ) {
 				foreach ( $media_text_matches[1] as $json_str ) {
 					$attrs = json_decode( $json_str, true );
@@ -179,7 +184,7 @@ class Reference_Collector {
 				}
 			}
 
-			// Gallery block: <!-- wp:gallery {"ids":[123,456],...} -->
+			// Gallery block: the block comment carries an "ids" attribute with attachment IDs.
 			if ( preg_match_all( '/<!--\s+wp:gallery\b\s+(\{.*?\})\s*-->/s', $content, $gallery_matches ) ) {
 				foreach ( $gallery_matches[1] as $json_str ) {
 					$attrs = json_decode( $json_str, true );
@@ -193,7 +198,7 @@ class Reference_Collector {
 				}
 			}
 
-			// Block link attributes: <!-- wp:button {"url":"..."} --> or others
+			// Block link attributes: <!-- wp:button {"url":"..."} --> or others.
 			if ( preg_match_all( '/<!--\s+wp:[a-z0-9_-]+\b\s+(\{.*?\})\s*-->/s', $content, $all_block_matches ) ) {
 				foreach ( $all_block_matches[1] as $json_str ) {
 					$attrs = json_decode( $json_str, true );
@@ -221,22 +226,22 @@ class Reference_Collector {
 		// 3. HTML img tags: wp-image-*, data-id, data-attachment-id, attachment_id, src, srcset
 		if ( preg_match_all( '/<img\b[^>]*>/i', $content, $img_matches ) ) {
 			foreach ( $img_matches[0] as $img_tag ) {
-				// Attachment ID from wp-image-123 class
+				// Attachment ID from wp-image-123 class.
 				if ( preg_match( '/\bwp-image-(\d+)\b/', $img_tag, $class_match ) ) {
 					$attachment_ids[] = absint( $class_match[1] );
 				}
 
-				// data-id="123"
+				// data-id="123".
 				if ( preg_match( '/\bdata-id\s*=\s*(["\'])(\d+)\1/i', $img_tag, $data_match ) ) {
 					$attachment_ids[] = absint( $data_match[2] );
 				}
 
-				// data-attachment-id="123"
+				// data-attachment-id="123".
 				if ( preg_match( '/\bdata-attachment-id\s*=\s*(["\'])(\d+)\1/i', $img_tag, $data_match ) ) {
 					$attachment_ids[] = absint( $data_match[2] );
 				}
 
-				// src="..."
+				// The src attribute.
 				if ( preg_match( '/\bsrc\s*=\s*(["\'])(.*?)\1/i', $img_tag, $src_match ) ) {
 					$src = trim( $src_match[2] );
 					if ( '' !== $src && 0 !== strpos( $src, 'data:' ) ) {
@@ -244,7 +249,7 @@ class Reference_Collector {
 					}
 				}
 
-				// srcset="..."
+				// The srcset attribute.
 				if ( preg_match( '/\bsrcset\s*=\s*(["\'])(.*?)\1/i', $img_tag, $srcset_match ) ) {
 					$candidates = explode( ',', $srcset_match[2] );
 					foreach ( $candidates as $candidate ) {
@@ -280,7 +285,7 @@ class Reference_Collector {
 			}
 		}
 
-		// [gallery ids="123,456"] or [playlist ids="123,456"]
+		// Gallery and playlist shortcodes with a comma separated "ids" attribute.
 		if ( preg_match_all( '/\[(?:gallery|playlist)\b[^\]]*\bids\s*=\s*(["\'])([\d\s,]+)\1[^\]]*\]/i', $content, $gallery_sc_matches ) ) {
 			foreach ( $gallery_sc_matches[2] as $ids_str ) {
 				$raw_ids = explode( ',', $ids_str );
@@ -304,4 +309,3 @@ class Reference_Collector {
 		}
 	}
 }
-

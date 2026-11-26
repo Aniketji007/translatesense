@@ -1,4 +1,9 @@
 <?php
+/**
+ * Main plugin bootstrap that wires all TranslateSense components together.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -32,7 +37,7 @@ class Plugin {
 	 *
 	 * @var Plugin|null
 	 */
-	protected static $_instance = null;
+	protected static $plugin_instance = null;
 
 	/**
 	 * Main instance of Plugin.
@@ -40,10 +45,10 @@ class Plugin {
 	 * @return Plugin
 	 */
 	public static function instance() {
-		if ( is_null( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( is_null( self::$plugin_instance ) ) {
+			self::$plugin_instance = new self();
 		}
-		return self::$_instance;
+		return self::$plugin_instance;
 	}
 
 	/**
@@ -51,7 +56,7 @@ class Plugin {
 	 */
 	public function __construct() {
 		$this->init_hooks();
-		// Plugin activate redirect
+		// Plugin activate redirect.
 		add_action( 'admin_init', array( $this, 'handle_activation_redirect' ) );
 	}
 
@@ -77,6 +82,9 @@ class Plugin {
 		}
 	}
 
+	/**
+	 * Handle activation redirect.
+	 */
 	public function handle_activation_redirect() {
 		global $pagenow;
 

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Bulk translation entry points in the admin list tables.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -14,6 +19,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Bulk translation entry points in the admin list tables.
+ */
 class Bulk_Translate {
 
 	/**
@@ -67,6 +75,8 @@ class Bulk_Translate {
 
 	/**
 	 * Render quick Translate button in top and bottom tablenav (only on Polylang translated post types).
+	 *
+	 * @param mixed $which Table navigation position, either "top" or "bottom".
 	 */
 	public static function render_filter_translate_button( $which ) {
 		$post_type = self::get_current_screen_post_type();

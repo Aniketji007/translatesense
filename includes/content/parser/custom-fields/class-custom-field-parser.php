@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from custom fields.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -23,6 +28,9 @@ class Custom_Field_Parser {
 
 	/**
 	 * Get all custom fields for a post (ACF fields and user XML custom meta).
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 */
 	public static function get_post_fields( int $post_id, string $editor_type = 'all' ): array {
 		if ( $post_id <= 0 ) {
@@ -49,12 +57,12 @@ class Custom_Field_Parser {
 				foreach ( $post_meta as $meta_key => $values ) {
 					$meta_key = (string) $meta_key;
 
-					// Skip internal ACF reference keys and already discovered ACF fields
+					// Skip internal ACF reference keys and already discovered ACF fields.
 					if ( isset( $fields[ $meta_key ] ) || ( isset( $meta_key[0] ) && '_' === $meta_key[0] && ! isset( $user_rules[ $meta_key ] ) ) ) {
 						continue;
 					}
 
-					// Check if this post meta matches any explicit user XML rule (exact or wildcard)
+					// Check if this post meta matches any explicit user XML rule (exact or wildcard).
 					$matched = false;
 					if ( isset( $user_rules[ $meta_key ] ) ) {
 						$matched = true;
@@ -86,6 +94,8 @@ class Custom_Field_Parser {
 
 	/**
 	 * Get deterministic schema hash for fields.
+	 *
+	 * @param array $fields List of fields.
 	 */
 	public static function get_schema_hash( array $fields ): string {
 		$summary = array();
@@ -98,6 +108,9 @@ class Custom_Field_Parser {
 
 	/**
 	 * Get deterministic hash of source values for change detection.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $fields List of fields.
 	 */
 	public static function get_values_hash( int $post_id, array $fields ): string {
 		if ( $post_id <= 0 || empty( $fields ) ) {
@@ -119,7 +132,7 @@ class Custom_Field_Parser {
 	/**
 	 * Check if a value contains only numbers.
 	 *
-	 * @param mixed $value
+	 * @param mixed $value Value.
 	 * @return bool
 	 */
 	public static function is_only_numbers( $value ): bool {
@@ -128,6 +141,11 @@ class Custom_Field_Parser {
 
 	/**
 	 * Extract eligible translatable strings from custom fields.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $fields List of fields.
+	 * @param array $resolved_rules Resolved rules.
+	 * @param int   $max_depth Max depth.
 	 */
 	public static function extract_strings(
 		int $post_id,
@@ -167,12 +185,12 @@ class Custom_Field_Parser {
 					$max_depth
 				);
 			} else {
-				// Standard custom field string extraction
+				// Standard custom field string extraction.
 				$raw_val = get_post_meta( $post_id, $meta_key, true );
 				if ( is_string( $raw_val ) && '' !== trim( $raw_val ) ) {
 					$clean_val = trim( $raw_val );
 
-					// Skip values that contain only numbers
+					// Skip values that contain only numbers.
 					if ( self::is_only_numbers( $clean_val ) ) {
 						continue;
 					}

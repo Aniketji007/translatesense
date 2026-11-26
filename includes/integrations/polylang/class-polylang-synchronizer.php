@@ -1,4 +1,9 @@
 <?php
+/**
+ * Synchronizes post data between Polylang translations.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -697,9 +702,10 @@ class Polylang_Synchronizer {
 	 * @param string $content    Already translated content.
 	 * @param string $target_lang Target language slug.
 	 * @param string $builder    Builder slug.
+	 * @param string $source_lang Source language code.
 	 * @return string
 	 */
-	public static function translate_content_media_references( string $content, string $target_lang, string $builder = '', string $source_lang = '' ): string {
+	public static function translate_content_media_references( string $content, string $target_lang, string $builder = '', string $source_lang = '' ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( '' === $content ) {
 			return $content;
 		}
@@ -839,6 +845,7 @@ class Polylang_Synchronizer {
 	 *
 	 * @param array  $blocks      Parsed block tree.
 	 * @param string $target_lang Target language.
+	 * @param string $source_lang Source language code.
 	 * @return array
 	 */
 	private static function translate_block_media( array $blocks, string $target_lang, string $source_lang = '' ): array {
@@ -922,7 +929,7 @@ class Polylang_Synchronizer {
 					if ( 'core/file' === $name && ! empty( $block['innerHTML'] ) ) {
 						$source_media = get_post( $source_media_id );
 						$target_media = get_post( $translated_id );
-						if ( $source_media instanceof WP_Post && $target_media instanceof WP_Post && $source_media->post_title === wp_strip_all_tags( $block['innerHTML'] ) ) {
+						if ( $source_media instanceof WP_Post && $target_media instanceof WP_Post && wp_strip_all_tags( $block['innerHTML'] ) === $source_media->post_title ) {
 							$block['innerHTML'] = str_replace( $source_media->post_title, $target_media->post_title, $block['innerHTML'] );
 							if ( ! empty( $block['innerContent'][0] ) ) {
 								$block['innerContent'][0] = str_replace( $source_media->post_title, $target_media->post_title, $block['innerContent'][0] );
@@ -1004,6 +1011,7 @@ class Polylang_Synchronizer {
 	 * @param mixed  $value      Current value.
 	 * @param string $target_lang Target language.
 	 * @param string $parent_key Parent array key.
+	 * @param bool   $in_media_context In media context.
 	 * @return mixed
 	 */
 	private static function walk_elementor_media_data( $value, string $target_lang, string $parent_key, bool $in_media_context = false ) {

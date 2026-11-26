@@ -1,4 +1,9 @@
 <?php
+/**
+ * REST API routes for TranslateSense.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -35,6 +40,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * REST API routes for TranslateSense.
+ */
 class Rest_Api {
 
 	const NAMESPACE = 'translatesense/v1';
@@ -50,7 +58,6 @@ class Rest_Api {
 	 * Register REST routes.
 	 */
 	public static function register_routes() {
-
 		/*
 		 * 1. Scan and get widgets support status.
 		 */
@@ -2071,7 +2078,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return true|WP_Error
 	 */
-	public static function permission_bulk_active_batches( WP_REST_Request $request ) {
+	public static function permission_bulk_active_batches( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			return self::permission_error(
 				__( 'You are not allowed to view active translation batches.', 'translatesense' )
@@ -2181,7 +2188,7 @@ class Rest_Api {
 			}
 		}
 
-		// Provider validation: STRICTLY restricted to OpenAI and Gemini
+		// Provider validation: STRICTLY restricted to OpenAI and Gemini.
 		foreach ( $rows as $row ) {
 			$provider = strtolower( (string) $row['provider'] );
 			if ( ! in_array( $provider, array( 'openai', 'gemini' ), true ) ) {
@@ -2206,7 +2213,7 @@ class Rest_Api {
 			}
 		}
 
-		// Status validation: At least one job must be in pending or running state
+		// Status validation: At least one job must be in pending or running state.
 		$has_active = false;
 		foreach ( $rows as $row ) {
 			if ( in_array( $row['status'], array( 'pending', 'running' ), true ) ) {
@@ -2456,9 +2463,10 @@ class Rest_Api {
 	/**
 	 * Get widgets status endpoint.
 	 *
+	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response
 	 */
-	public static function get_widgets_status( WP_REST_Request $request ) {
+	public static function get_widgets_status( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		$rules = Xml_Engine::get_all_rules();
 
@@ -3071,7 +3079,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response
 	 */
-	public static function get_gutenberg_config( WP_REST_Request $request ) {
+	public static function get_gutenberg_config( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		$gutenberg_rules = Xml_Engine::get_all_rules(
 			'gutenberg'
@@ -3233,7 +3241,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response
 	 */
-	public static function get_settings( WP_REST_Request $request ) {
+	public static function get_settings( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		global $wpdb;
 
@@ -3801,7 +3809,7 @@ class Rest_Api {
 		$skipped_cf_count = 0;
 
 		if ( $is_sync_enabled ) {
-			// Count translatable custom fields skipped due to Polylang synchronization
+			// Count translatable custom fields skipped due to Polylang synchronization.
 			$fields           = Custom_Field_Parser::get_post_fields( $post_id, $source_editor_type );
 			$user_rules       = Xml_Engine::get_user_custom_field_rules( $source_editor_type );
 			$resolved_rules   = Custom_Field_Rule_Resolver::resolve_all_rules( $fields, $user_rules );
@@ -4495,7 +4503,7 @@ class Rest_Api {
 	 * @param WP_REST_Request $request REST request.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public static function bulk_active_batches( WP_REST_Request $request ) {
+	public static function bulk_active_batches( WP_REST_Request $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		$batches          = Bulk_Process::get_active_background_batches();
 		$filtered_batches = array();
 
@@ -5147,7 +5155,7 @@ class Rest_Api {
 	 * @param string $target_lang Optional target language slug.
 	 * @return bool True if every string belongs to the source post, false otherwise.
 	 */
-	public static function verify_strings_belong_to_post( array $strings, int $post_id, string $target_lang = '' ): bool {
+	public static function verify_strings_belong_to_post( array $strings, int $post_id, string $target_lang = '' ): bool { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 
 		if ( empty( $strings ) ) {
 			return false;

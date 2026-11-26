@@ -1,4 +1,9 @@
 <?php
+/**
+ * Scheduled cleanup tasks for the TranslateSense cache.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -10,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Scheduled cleanup tasks for the TranslateSense cache.
+ */
 class Cron {
 
 	/**
@@ -91,7 +99,7 @@ class Cron {
 			)
 		);
 
-		// Clean orphaned strings in translatesense_strings
+		// Clean orphaned strings in translatesense_strings.
 		Hashing_Db::cleanup_unused_strings();
 	}
 

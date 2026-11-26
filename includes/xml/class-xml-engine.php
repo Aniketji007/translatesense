@@ -1,4 +1,10 @@
 <?php
+/**
+ * Builds, merges and validates the XML translation configuration.
+ *
+ * @package TranslateSense
+ */
+
 declare(strict_types=1);
 
 namespace TranslateSense\Includes\XML;
@@ -16,6 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Builds, merges and validates the XML translation configuration.
+ */
 class Xml_Engine {
 
 	/**
@@ -70,7 +79,7 @@ class Xml_Engine {
 	/**
 	 * Get builder handler instance by builder slug.
 	 *
-	 * @param string $builder
+	 * @param string $builder Builder name.
 	 * @return Base_Builder|null
 	 */
 	public static function get_builder( $builder ) {
@@ -100,7 +109,7 @@ class Xml_Engine {
 	/**
 	 * Get custom XML file path for a specific builder.
 	 *
-	 * @param string $builder 'gutenberg', 'elementor', 'classic', 'all', or 'core'
+	 * @param string $builder 'gutenberg', 'elementor', 'classic', 'all', or 'core'.
 	 * @return string
 	 */
 	public static function get_builder_xml_path( $builder = 'all' ) {
@@ -213,7 +222,7 @@ class Xml_Engine {
 			}
 		}
 
-		// Check active theme/child theme
+		// Check active theme/child theme.
 		$theme_xml = get_stylesheet_directory() . '/wpml-config.xml';
 		if ( file_exists( $theme_xml ) && is_readable( $theme_xml ) ) {
 			$content = file_get_contents( $theme_xml );
@@ -222,7 +231,7 @@ class Xml_Engine {
 			}
 		}
 
-		// Check parent theme if distinct
+		// Check parent theme if distinct.
 		if ( get_template_directory() !== get_stylesheet_directory() ) {
 			$parent_xml = get_template_directory() . '/wpml-config.xml';
 			if ( file_exists( $parent_xml ) && is_readable( $parent_xml ) ) {
@@ -239,13 +248,13 @@ class Xml_Engine {
 	/**
 	 * Find or create child element under parent.
 	 *
-	 * @param DOMDocument $dom
-	 * @param DOMElement  $parent
-	 * @param string      $tag_name
+	 * @param DOMDocument $dom DOM document.
+	 * @param DOMElement  $parent_node Parent value.
+	 * @param string      $tag_name Tag name.
 	 * @return DOMElement
 	 */
-	private static function get_or_create_dom_child( DOMDocument $dom, DOMElement $parent, string $tag_name ): DOMElement {
-		$nodes = $parent->childNodes;
+	private static function get_or_create_dom_child( DOMDocument $dom, DOMElement $parent_node, string $tag_name ): DOMElement {
+		$nodes = $parent_node->childNodes;
 		for ( $i = 0; $i < $nodes->length; $i++ ) {
 			$node = $nodes->item( $i );
 			if ( XML_ELEMENT_NODE === $node->nodeType && $node->nodeName === $tag_name ) {
@@ -253,20 +262,20 @@ class Xml_Engine {
 			}
 		}
 		$new_elem = $dom->createElement( $tag_name );
-		return $parent->appendChild( $new_elem );
+		return $parent_node->appendChild( $new_elem );
 	}
 
 	/**
 	 * Find DOM child element with matching attribute.
 	 *
-	 * @param DOMElement $parent
-	 * @param string     $tag_name
-	 * @param string     $attr_name
-	 * @param string     $attr_val
+	 * @param DOMElement $parent_node Parent value.
+	 * @param string     $tag_name Tag name.
+	 * @param string     $attr_name Attribute name.
+	 * @param string     $attr_val Attribute value.
 	 * @return DOMElement|null
 	 */
-	private static function find_dom_child_by_attribute( DOMElement $parent, string $tag_name, string $attr_name, string $attr_val ) {
-		$nodes = $parent->childNodes;
+	private static function find_dom_child_by_attribute( DOMElement $parent_node, string $tag_name, string $attr_name, string $attr_val ) {
+		$nodes = $parent_node->childNodes;
 		for ( $i = 0; $i < $nodes->length; $i++ ) {
 			$node = $nodes->item( $i );
 			if ( XML_ELEMENT_NODE === $node->nodeType && $node->nodeName === $tag_name ) {
@@ -281,13 +290,13 @@ class Xml_Engine {
 	/**
 	 * Find DOM child element with matching text content.
 	 *
-	 * @param DOMElement $parent
-	 * @param string     $tag_name
-	 * @param string     $text_val
+	 * @param DOMElement $parent_node Parent value.
+	 * @param string     $tag_name Tag name.
+	 * @param string     $text_val Text value.
 	 * @return DOMElement|null
 	 */
-	private static function find_dom_child_by_text( DOMElement $parent, string $tag_name, string $text_val ) {
-		$nodes = $parent->childNodes;
+	private static function find_dom_child_by_text( DOMElement $parent_node, string $tag_name, string $text_val ) {
+		$nodes = $parent_node->childNodes;
 		for ( $i = 0; $i < $nodes->length; $i++ ) {
 			$node = $nodes->item( $i );
 			if ( XML_ELEMENT_NODE === $node->nodeType && $node->nodeName === $tag_name ) {
@@ -315,7 +324,7 @@ class Xml_Engine {
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
 
-		// Initialize root skeleton
+		// Initialize root skeleton.
 		$dom->loadXML( self::get_default_builder_skeleton( 'all' ), LIBXML_NONET );
 		$root = $dom->documentElement;
 
@@ -376,7 +385,7 @@ class Xml_Engine {
 						}
 						$existing = self::find_dom_child_by_text( $cf_section, 'custom-field', $cf_name );
 						if ( $existing ) {
-							// Sync attributes onto existing node
+							// Sync attributes onto existing node.
 							foreach ( $cf->attributes() as $attr_k => $attr_v ) {
 								$existing->setAttribute( (string) $attr_k, (string) $attr_v );
 							}
@@ -460,7 +469,7 @@ class Xml_Engine {
 			}
 		}
 
-		// Merge order: core -> active plugins -> user custom
+		// Merge order: core -> active plugins -> user custom.
 		$all_sources = array_merge(
 			array( $core_xml ),
 			array_values( $plugin_configs ),
@@ -469,7 +478,7 @@ class Xml_Engine {
 
 		$merged_xml = self::merge_wpml_xml_documents( $all_sources );
 
-		// Format XML
+		// Format XML.
 		$dom                     = new DOMDocument( '1.0' );
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
@@ -479,7 +488,7 @@ class Xml_Engine {
 			$formatted_xml = $merged_xml;
 		}
 
-		// Save to transients
+		// Save to transients.
 		set_transient( self::TRANSIENT_MERGED_XML, $formatted_xml, DAY_IN_SECONDS );
 		set_transient( self::TRANSIENT_ACTIVE_PLUGINS, self::get_active_plugins_list(), DAY_IN_SECONDS );
 
@@ -490,7 +499,7 @@ class Xml_Engine {
 	 * Get XML configuration for a specific editor or all editors combined.
 	 * Transparently handles active plugin configs, custom additions, and transients.
 	 *
-	 * @param string $editor 'all', 'gutenberg', 'elementor', 'classic', or 'core'
+	 * @param string $editor 'all', 'gutenberg', 'elementor', 'classic', or 'core'.
 	 * @return string
 	 */
 	public static function get_config( $editor = 'all' ) {
@@ -522,7 +531,7 @@ class Xml_Engine {
 			return $saved;
 		}
 
-		// Extract editor-specific section from unified merged configuration
+		// Extract editor-specific section from unified merged configuration.
 		$all_xml = self::get_config( 'all' );
 		if ( ! empty( $all_xml ) ) {
 			$builder_obj = self::get_builder( $editor );
@@ -543,7 +552,7 @@ class Xml_Engine {
 	/**
 	 * Get raw XML string for a specific builder (Backward Compatibility Alias).
 	 *
-	 * @param string $builder 'gutenberg', 'elementor', 'classic', 'all', or 'core'
+	 * @param string $builder 'gutenberg', 'elementor', 'classic', 'all', or 'core'.
 	 * @return string
 	 */
 	public static function get_builder_xml_raw( $builder = 'all' ) {
@@ -571,7 +580,7 @@ class Xml_Engine {
 	/**
 	 * Default XML skeleton per builder.
 	 *
-	 * @param string $builder
+	 * @param string $builder Builder name.
 	 * @return string
 	 */
 	public static function get_default_builder_skeleton( $builder ) {
@@ -586,7 +595,7 @@ class Xml_Engine {
 	/**
 	 * Validate XML syntax.
 	 *
-	 * @param string $xml_string
+	 * @param string $xml_string XML string.
 	 * @return bool|WP_Error
 	 */
 	public static function validate_xml( $xml_string ) {
@@ -618,8 +627,8 @@ class Xml_Engine {
 	 * Save XML configuration for a specific editor or all editors.
 	 * Always persists to the database options table.
 	 *
-	 * @param string $editor 'all', 'gutenberg', 'elementor', 'classic', or 'core'
-	 * @param string $xml_string
+	 * @param string $editor 'all', 'gutenberg', 'elementor', 'classic', or 'core'.
+	 * @param string $xml_string XML string.
 	 * @return bool|WP_Error
 	 */
 	public static function save_config( $editor, $xml_string ) {
@@ -633,7 +642,7 @@ class Xml_Engine {
 			return $validation;
 		}
 
-		// Format XML
+		// Format XML.
 		$dom                     = new DOMDocument( '1.0' );
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
@@ -644,14 +653,14 @@ class Xml_Engine {
 		}
 
 		if ( 'all' === $editor ) {
-			// Update primary options in database
+			// Update primary options in database.
 			update_option( self::OPTION_ALL_XML, $formatted_xml );
 		} else {
 			$option_key = 'translatesense_' . $editor . '_xml';
 			update_option( $option_key, $formatted_xml );
 		}
 
-		// Reset in-memory cache and transients
+		// Reset in-memory cache and transients.
 		self::$parsed_rules = null;
 		self::invalidate_transients();
 
@@ -661,8 +670,8 @@ class Xml_Engine {
 	/**
 	 * Save custom XML string for a specific builder (Backward Compatibility Alias).
 	 *
-	 * @param string $builder
-	 * @param string $xml_string
+	 * @param string $builder Builder name.
+	 * @param string $xml_string XML string.
 	 * @return bool|WP_Error
 	 */
 	public static function save_builder_xml( $builder, $xml_string ) {
@@ -672,7 +681,7 @@ class Xml_Engine {
 	/**
 	 * Save generic custom XML (Backward Compatibility Alias).
 	 *
-	 * @param string $xml_string
+	 * @param string $xml_string XML string.
 	 * @return bool|WP_Error
 	 */
 	public static function save_custom_xml( $xml_string ) {
@@ -682,7 +691,7 @@ class Xml_Engine {
 	/**
 	 * Save core XML string into database option table and sync to file (Backward Compatibility Alias).
 	 *
-	 * @param string $xml_string
+	 * @param string $xml_string XML string.
 	 * @return bool|WP_Error
 	 */
 	public static function save_core_xml( $xml_string ) {
@@ -693,8 +702,8 @@ class Xml_Engine {
 	 * Get exact dynamic XML snippet for a specific block/widget/module.
 	 * Searches active XML configuration (custom and all in option table).
 	 *
-	 * @param string $builder 'gutenberg', 'elementor', or 'classic'
-	 * @param string $name Name/ID of the block/widget
+	 * @param string $builder 'gutenberg', 'elementor', or 'classic'.
+	 * @param string $name Name/ID of the block/widget.
 	 * @return string Formatted XML snippet
 	 */
 	public static function get_widget_xml_snippet( $builder, $name ) {
@@ -758,9 +767,9 @@ class Xml_Engine {
 	 * Save dynamic XML snippet for a specific block or widget.
 	 * Updates existing child in place (marking removed keys with noTranslate="true") and adding new keys.
 	 *
-	 * @param string $builder 'gutenberg', 'elementor', or 'classic'
-	 * @param string $name
-	 * @param string $snippet_xml
+	 * @param string $builder 'gutenberg', 'elementor', or 'classic'.
+	 * @param string $name Name.
+	 * @param string $snippet_xml Snippet XML.
 	 * @return bool|WP_Error
 	 */
 	public static function save_widget_xml_snippet( $builder, $name, $snippet_xml ) {
@@ -793,7 +802,7 @@ class Xml_Engine {
 			$xml->addChild( $section_name );
 		}
 
-		// Find new node from snippet
+		// Find new node from snippet.
 		$new_node = null;
 		if ( 'gutenberg' === $target_builder && isset( $snippet_doc->{'gutenberg-blocks'}->{'gutenberg-block'} ) ) {
 			$new_node = $snippet_doc->{'gutenberg-blocks'}->{'gutenberg-block'}[0];
@@ -807,7 +816,7 @@ class Xml_Engine {
 
 		$dom_target = dom_import_simplexml( $xml->{$section_name} );
 
-		// Find existing child with matching name in current custom XML
+		// Find existing child with matching name in current custom XML.
 		$existing_child = null;
 		$dom_nodes      = $dom_target->childNodes;
 		for ( $i = 0; $i < $dom_nodes->length; $i++ ) {
@@ -824,7 +833,7 @@ class Xml_Engine {
 			}
 		}
 
-		// If not found in custom XML, check if base rule exists in core/all XML to seed existing child
+		// If not found in custom XML, check if base rule exists in core/all XML to seed existing child.
 		if ( ! $existing_child ) {
 			$base_snippet_raw = self::get_widget_xml_snippet( $target_builder, (string) $name );
 			if ( ! empty( $base_snippet_raw ) ) {
@@ -845,10 +854,10 @@ class Xml_Engine {
 		}
 
 		if ( $existing_child ) {
-			// Update existing child in place: preserve keys, mark removed with noTranslate="true", add new keys
+			// Update existing child in place: preserve keys, mark removed with noTranslate="true", add new keys.
 			$builder_obj->sync_node( $existing_child, $new_node );
 		} else {
-			// Append new node if it did not exist
+			// Append new node if it did not exist.
 			$new_dom = dom_import_simplexml( $new_node );
 			$dom_target->appendChild( $dom_target->ownerDocument->importNode( $new_dom, true ) );
 		}
@@ -865,8 +874,8 @@ class Xml_Engine {
 	/**
 	 * Get unified parsed rules for all builders or a specific builder.
 	 *
-	 * @param string|bool $editor 'all', 'gutenberg', 'elementor', 'classic', or boolean $force_reload
-	 * @param bool        $force_reload Whether to force reload parsed cache
+	 * @param string|bool $editor 'all', 'gutenberg', 'elementor', 'classic', or boolean $force_reload.
+	 * @param bool        $force_reload Whether to force reload parsed cache.
 	 * @return array
 	 */
 	public static function get_all_rules( $editor = 'all', $force_reload = false ) {
@@ -927,9 +936,9 @@ class Xml_Engine {
 	/**
 	 * Parse XML string and populate rules array via builder instances.
 	 *
-	 * @param string $xml_string
-	 * @param array  $rules
-	 * @param string $source
+	 * @param string $xml_string XML string.
+	 * @param array  $rules List of rules.
+	 * @param string $source Source string.
 	 * @return void
 	 */
 	private static function merge_xml_into_rules( $xml_string, &$rules, $source = 'core' ) {
@@ -970,6 +979,8 @@ class Xml_Engine {
 
 	/**
 	 * Retrieve explicit user-configured custom-field rules.
+	 *
+	 * @param string $builder Builder name.
 	 */
 	public static function get_user_custom_field_rules( string $builder = 'all' ): array {
 		$builder    = sanitize_key( (string) $builder );
@@ -985,6 +996,8 @@ class Xml_Engine {
 
 	/**
 	 * Get hash of user custom-field rules.
+	 *
+	 * @param string $builder Builder name.
 	 */
 	public static function get_user_custom_field_config_hash( string $builder = 'all' ): string {
 		$rules = self::get_user_custom_field_rules( $builder );
@@ -994,6 +1007,10 @@ class Xml_Engine {
 
 	/**
 	 * Extract custom-field rules from an XML string.
+	 *
+	 * @param string $xml_string XML string.
+	 * @param array  $target_array Target array.
+	 * @param string $source_id Source ID.
 	 */
 	private static function extract_custom_field_rules_from_xml( string $xml_string, array &$target_array, string $source_id ): void {
 		if ( empty( trim( $xml_string ) ) || false !== stripos( $xml_string, '<!DOCTYPE' ) ) {
@@ -1037,10 +1054,10 @@ class Xml_Engine {
 	/**
 	 * Append or update a rule dynamically in the builder-specific custom XML.
 	 *
-	 * @param string $builder
-	 * @param string $name
-	 * @param array  $field_details
-	 * @param array  $conditions
+	 * @param string $builder Builder name.
+	 * @param string $name Name.
+	 * @param array  $field_details Field details.
+	 * @param array  $conditions Conditions.
 	 * @return bool|WP_Error
 	 */
 	public static function append_custom_rule( $builder, $name, $field_details, $conditions = array() ) {
@@ -1066,9 +1083,9 @@ class Xml_Engine {
 	/**
 	 * Build standalone XML string snippet from detected widget details.
 	 *
-	 * @param string $builder
-	 * @param string $name
-	 * @param array  $field_details
+	 * @param string $builder Builder name.
+	 * @param string $name Name.
+	 * @param array  $field_details Field details.
 	 * @return string Formatted XML snippet
 	 */
 	public static function generate_xml_snippet( $builder, $name, $field_details ) {

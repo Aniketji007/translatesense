@@ -1,4 +1,9 @@
 <?php
+/**
+ * Replaces content references with their translated equivalents.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -18,13 +23,15 @@ class Reference_Replacer {
 	/**
 	 * Apply replacement maps across all content items in the batch.
 	 *
-	 * @param array  $content_batch
+	 * @param array  $content_batch Content batch.
 	 * @param array  $maps {
-	 *     @type array<string, string> $url_map
-	 *     @type array<int, int>       $media_id_map
-	 *     @type array<string, string> $media_url_map
+	 *     Replacement maps.
+	 *
+	 *     @type array<string, string> $url_map       Old URL to new URL.
+	 *     @type array<int, int>       $media_id_map  Old attachment ID to new attachment ID.
+	 *     @type array<string, string> $media_url_map Old media URL to new media URL.
 	 * }
-	 * @param string $target_language
+	 * @param string $target_language Target language code.
 	 * @return array Updated content batch preserving original keys and types.
 	 */
 	public function replace_batch( array $content_batch, array $maps, string $target_language ): array {
@@ -32,7 +39,7 @@ class Reference_Replacer {
 		$media_id_map  = ! empty( $maps['media_id_map'] ) ? (array) $maps['media_id_map'] : array();
 		$media_url_map = ! empty( $maps['media_url_map'] ) ? (array) $maps['media_url_map'] : array();
 
-		// If no replacements were resolved, return input untouched
+		// If no replacements were resolved, return input untouched.
 		if ( empty( $url_map ) && empty( $media_id_map ) && empty( $media_url_map ) ) {
 			return $content_batch;
 		}
@@ -48,14 +55,14 @@ class Reference_Replacer {
 	/**
 	 * Replace references in a single content item (string or array).
 	 *
-	 * @param mixed  $content
-	 * @param array  $url_map
-	 * @param array  $media_id_map
-	 * @param array  $media_url_map
-	 * @param string $target_language
+	 * @param mixed  $content Content to process.
+	 * @param array  $url_map URL map.
+	 * @param array  $media_id_map Media ID map.
+	 * @param array  $media_url_map Media URL map.
+	 * @param string $target_language Target language code.
 	 * @return mixed
 	 */
-	public function replace_content( $content, array $url_map, array $media_id_map, array $media_url_map, string $target_language ) {
+	public function replace_content( $content, array $url_map, array $media_id_map, array $media_url_map, string $target_language ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( null === $content || '' === $content || is_bool( $content ) || is_int( $content ) || is_float( $content ) ) {
 			return $content;
 		}
@@ -70,7 +77,7 @@ class Reference_Replacer {
 
 		$trimmed = trim( $content );
 
-		// Check for Elementor JSON string
+		// Check for Elementor JSON string.
 		if ( ( ( 0 === strpos( $trimmed, '[' ) ) && ( ']' === substr( $trimmed, -1 ) ) ) ||
 			( ( 0 === strpos( $trimmed, '{' ) ) && ( '}' === substr( $trimmed, -1 ) ) ) ) {
 			$decoded = json_decode( $trimmed, true );
@@ -81,19 +88,19 @@ class Reference_Replacer {
 			}
 		}
 
-		// Gutenberg blocks and HTML
+		// Gutenberg blocks and HTML.
 		return $this->replace_html_and_blocks( $content, $url_map, $media_id_map, $media_url_map );
 	}
 
 	/**
 	 * Replace references within a structured array (e.g. Elementor settings tree).
 	 *
-	 * @param array  $data
-	 * @param array  $url_map
-	 * @param array  $media_id_map
-	 * @param array  $media_url_map
-	 * @param string $parent_key
-	 * @param int    $depth
+	 * @param array  $data Data array.
+	 * @param array  $url_map URL map.
+	 * @param array  $media_id_map Media ID map.
+	 * @param array  $media_url_map Media URL map.
+	 * @param string $parent_key Parent key.
+	 * @param int    $depth Nesting depth.
 	 * @return array
 	 */
 	public function replace_array_references( array $data, array $url_map, array $media_id_map, array $media_url_map, string $parent_key = '', int $depth = 0 ): array {
@@ -107,7 +114,7 @@ class Reference_Replacer {
 		foreach ( $data as $key => &$item ) {
 			$key_str = (string) $key;
 
-			// Never modify element IDs like '7a4b8c9' or '_id'
+			// Never modify element IDs like '7a4b8c9' or '_id'.
 			if ( '_id' === $key_str || 'elType' === $key_str || 'widgetType' === $key_str ) {
 				continue;
 			}
@@ -119,7 +126,7 @@ class Reference_Replacer {
 				$orig_id = absint( $item );
 				if ( isset( $media_id_map[ $orig_id ] ) ) {
 					$item = $media_id_map[ $orig_id ];
-					// If parent array also has 'url' key, update it with translated attachment URL
+					// If parent array also has 'url' key, update it with translated attachment URL.
 					if ( isset( $data['url'] ) && is_string( $data['url'] ) && function_exists( 'wp_get_attachment_url' ) ) {
 						$new_url = wp_get_attachment_url( $media_id_map[ $orig_id ] );
 						if ( $new_url ) {
@@ -154,7 +161,7 @@ class Reference_Replacer {
 			if ( is_array( $item ) ) {
 				$item = $this->replace_array_references( $item, $url_map, $media_id_map, $media_url_map, $key_str, $depth + 1 );
 			} elseif ( is_string( $item ) ) {
-				// Inner JSON or HTML content inside an array field
+				// Inner JSON or HTML content inside an array field.
 				$item = $this->replace_content( $item, $url_map, $media_id_map, $media_url_map, '' );
 			}
 		}
@@ -166,10 +173,10 @@ class Reference_Replacer {
 	/**
 	 * Replace references in HTML and Gutenberg blocks.
 	 *
-	 * @param string $content
-	 * @param array  $url_map
-	 * @param array  $media_id_map
-	 * @param array  $media_url_map
+	 * @param string $content Content to process.
+	 * @param array  $url_map URL map.
+	 * @param array  $media_id_map Media ID map.
+	 * @param array  $media_url_map Media URL map.
 	 * @return string
 	 */
 	public function replace_html_and_blocks( string $content, array $url_map, array $media_id_map, array $media_url_map ): string {
@@ -186,7 +193,7 @@ class Reference_Replacer {
 
 					$modified = false;
 
-					// Media ID attribute (id / mediaId)
+					// Media ID attribute (id / mediaId).
 					$media_id_key = ( 'core/media-text' === $block_name ) ? 'mediaId' : 'id';
 					if ( isset( $attrs[ $media_id_key ] ) && is_numeric( $attrs[ $media_id_key ] ) ) {
 						$source_id = absint( $attrs[ $media_id_key ] );
@@ -194,7 +201,7 @@ class Reference_Replacer {
 							$attrs[ $media_id_key ] = $media_id_map[ $source_id ];
 							$modified               = true;
 
-							// Synchronize media URL attributes if present
+							// Synchronize media URL attributes if present.
 							$new_url = function_exists( 'wp_get_attachment_url' ) ? wp_get_attachment_url( $media_id_map[ $source_id ] ) : null;
 							if ( $new_url ) {
 								foreach ( array( 'url', 'href', 'mediaUrl' ) as $url_key ) {
@@ -206,7 +213,7 @@ class Reference_Replacer {
 						}
 					}
 
-					// Gallery block IDs: {"ids":[123,456]}
+					// Gallery block IDs stored in the "ids" attribute.
 					if ( 'core/gallery' === $block_name && ! empty( $attrs['ids'] ) && is_array( $attrs['ids'] ) ) {
 						foreach ( $attrs['ids'] as &$gid ) {
 							$gid_int = absint( $gid );
@@ -218,7 +225,7 @@ class Reference_Replacer {
 						unset( $gid );
 					}
 
-					// Media URLs in block attributes
+					// Media URLs in block attributes.
 					foreach ( array( 'url', 'href', 'mediaUrl' ) as $m_key ) {
 						if ( isset( $attrs[ $m_key ] ) && is_string( $attrs[ $m_key ] ) && isset( $media_url_map[ $attrs[ $m_key ] ] ) ) {
 							$attrs[ $m_key ] = $media_url_map[ $attrs[ $m_key ] ];
@@ -226,7 +233,7 @@ class Reference_Replacer {
 						}
 					}
 
-					// Link URLs in block attributes
+					// Link URLs in block attributes.
 					foreach ( array( 'url', 'href', 'link', 'linkUrl' ) as $l_key ) {
 						if ( isset( $attrs[ $l_key ] ) && is_string( $attrs[ $l_key ] ) ) {
 							$val    = $attrs[ $l_key ];
@@ -260,7 +267,7 @@ class Reference_Replacer {
 					$source_id     = 0;
 					$translated_id = 0;
 
-					// Extract source ID from wp-image-*, data-id, or data-attachment-id
+					// Extract source ID from wp-image-*, data-id, or data-attachment-id.
 					if ( preg_match( '/\bwp-image-(\d+)\b/', $tag, $class_match ) ) {
 						$source_id = absint( $class_match[1] );
 					} elseif ( preg_match( '/\bdata-id\s*=\s*(["\'])(\d+)\1/i', $tag, $data_match ) ) {
@@ -272,10 +279,10 @@ class Reference_Replacer {
 					if ( $source_id > 0 && isset( $media_id_map[ $source_id ] ) ) {
 						$translated_id = $media_id_map[ $source_id ];
 
-						// Update class wp-image-123 -> wp-image-456
+						// Update class wp-image-123 -> wp-image-456.
 						$tag = preg_replace( '/\bwp-image-' . preg_quote( (string) $source_id, '/' ) . '\b/', 'wp-image-' . $translated_id, $tag );
 
-						// Update data-id and data-attachment-id
+						// Update data-id and data-attachment-id.
 						$tag = preg_replace_callback(
 							'/\bdata-id=(["\'])' . preg_quote( (string) $source_id, '/' ) . '\1/i',
 							function ( $m ) use ( $translated_id ) {
@@ -291,11 +298,11 @@ class Reference_Replacer {
 							$tag
 						);
 
-						// Update data-link attachment_id=123
+						// Update data-link attachment_id=123.
 						$tag = preg_replace( '/attachment_id=' . preg_quote( (string) $source_id, '/' ) . '\b/', 'attachment_id=' . $translated_id, $tag );
 					}
 
-					// Update src attribute
+					// Update src attribute.
 					$tag = preg_replace_callback(
 						'/\bsrc\s*=\s*(["\'])(.*?)\1/i',
 						function ( $src_match ) use ( $media_url_map, $translated_id ) {
@@ -304,7 +311,7 @@ class Reference_Replacer {
 								return 'src=' . $src_match[1] . esc_url( $media_url_map[ $src_url ] ) . $src_match[1];
 							}
 
-							// If we translated the attachment ID and the src URL was not explicitly mapped
+							// If we translated the attachment ID and the src URL was not explicitly mapped.
 							if ( $translated_id > 0 && function_exists( 'wp_get_attachment_image_src' ) ) {
 								$image = wp_get_attachment_image_src( $translated_id, 'full' );
 								if ( is_array( $image ) && ! empty( $image[0] ) ) {
@@ -317,20 +324,20 @@ class Reference_Replacer {
 						$tag
 					);
 
-					// Update srcset attribute
+					// Update srcset attribute.
 					$tag = preg_replace_callback(
 						'/\bsrcset\s*=\s*(["\'])(.*?)\1/i',
 						function ( $srcset_match ) use ( $media_url_map, $translated_id ) {
 							$srcset_content = $srcset_match[2];
 
-							// If we have mapped individual candidate URLs
+							// If we have mapped individual candidate URLs.
 							if ( ! empty( $media_url_map ) ) {
 								foreach ( $media_url_map as $orig_u => $trans_u ) {
 									$srcset_content = str_replace( $orig_u, $trans_u, $srcset_content );
 								}
 							}
 
-							// If attachment ID was translated, regenerate srcset
+							// If attachment ID was translated, regenerate srcset.
 							if ( $translated_id > 0 && function_exists( 'wp_get_attachment_image_srcset' ) ) {
 								$new_srcset = wp_get_attachment_image_srcset( $translated_id, 'full' );
 								if ( is_string( $new_srcset ) && '' !== $new_srcset ) {
@@ -383,7 +390,7 @@ class Reference_Replacer {
 				$content
 			);
 
-			// Shortcodes: [gallery ids="123,456"] or [playlist ids="123,456"]
+			// Gallery and playlist shortcodes with a comma separated "ids" attribute.
 			$content = preg_replace_callback(
 				'/\[(gallery|playlist)\b([^\]]*)\bids\s*=\s*(["\'])([\d\s,]+)\3([^\]]*)\]/i',
 				function ( $matches ) use ( $media_id_map ) {
@@ -405,7 +412,7 @@ class Reference_Replacer {
 				$content
 			);
 
-			// Other HTML attributes: attachment_id="123"
+			// Other HTML attributes: attachment_id="123".
 			$content = preg_replace_callback(
 				'/\battachment_id\s*=\s*(["\'])(\d+)\1/i',
 				function ( $matches ) use ( $media_id_map ) {
@@ -421,7 +428,7 @@ class Reference_Replacer {
 
 		// 5. Plain text internal URL replacement (e.g. links written as text or link text matching URL)
 		if ( ! empty( $url_map ) ) {
-			// Sort URLs by length descending to prevent partial URL replacements
+			// Sort URLs by length descending to prevent partial URL replacements.
 			$sorted_url_map = $url_map;
 			uksort(
 				$sorted_url_map,
@@ -435,7 +442,7 @@ class Reference_Replacer {
 					continue;
 				}
 
-				// Only replace absolute URLs in plain text to avoid matching relative fragments in text
+				// Only replace absolute URLs in plain text to avoid matching relative fragments in text.
 				if ( 0 !== strpos( $orig_url, 'http://' ) && 0 !== strpos( $orig_url, 'https://' ) ) {
 					continue;
 				}

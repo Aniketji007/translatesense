@@ -1,4 +1,9 @@
 <?php
+/**
+ * Manages custom field translation rules and saved state.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -23,6 +28,10 @@ class Custom_Field_Manager {
 
 	/**
 	 * Prepare dynamic custom-field packages for a source post if needed.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $source_lang Source language code.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 */
 	public static function ensure_package_prepared( int $post_id, string $source_lang, string $editor_type ): void {
 		if ( $post_id <= 0 || empty( $source_lang ) ) {
@@ -34,7 +43,7 @@ class Custom_Field_Manager {
 			$editor_type = 'gutenberg';
 		}
 
-		// If Polylang custom fields synchronization is enabled, do not translate custom fields
+		// If Polylang custom fields synchronization is enabled, do not translate custom fields.
 		if ( Polylang_Bridge::is_custom_fields_sync_enabled() ) {
 			if ( self::has_package_rows( $post_id, $editor_type ) ) {
 				self::purge_package_rows( $post_id, $editor_type );
@@ -42,7 +51,7 @@ class Custom_Field_Manager {
 			return;
 		}
 
-		// Only proceed if ACF is active or user has configured custom-field rules in XML
+		// Only proceed if ACF is active or user has configured custom-field rules in XML.
 		$user_rules = Xml_Engine::get_user_custom_field_rules( $editor_type );
 		if ( ! Acf::is_active() && empty( $user_rules ) ) {
 			return;
@@ -61,6 +70,10 @@ class Custom_Field_Manager {
 
 	/**
 	 * Synchronize custom-field translatable strings into packages when hashes change.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $source_lang Source language code.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 */
 	public static function synchronize_packages( int $post_id, string $source_lang, string $editor_type ): void {
 		$fields = Custom_Field_Parser::get_post_fields( $post_id, $editor_type );
@@ -70,7 +83,7 @@ class Custom_Field_Manager {
 			return;
 		}
 
-		// Check change hashes: schema, values, and user XML configuration
+		// Check change hashes: schema, values, and user XML configuration.
 		$current_schema_hash = Custom_Field_Parser::get_schema_hash( $fields );
 		$current_val_hash    = Custom_Field_Parser::get_values_hash( $post_id, $fields );
 		$current_user_xml    = Xml_Engine::get_user_custom_field_config_hash( $editor_type );
@@ -86,12 +99,12 @@ class Custom_Field_Manager {
 			return;
 		}
 
-		// Resolve rules and extract translatable strings
+		// Resolve rules and extract translatable strings.
 		$user_rules     = Xml_Engine::get_user_custom_field_rules( $editor_type );
 		$resolved_rules = Custom_Field_Rule_Resolver::resolve_all_rules( $fields, $user_rules );
 		$strings        = Custom_Field_Parser::extract_strings( $post_id, $fields, $resolved_rules );
 
-		// Record translatable strings into packages table
+		// Record translatable strings into packages table.
 		$active_package_hashes = array();
 
 		foreach ( $strings as $item ) {
@@ -100,7 +113,7 @@ class Custom_Field_Manager {
 			$raw_val      = (string) $item['raw_value'];
 			$source_type  = (string) ( $item['source_type'] ?? 'custom_field' );
 
-			// Don't save empty strings or values containing only numbers in packages
+			// Don't save empty strings or values containing only numbers in packages.
 			if ( '' === trim( $filtered_val ) || Custom_Field_Parser::is_only_numbers( $filtered_val ) ) {
 				continue;
 			}
@@ -124,7 +137,7 @@ class Custom_Field_Manager {
 			);
 		}
 
-		// Clean up outdated package rows and update hashes
+		// Clean up outdated package rows and update hashes.
 		self::purge_stale_package_rows( $post_id, $editor_type, $active_package_hashes );
 
 		$hashes = array(
@@ -139,6 +152,9 @@ class Custom_Field_Manager {
 
 	/**
 	 * Check if any custom-field package rows exist for this post.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 */
 	public static function has_package_rows( int $post_id, string $editor_type ): bool {
 		global $wpdb;
@@ -158,6 +174,9 @@ class Custom_Field_Manager {
 
 	/**
 	 * Purge all custom-field package rows for a specific post.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 */
 	public static function purge_package_rows( int $post_id, string $editor_type ): void {
 		global $wpdb;
@@ -175,6 +194,10 @@ class Custom_Field_Manager {
 
 	/**
 	 * Purge stale package records not in the active hash list.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
+	 * @param array  $active_package_hashes Active package hashes.
 	 */
 	public static function purge_stale_package_rows( int $post_id, string $editor_type, array $active_package_hashes ): void {
 		global $wpdb;
@@ -185,7 +208,7 @@ class Custom_Field_Manager {
 			return;
 		}
 
-		// Validate all hashes are alphanumeric with fixed length
+		// Validate all hashes are alphanumeric with fixed length.
 		$validated_hashes = array_filter(
 			$active_package_hashes,
 			function ( $hash ) {
@@ -213,6 +236,8 @@ class Custom_Field_Manager {
 
 	/**
 	 * Get cross-request database named lock.
+	 *
+	 * @param int $post_id Post ID.
 	 */
 	private static function get_lock( int $post_id ): bool {
 		global $wpdb;
@@ -228,6 +253,8 @@ class Custom_Field_Manager {
 
 	/**
 	 * Release cross-request database named lock.
+	 *
+	 * @param int $post_id Post ID.
 	 */
 	private static function release_lock( int $post_id ): void {
 		global $wpdb;

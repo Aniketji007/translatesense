@@ -1,4 +1,9 @@
 <?php
+/**
+ * Resolves custom field rules from the XML translation configuration.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -23,6 +28,8 @@ class Custom_Field_Rule_Resolver {
 
 	/**
 	 * Normalize action aliases into standard action names.
+	 *
+	 * @param string $action Action name.
 	 */
 	public static function normalize_action( string $action ): string {
 		switch ( strtolower( trim( $action ) ) ) {
@@ -50,6 +57,8 @@ class Custom_Field_Rule_Resolver {
 
 	/**
 	 * Get default policy action for an ACF field type.
+	 *
+	 * @param string $field_type Field type.
 	 */
 	public static function get_action( string $field_type ): string {
 		switch ( strtolower( trim( $field_type ) ) ) {
@@ -72,6 +81,8 @@ class Custom_Field_Rule_Resolver {
 
 	/**
 	 * Generate runtime rules for discovered ACF fields.
+	 *
+	 * @param array $fields List of fields.
 	 */
 	public static function generate_acf_rules( array $fields ): array {
 		$rules = array();
@@ -101,6 +112,9 @@ class Custom_Field_Rule_Resolver {
 
 	/**
 	 * Check if a field name matches a wildcard pattern (e.g. hero_*).
+	 *
+	 * @param string $pattern Regular expression pattern.
+	 * @param string $subject Subject text.
 	 */
 	public static function is_wildcard_match( string $pattern, string $subject ): bool {
 		$pattern = strtolower( trim( $pattern ) );
@@ -120,6 +134,11 @@ class Custom_Field_Rule_Resolver {
 
 	/**
 	 * Resolve effective rule for a field: User XML > Generated ACF > Policy.
+	 *
+	 * @param string $meta_key Meta key.
+	 * @param array  $user_rules User rules.
+	 * @param array  $generated_rules Generated rules.
+	 * @param string $fallback_field_type Fallback field type.
 	 */
 	public static function resolve_field_rule(
 		string $meta_key,
@@ -168,6 +187,9 @@ class Custom_Field_Rule_Resolver {
 
 	/**
 	 * Resolve effective rules for all discovered fields.
+	 *
+	 * @param array $fields List of fields.
+	 * @param array $user_rules User rules.
 	 */
 	public static function resolve_all_rules( array $fields, array $user_rules ): array {
 		$generated_rules = self::generate_acf_rules( $fields );

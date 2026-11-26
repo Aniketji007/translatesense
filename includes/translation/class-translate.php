@@ -1,4 +1,9 @@
 <?php
+/**
+ * Core translation service that sends strings to the selected AI provider.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -66,8 +71,8 @@ class Translate {
 	/**
 	 * Register or override a builder instance.
 	 *
-	 * @param string       $slug
-	 * @param Base_Builder $builder
+	 * @param string       $slug Slug.
+	 * @param Base_Builder $builder Builder name.
 	 */
 	public static function register_builder( string $slug, Base_Builder $builder ): void {
 		self::$builders[ sanitize_key( $slug ) ] = $builder;
@@ -76,7 +81,7 @@ class Translate {
 	/**
 	 * Get builder instance by slug.
 	 *
-	 * @param string $slug
+	 * @param string $slug Slug.
 	 * @return Base_Builder|null
 	 */
 	public static function get_builder( string $slug ): ?Base_Builder {
@@ -91,8 +96,8 @@ class Translate {
 	/**
 	 * Detect builder type for post.
 	 *
-	 * @param mixed $content
-	 * @param int   $post_id
+	 * @param mixed $content Content to process.
+	 * @param int   $post_id Post ID.
 	 * @return string
 	 */
 	public static function detect_builder( $content = '', int $post_id = 0 ): string {
@@ -108,11 +113,11 @@ class Translate {
 	/**
 	 * Translate a complete post by automatically dispatching to the appropriate builder.
 	 *
-	 * @param int    $post_id
-	 * @param string $target_lang
-	 * @param string $provider
-	 * @param array  $in_memory_translations
-	 * @param array  $options
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target language code.
+	 * @param string $provider AI provider ID.
+	 * @param array  $in_memory_translations In memory translations.
+	 * @param array  $options Options array.
 	 * @return array|WP_Error
 	 */
 	public static function translate_post( int $post_id, string $target_lang, string $provider = '', array $in_memory_translations = array(), array $options = array() ) {
@@ -138,12 +143,11 @@ class Translate {
 	/**
 	 * Translate a single string.
 	 *
-	 * @param string $source_string
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param string $widget_id
-	 * @param int    $post_id
-	 * @param array  $custom_options
+	 * @param string $source_string Source string.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param string $widget_id Widget ID.
+	 * @param array  $custom_options Custom options.
 	 * @return array array( 'translated' => string, 'cached' => bool, 'hash' => string )
 	 */
 	public static function translate_string( $source_string, $source_lang, $target_lang, $widget_id = 'generic', $custom_options = array() ) {
@@ -155,12 +159,12 @@ class Translate {
 			);
 		}
 
-		// Filter DOM content to extract translatable substring (matching Content_Parser extraction)
+		// Filter DOM content to extract translatable substring (matching Content_Parser extraction).
 		$filtered_string = $source_string;
 
 		$hash = Hashing_Db::generate_hash( (string) $widget_id, (string) $filtered_string );
 
-		// Step 3.2b: Check in-memory translations (Chrome Local AI / custom maps)
+		// Step 3.2b: Check in-memory translations (Chrome Local AI / custom maps).
 		if ( ! empty( $custom_options['in_memory_translations'] ) && is_array( $custom_options['in_memory_translations'] ) ) {
 			if ( isset( $custom_options['in_memory_translations'][ $hash ] ) && '' !== trim( (string) $custom_options['in_memory_translations'][ $hash ] ) ) {
 				$translated_text = self::sanitize_string( $source_string, $custom_options['in_memory_translations'][ $hash ] );
@@ -376,6 +380,12 @@ class Translate {
 		return $filtered_string;
 	}
 
+	/**
+	 * Contains html markup.
+	 *
+	 * @param string $value Value.
+	 * @return bool
+	 */
 	private static function contains_html_markup(
 		string $value
 	): bool {
@@ -386,6 +396,13 @@ class Translate {
 		);
 	}
 
+	/**
+	 * Sanitize translated text node.
+	 *
+	 * @param string $source_value Source value.
+	 * @param string $translated_value Translated value.
+	 * @return string
+	 */
 	private static function sanitize_translated_text_node(
 		string $source_value,
 		string $translated_value
@@ -457,6 +474,13 @@ class Translate {
 		return $leading . $safe_value . $trailing;
 	}
 
+	/**
+	 * Preserve outer whitespace.
+	 *
+	 * @param string $source Source string.
+	 * @param string $translated Translated value.
+	 * @return string
+	 */
 	private static function preserve_outer_whitespace(
 		string $source,
 		string $translated
@@ -593,7 +617,7 @@ class Translate {
 	/**
 	 * Check if a string is an email, URL, or asset path.
 	 *
-	 * @param string $str
+	 * @param string $str String.
 	 * @return bool
 	 */
 	public static function is_email_or_url( string $str ): bool {
@@ -603,10 +627,10 @@ class Translate {
 	/**
 	 * Translate a batch of strings.
 	 *
-	 * @param array  $strings_array
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $custom_options
+	 * @param array  $strings_array Strings array.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $custom_options Custom options.
 	 * @return array|\WP_Error
 	 */
 	public static function translate_batch( $strings_array, $source_lang, $target_lang, $custom_options = array() ) {
@@ -791,7 +815,7 @@ class Translate {
 	/**
 	 * Determine if provider results should be cached in translations table.
 	 *
-	 * @param string $provider
+	 * @param string $provider AI provider ID.
 	 * @return bool
 	 */
 	public static function should_cache_provider( $provider ) {
@@ -802,11 +826,11 @@ class Translate {
 	/**
 	 * Provider batch translation dispatcher preserving array indices.
 	 *
-	 * @param array  $texts Array of string indexed by key/integer [ 0 => '...', 1 => '...' ]
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param string $provider
-	 * @param array  $settings
+	 * @param array  $texts Array of string indexed by key/integer [ 0 => '...', 1 => '...' ].
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param string $provider AI provider ID.
+	 * @param array  $settings Settings array.
 	 * @return array|WP_Error Array of translated strings with identical keys [ 0 => '...', 1 => '...' ]
 	 */
 	public static function execute_provider_batch_translation( array $texts, string $source_lang, string $target_lang, string $provider, array $settings ) {
@@ -853,10 +877,10 @@ class Translate {
 	/**
 	 * Build standardized prompt for batch string translation.
 	 *
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $values_seq
-	 * @param array  $settings
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $values_seq Values sequence.
+	 * @param array  $settings Settings array.
 	 * @return string
 	 */
 	public static function build_batch_translation_prompt( string $source_lang, string $target_lang, array $values_seq, array $settings = array() ): string {

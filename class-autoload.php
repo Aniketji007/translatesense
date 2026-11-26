@@ -1,4 +1,9 @@
 <?php
+/**
+ * Class autoloader for the TranslateSense namespace.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -9,10 +14,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
+	/**
+	 * Class autoloader for the TranslateSense namespace.
+	 */
 	class Autoload {
 
+		/**
+		 * Singleton instance.
+		 *
+		 * @var Autoload|null
+		 */
 		private static $instance;
 
+		/**
+		 * Instance.
+		 */
 		public static function instance() {
 			if ( ! isset( self::$instance ) ) {
 				self::$instance = new self();
@@ -20,6 +36,9 @@ if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
 			return self::$instance;
 		}
 
+		/**
+		 * Construct.
+		 */
 		public function __construct() {
 			static $autoload_status = false;
 
@@ -28,6 +47,11 @@ if ( ! class_exists( 'TranslateSense\Autoload' ) ) {
 			}
 		}
 
+		/**
+		 * Autoload.
+		 *
+		 * @param mixed $class_name Class name.
+		 */
 		public function autoload( $class_name ) {
 			if ( 0 !== strpos( $class_name, __NAMESPACE__ ) ) {
 				return;

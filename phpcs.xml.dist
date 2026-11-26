@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<ruleset name="TranslateSense">
+	<description>WordPress Coding Standards ruleset for the TranslateSense plugin.</description>
+
+	<!-- Only scan PHP files. -->
+	<arg name="extensions" value="php"/>
+
+	<!-- Show sniff codes and progress in reports. -->
+	<arg value="ps"/>
+
+	<!-- Strip the file paths down to the relevant bit. -->
+	<arg name="basepath" value="./"/>
+
+	<!-- Use all available CPU cores. -->
+	<arg name="parallel" value="8"/>
+
+	<file>.</file>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<exclude-pattern>/assets/build/*</exclude-pattern>
+	<exclude-pattern>/languages/*</exclude-pattern>
+	<exclude-pattern>/.wordpress-org/*</exclude-pattern>
+
+	<rule ref="WordPress-Extra"/>
+	<rule ref="WordPress-Docs"/>
+
+	<!-- Verify that everything is properly text-domained for translation. -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="translatesense"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Properties of the native PHP DOM classes cannot be renamed to snake_case. -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="allowed_custom_properties" type="array">
+				<element value="childNodes"/>
+				<element value="documentElement"/>
+				<element value="firstChild"/>
+				<element value="formatOutput"/>
+				<element value="nodeName"/>
+				<element value="nodeType"/>
+				<element value="nodeValue"/>
+				<element value="ownerDocument"/>
+				<element value="ownerElement"/>
+				<element value="preserveWhiteSpace"/>
+				<element value="tagName"/>
+				<element value="textContent"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- The plugin is namespaced, so class files follow the WordPress "class-*.php" convention. -->
+	<config name="minimum_wp_version" value="5.8"/>
+	<config name="testVersion" value="7.4-"/>
+	<rule ref="PHPCompatibilityWP"/>
+</ruleset>

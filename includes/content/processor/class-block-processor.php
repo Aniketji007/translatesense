@@ -1,4 +1,9 @@
 <?php
+/**
+ * Gutenberg block processing state handler.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 

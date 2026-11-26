@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from Gutenberg blocks.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -31,10 +36,10 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Parse Gutenberg blocks or block content into translatable strings.
 	 *
-	 * @param mixed  $content String content or array of parsed blocks
-	 * @param int    $post_id
-	 * @param string $lang
-	 * @param array  $rules
+	 * @param mixed  $content String content or array of parsed blocks.
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param array  $rules List of rules.
 	 * @return array
 	 */
 	public function parse( $content, int $post_id = 0, string $lang = '', array $rules = array() ): array {
@@ -65,11 +70,12 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Recursively extract strings from Gutenberg blocks array.
 	 *
-	 * @param array  $blocks
-	 * @param array  $gutenberg_rules
-	 * @param int    $post_id
-	 * @param string $lang
-	 * @param array  $extracted
+	 * @param array  $blocks List of parsed blocks.
+	 * @param array  $gutenberg_rules Gutenberg rules.
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param array  $extracted Extracted.
+	 * @param int    $depth Nesting depth.
 	 */
 	public function extract_blocks_recursive( array $blocks, array $gutenberg_rules, int $post_id, string $lang, array &$extracted, int $depth = 0 ): void {
 		if ( empty( $blocks ) || $depth > 100 ) {
@@ -152,7 +158,7 @@ class Gutenberg_Builder extends Base_Builder {
 				}
 			}
 
-			// Recurse inner blocks
+			// Recurse inner blocks.
 			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
 				$this->extract_blocks_recursive( $block['innerBlocks'], $gutenberg_rules, $post_id, $lang, $extracted, $depth + 1 );
 			}
@@ -162,13 +168,13 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Extract translatable strings from an HTML chunk of innerContent using DOMDocument and XPath expressions.
 	 *
-	 * @param string $html
-	 * @param array  $xpaths
-	 * @param int    $post_id
-	 * @param string $lang
-	 * @param string $block_name
-	 * @param array  &$extracted
-	 * @param array  $no_translate
+	 * @param string $html HTML markup.
+	 * @param array  $xpaths List of XPath expressions.
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param string $block_name Block name.
+	 * @param array  &$extracted Extracted.
+	 * @param array  $no_translate No translate.
 	 */
 	public function extract_xpath_strings_from_html( string $html, array $xpaths, int $post_id, string $lang, string $block_name, array &$extracted, array $no_translate = array() ): void {
 		if ( ! class_exists( 'DOMDocument' ) || ! class_exists( 'DOMXPath' ) || '' === trim( $html ) || empty( $xpaths ) ) {
@@ -231,8 +237,8 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Get translatable string value from a DOMNode.
 	 *
-	 * @param DOMNode     $node
-	 * @param DOMDocument $dom
+	 * @param DOMNode     $node DOM node.
+	 * @param DOMDocument $dom DOM document.
 	 * @return string
 	 */
 	public function get_node_extracted_value( DOMNode $node, DOMDocument $dom ): string {
@@ -266,16 +272,16 @@ class Gutenberg_Builder extends Base_Builder {
 	 * - Sequential arrays of items with key="*" (repeater arrays like accordionLists).
 	 * - Associative arrays (direct nested objects).
 	 *
-	 * @param mixed  $data          Attribute value (string, sequential array, or associative array)
-	 * @param array  $schema        Key schema from XML rules
-	 * @param int    $post_id       Post ID
-	 * @param string $lang          Language code
-	 * @param array  &$extracted    Extracted strings list reference
-	 * @param array  &$found_strings List of raw strings found in this block
-	 * @param string $block_name    Gutenberg block name
-	 * @param string $path_key      Path identifier (e.g. 'accordionLists>title')
-	 * @param array  $no_translate  Paths/keys excluded from translation
-	 * @param int    $depth         Recursion depth
+	 * @param mixed  $data Attribute value (string, sequential array, or associative array).
+	 * @param array  $schema Key schema from XML rules.
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param array  &$extracted Extracted strings list reference.
+	 * @param array  &$found_strings List of raw strings found in this block.
+	 * @param string $block_name Gutenberg block name.
+	 * @param string $path_key Path identifier (e.g. 'accordionLists>title').
+	 * @param array  $no_translate Paths/keys excluded from translation.
+	 * @param int    $depth Recursion depth.
 	 */
 	public function extract_attribute_strings_recursive( $data, array $schema, int $post_id, string $lang, array &$extracted, array &$found_strings, string $block_name, string $path_key = '', array $no_translate = array(), int $depth = 0 ): void {
 		if ( empty( $data ) || $depth > 20 ) {

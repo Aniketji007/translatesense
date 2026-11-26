@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from Classic Editor content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -193,7 +198,7 @@ class Classic_Builder extends Base_Builder {
 			return array();
 		}
 
-		// Fallback if PHP DOMDocument or DOMXPath extension is unavailable
+		// Fallback if PHP DOMDocument or DOMXPath extension is unavailable.
 		if ( ! class_exists( 'DOMDocument' ) || ! class_exists( 'DOMXPath' ) ) {
 			return self::extract_fallback( $content );
 		}
@@ -220,7 +225,7 @@ class Classic_Builder extends Base_Builder {
 		$tokens = $matches[0];
 		$units  = array();
 
-		// Merge user-configured rules if provided
+		// Merge user-configured rules if provided.
 		$trans_attrs = self::TRANSLATABLE_ATTRS;
 		if ( ! empty( $rules['attributes'] ) && is_array( $rules['attributes'] ) ) {
 			$trans_attrs = array_unique( array_merge( $trans_attrs, array_map( 'strtolower', $rules['attributes'] ) ) );
@@ -334,7 +339,7 @@ class Classic_Builder extends Base_Builder {
 			return $units;
 		}
 
-		// Tag DOM elements with document-order tag index to map back to source tokens
+		// Tag DOM elements with document-order tag index to map back to source tokens.
 		$dom_tag_counters = array();
 		$xpath            = new DOMXPath( $dom );
 		$all_dom_nodes    = $xpath->query( '//*' );
@@ -371,7 +376,7 @@ class Classic_Builder extends Base_Builder {
 				$slice     = $elements_by_tag[ $tag ][ $tag_idx ];
 				$raw_inner = $slice['raw_inner'];
 
-				// Direct match
+				// Direct match.
 				if ( $raw_inner === $du['value'] ) {
 					$start              = $slice['inner_start'];
 					$len                = strlen( $raw_inner );
@@ -390,7 +395,7 @@ class Classic_Builder extends Base_Builder {
 					continue;
 				}
 
-				// Locate the unit value inside raw_inner (e.g. text before child blocks)
+				// Locate the unit value inside raw_inner (e.g. text before child blocks).
 				$pos_in_inner = strpos( $raw_inner, $du['value'] );
 				if ( false !== $pos_in_inner ) {
 					$start              = $slice['inner_start'] + $pos_in_inner;
@@ -410,7 +415,7 @@ class Classic_Builder extends Base_Builder {
 					continue;
 				}
 
-				// Trimmed whitespace match
+				// Trimmed whitespace match.
 				$leading_ws = 0;
 				if ( preg_match( '/^\s+/u', $raw_inner, $ws_match ) ) {
 					$leading_ws = strlen( $ws_match[0] );
@@ -440,7 +445,7 @@ class Classic_Builder extends Base_Builder {
 				}
 			}
 
-			// Standalone paragraph or text run
+			// Standalone paragraph or text run.
 			$val = $du['value'];
 			$pos = strpos( $content, $val, $source_pos );
 			if ( false === $pos ) {
@@ -552,17 +557,17 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Check if a string contains readable human text characters outside shortcodes and tags.
 	 *
-	 * @param string $text
+	 * @param string $text Text value.
 	 * @return bool
 	 */
 	public static function has_translatable_text( string $text ): bool {
-		// Strip shortcodes to avoid extracting pure shortcode blocks
+		// Strip shortcodes to avoid extracting pure shortcode blocks.
 		$clean = preg_replace( '/\[\/?[\w-]+(?:\s+[^\]]*)?\]/s', '', $text );
-		// Strip HTML tags
+		// Strip HTML tags.
 		$clean = wp_strip_all_tags( (string) $clean );
-		// Decode entities
+		// Decode entities.
 		$clean = html_entity_decode( $clean, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-		// Strip non-breaking spaces and invisible characters
+		// Strip non-breaking spaces and invisible characters.
 		$clean = preg_replace( '/[\s\x{00a0}\x{200b}\x{200e}\x{200f}]+/u', '', $clean );
 		return '' !== trim( (string) $clean );
 	}
@@ -570,8 +575,8 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Check if a tag name represents a recognized block-level element.
 	 *
-	 * @param string $tag
-	 * @param array  $rules
+	 * @param string $tag Tag name.
+	 * @param array  $rules List of rules.
 	 * @return bool
 	 */
 	private static function is_block_tag( string $tag, array $rules = array() ): bool {
@@ -587,8 +592,8 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Check if a DOM node has any child block elements.
 	 *
-	 * @param DOMNode $node
-	 * @param array   $rules
+	 * @param DOMNode $node DOM node.
+	 * @param array   $rules List of rules.
 	 * @return bool
 	 */
 	private static function has_child_blocks( DOMNode $node, array $rules = array() ): bool {
@@ -611,8 +616,8 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Get inner HTML of a DOMNode while stripping helper attributes.
 	 *
-	 * @param DOMNode     $node
-	 * @param DOMDocument $dom
+	 * @param DOMNode     $node DOM node.
+	 * @param DOMDocument $dom DOM document.
 	 * @return string
 	 */
 	private static function get_node_inner_html( DOMNode $node, DOMDocument $dom ): string {
@@ -632,11 +637,11 @@ class Classic_Builder extends Base_Builder {
 	 * Breaks unbracketed inline node sequences across blank lines (double newlines)
 	 * so each Classic Editor paragraph is extracted as an independent, contextual unit.
 	 *
-	 * @param DOMNode     $container
-	 * @param DOMDocument $dom
-	 * @param array       &$dom_units
-	 * @param array       $rules
-	 * @param int         $depth
+	 * @param DOMNode     $container Container.
+	 * @param DOMDocument $dom DOM document.
+	 * @param array       &$dom_units DOM units.
+	 * @param array       $rules List of rules.
+	 * @param int         $depth Nesting depth.
 	 */
 	private static function extract_dom_units( DOMNode $container, DOMDocument $dom, array &$dom_units, array $rules = array(), int $depth = 0 ): void {
 		if ( $depth > 50 ) {
@@ -661,7 +666,7 @@ class Classic_Builder extends Base_Builder {
 			$inline_nodes = array();
 			$html         = preg_replace( '/\s*data-ts-tag-idx="[^"]*"/i', '', $html );
 
-			// Split inline flow by blank lines (double newlines or wpautop breaks)
+			// Split inline flow by blank lines (double newlines or wpautop breaks).
 			$paras = preg_split( '/(\r?\n\s*\r?\n)/u', $html );
 			if ( ! $paras ) {
 				$paras = array( $html );
@@ -723,10 +728,10 @@ class Classic_Builder extends Base_Builder {
 	/**
 	 * Find the offset and byte length of a target value in source HTML when entities or tag formatting differ.
 	 *
-	 * @param string $source_html
-	 * @param string $target_val
-	 * @param int    $start_from
-	 * @param int    &$found_length
+	 * @param string $source_html Source HTML.
+	 * @param string $target_val Target value.
+	 * @param int    $start_from Start from.
+	 * @param int    &$found_length Found length.
 	 * @return int|false
 	 */
 	private static function find_decoded_offset( string $source_html, string $target_val, int $start_from, &$found_length ) {
@@ -752,11 +757,13 @@ class Classic_Builder extends Base_Builder {
 		$target_tokens = $t_m[0];
 		$t_count       = count( $target_tokens );
 
-		if ( 0 === $t_count || $t_count > count( $tokens ) ) {
+		$token_total = count( $tokens );
+
+		if ( 0 === $t_count || $t_count > $token_total ) {
 			return false;
 		}
 
-		for ( $i = 0; $i <= count( $tokens ) - $t_count; $i++ ) {
+		for ( $i = 0; $i <= $token_total - $t_count; $i++ ) {
 			$match = true;
 			for ( $j = 0; $j < $t_count; $j++ ) {
 				$s_tok = $tokens[ $i + $j ][0];
@@ -795,7 +802,7 @@ class Classic_Builder extends Base_Builder {
 	 *
 	 * Extracts individual block elements without returning the entire document as one string.
 	 *
-	 * @param string $content
+	 * @param string $content Content to process.
 	 * @return array
 	 */
 	private static function extract_fallback( string $content ): array {

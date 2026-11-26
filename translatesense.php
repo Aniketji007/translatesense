@@ -10,6 +10,8 @@
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       translatesense
  * Domain Path:       /languages
+ *
+ * @package TranslateSense
  */
 
 declare(strict_types=1);
@@ -53,6 +55,9 @@ register_activation_hook( __FILE__, __NAMESPACE__ . '\\activates_translatesense'
  * Check if Polylang is active and display admin notice if missing.
  */
 add_action( 'admin_notices', __NAMESPACE__ . '\\translatesense_check_polylang_requirement' );
+/**
+ * Translatesense check polylang requirement.
+ */
 function translatesense_check_polylang_requirement() {
 	if ( ! Polylang_Bridge::is_polylang_active() ) {
 		?>

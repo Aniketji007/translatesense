@@ -1,4 +1,9 @@
 <?php
+/**
+ * Extracts translatable strings from Advanced Custom Fields.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -26,6 +31,8 @@ class Acf {
 
 	/**
 	 * Get ACF fields for a post.
+	 *
+	 * @param int $post_id Post ID.
 	 */
 	public static function get_fields( int $post_id ): array {
 		if ( $post_id <= 0 || ! self::is_active() ) {
@@ -44,7 +51,7 @@ class Acf {
 
 		$fields = array();
 
-		// Find fields from post meta reference keys (_meta_key => field_key)
+		// Find fields from post meta reference keys (_meta_key => field_key).
 		foreach ( $post_meta as $meta_key => $values ) {
 			if ( ! is_string( $meta_key ) || '' === $meta_key || '_' !== $meta_key[0] || 1 === strlen( $meta_key ) ) {
 				continue;
@@ -79,7 +86,7 @@ class Acf {
 			);
 		}
 
-		// Also check field groups assigned by location rules
+		// Also check field groups assigned by location rules.
 		if ( function_exists( 'acf_get_field_groups' ) && function_exists( 'acf_get_fields' ) ) {
 			$groups = acf_get_field_groups( array( 'post_id' => $post_id ) );
 			if ( is_array( $groups ) ) {
@@ -112,6 +119,17 @@ class Acf {
 
 	/**
 	 * Extract translatable strings from an ACF field or container.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $root_meta_key Root meta key.
+	 * @param string $current_path Current path.
+	 * @param string $field_type Field type.
+	 * @param string $field_key Field key.
+	 * @param array  $field_def Field def.
+	 * @param array  $resolved_rules Resolved rules.
+	 * @param array  $strings List of strings.
+	 * @param int    $depth Nesting depth.
+	 * @param int    $max_depth Max depth.
 	 */
 	public static function extract_field_strings(
 		int $post_id,
@@ -141,7 +159,7 @@ class Acf {
 				if ( is_string( $raw_val ) && '' !== trim( $raw_val ) ) {
 					$clean_val = trim( $raw_val );
 
-					// Skip values that contain only numbers
+					// Skip values that contain only numbers.
 					if ( Custom_Field_Parser::is_only_numbers( $clean_val ) ) {
 						break;
 					}
@@ -233,6 +251,15 @@ class Acf {
 
 	/**
 	 * Extract translatable strings from ACF subfields.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $root_meta_key Root meta key.
+	 * @param string $prefix Prefix.
+	 * @param array  $sub_fields Sub fields.
+	 * @param array  $resolved_rules Resolved rules.
+	 * @param array  $strings List of strings.
+	 * @param int    $depth Nesting depth.
+	 * @param int    $max_depth Max depth.
 	 */
 	private static function extract_subfields(
 		int $post_id,

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Translates custom field values.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -21,6 +26,13 @@ class Custom_Field_Translator {
 
 	/**
 	 * Apply custom-field rules and translations to target post.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param bool   $is_existing Is existing.
+	 * @param array  $custom_opts Custom options.
 	 */
 	public static function apply_target_metadata(
 		int $source_post_id,
@@ -34,7 +46,7 @@ class Custom_Field_Translator {
 			return array();
 		}
 
-		// If Polylang custom fields synchronization is enabled, skip translating custom fields
+		// If Polylang custom fields synchronization is enabled, skip translating custom fields.
 		if ( Polylang_Bridge::is_custom_fields_sync_enabled() ) {
 			return array();
 		}
@@ -57,13 +69,13 @@ class Custom_Field_Translator {
 			$rule   = $resolved_rules[ $meta_key ] ?? null;
 			$action = $rule['action'] ?? Custom_Field_Rule_Resolver::ACTION_COPY;
 
-			// Action: Ignore
+			// Action: Ignore.
 			if ( Custom_Field_Rule_Resolver::ACTION_IGNORE === $action ) {
 				$applied[ $meta_key ] = 'ignore';
 				continue;
 			}
 
-			// Action: Copy-Once on existing target post
+			// Action: Copy-Once on existing target post.
 			if ( Custom_Field_Rule_Resolver::ACTION_COPY_ONCE === $action && $is_existing && metadata_exists( 'post', $target_post_id, $meta_key ) ) {
 				$applied[ $meta_key ] = 'copy-once-skipped';
 				continue;
@@ -88,11 +100,11 @@ class Custom_Field_Translator {
 					$custom_opts
 				);
 			} else {
-				// Standard custom field application
+				// Standard custom field application.
 				$raw_val = get_post_meta( $source_post_id, $meta_key, true );
 				if ( Custom_Field_Rule_Resolver::ACTION_TRANSLATE === $action ) {
 					if ( is_string( $raw_val ) && '' !== trim( $raw_val ) ) {
-						// If value contains only numbers, save as-is without translation
+						// If value contains only numbers, save as-is without translation.
 						if ( Custom_Field_Parser::is_only_numbers( $raw_val ) ) {
 							update_post_meta( $target_post_id, $meta_key, $raw_val );
 						} else {
