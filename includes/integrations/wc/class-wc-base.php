@@ -1,4 +1,9 @@
 <?php
+/**
+ * Base class for WooCommerce integrations.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -14,12 +19,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Shared functionality for WooCommerce translation integrations. */
 abstract class WC_Base {
 
+	/**
+	 * Register the translation hook.
+	 *
+	 * @param int $priority Hook priority.
+	 */
 	public function __construct( int $priority = 10 ) {
 		add_filter( 'translatesense_after_save_translated_post', array( $this, 'handle_after_save_translation' ), $priority, 6 );
 	}
 
 	/**
 	 * Filter callback for `translatesense_after_save_translated_post`.
+	 *
+	 * @param int    $target_post_id Target post ID.
+	 * @param int    $source_post_id Source post ID.
+	 * @param string $target_lang Target lang.
+	 * @param bool   $is_existing Is existing.
+	 * @param array  $sync_result Sync result.
+	 * @param array  $context Context.
 	 */
 	public function handle_after_save_translation(
 		int $target_post_id,
@@ -33,6 +50,16 @@ abstract class WC_Base {
 		return $target_post_id;
 	}
 
+	/**
+	 * Translate the WooCommerce data of a product.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $target_lang   Target language.
+	 * @param bool   $is_existing    Whether the translation already existed.
+	 * @param array  $sync_result    Sync result.
+	 * @param array  $context        Translation context.
+	 */
 	abstract public function translate(
 		int $source_post_id,
 		int $target_post_id,
@@ -42,6 +69,16 @@ abstract class WC_Base {
 		array $context = array()
 	): void;
 
+	/**
+	 * Translate a list of strings.
+	 *
+	 * @param array  $strings     Strings to translate.
+	 * @param string $source_lang Source language.
+	 * @param string $target_lang Target language.
+	 * @param array  $context     Translation context.
+	 * @param string $prefix      Key prefix.
+	 * @return array Translated strings.
+	 */
 	protected static function translate_strings(
 		array $strings,
 		string $source_lang,

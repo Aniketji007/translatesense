@@ -70,7 +70,7 @@ class Content_Parser {
 	 */
 	public static function init(): void {
 		self::init_builders();
-		// Hook before post update to capture existing post_content before it is overwritten in DB
+		// Hook before post update to capture existing post_content before it is overwritten in DB.
 		add_action( 'post_updated', array( __CLASS__, 'capture_post_updated' ), 10, 3 );
 
 		// Hook into post save lifecycle to check for content modifications.
@@ -147,7 +147,7 @@ class Content_Parser {
 			}
 		}
 
-		// Check Elementor edit mode post meta
+		// Check Elementor edit mode post meta.
 		if ( $post_id > 0 && 'builder' === get_post_meta( $post_id, '_elementor_edit_mode', true ) && defined( 'ELEMENTOR_VERSION' ) ) {
 			return 'elementor';
 		}
@@ -374,7 +374,7 @@ class Content_Parser {
 			return;
 		}
 
-		// Detect source language
+		// Detect source language.
 		$lang = Polylang_Bridge::get_post_language( $post_id );
 
 		// Extract new elements data from payload.
@@ -504,7 +504,7 @@ class Content_Parser {
 			return self::clean_pending_meta_key( false, $post_id );
 		}
 
-		// Identify the source and target posts:
+		// Identify the source and target posts.
 		$source_id   = absint( get_post_meta( $post_id, '_translatesense_source_id', true ) );
 		$source_post = $source_id > 0 ? get_post( $source_id ) : null;
 		$target_lang = Polylang_Bridge::get_post_language( $post_id );

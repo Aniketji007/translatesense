@@ -1,4 +1,9 @@
 <?php
+/**
+ * Translates WooCommerce product attributes.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -49,6 +54,16 @@ class Product_Attribute_Translator extends WC_Base {
 		parent::__construct( 10 );
 	}
 
+	/**
+	 * Translate product attributes and downloads.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $target_lang    Target language.
+	 * @param bool   $is_existing    Whether the translation already existed.
+	 * @param array  $sync_result    Sync result.
+	 * @param array  $context        Translation context.
+	 */
 	public function translate( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
 		self::translate_attributes( $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $context );
 		self::synchronize_downloads_and_note( $source_post_id, $target_post_id, $target_lang, $context );
@@ -121,7 +136,7 @@ class Product_Attribute_Translator extends WC_Base {
 				continue;
 			}
 
-			// Attribute label
+			// Attribute label.
 			$label = trim( (string) $attr->get_name() );
 			if ( '' !== $label && ! Custom_Field_Parser::is_only_numbers( $label ) ) {
 				$field_key   = 'wc_attr_label_' . $attr_key;
@@ -152,7 +167,7 @@ class Product_Attribute_Translator extends WC_Base {
 				}
 			}
 
-			// Attribute options
+			// Attribute options.
 			$raw_options = $attr->get_options();
 			$options     = is_array( $raw_options ) ? $raw_options : array_filter( array_map( 'trim', explode( '|', (string) $raw_options ) ) );
 
@@ -206,7 +221,7 @@ class Product_Attribute_Translator extends WC_Base {
 					continue;
 				}
 
-				// Variation description
+				// Variation description.
 				$desc = trim( (string) $var_obj->get_description() );
 				if ( '' !== $desc && ! Custom_Field_Parser::is_only_numbers( $desc ) ) {
 					$field_key   = 'wc_var_desc_' . $var_id;
@@ -241,7 +256,7 @@ class Product_Attribute_Translator extends WC_Base {
 					}
 				}
 
-				// Variation configured translatable custom fields
+				// Variation configured translatable custom fields.
 				if ( ! empty( $user_rules ) && class_exists( Custom_Field_Parser::class ) && class_exists( '\TranslateSense\Includes\XML\Custom_Field_Rule_Resolver' ) ) {
 					$fields   = Custom_Field_Parser::get_post_fields( $var_id, 'all' );
 					$resolved = \TranslateSense\Includes\XML\Custom_Field_Rule_Resolver::resolve_all_rules( $fields, $user_rules );
@@ -313,7 +328,7 @@ class Product_Attribute_Translator extends WC_Base {
 		$extracted = array();
 		$downloads = $product->get_downloads();
 
-		// Fallback to post meta if get_downloads() returned empty but _downloadable_files exists
+		// Fallback to post meta if get_downloads() returned empty but _downloadable_files exists.
 		if ( empty( $downloads ) ) {
 			$raw_meta = get_post_meta( $post_id, '_downloadable_files', true );
 			if ( is_array( $raw_meta ) ) {
@@ -388,7 +403,7 @@ class Product_Attribute_Translator extends WC_Base {
 		$extracted = array();
 		$note      = trim( (string) $product->get_purchase_note() );
 
-		// Fallback to post meta if empty
+		// Fallback to post meta if empty.
 		if ( '' === $note ) {
 			$raw_meta = get_post_meta( $post_id, '_purchase_note', true );
 			if ( is_string( $raw_meta ) ) {
@@ -501,7 +516,7 @@ class Product_Attribute_Translator extends WC_Base {
 			$source_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
 		}
 
-		// Fallback to static context if context parameter was not provided by caller
+		// Fallback to static context if context parameter was not provided by caller.
 		if ( empty( $context ) ) {
 			$context = self::get_current_context();
 		}

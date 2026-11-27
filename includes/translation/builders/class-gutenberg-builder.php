@@ -337,7 +337,7 @@ class Gutenberg_Builder extends Base_Builder {
 				continue;
 			}
 
-			$nodes = @$xpath->query( $query, $body );
+			$nodes = @$xpath->query( $query, $body ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Invalid XPath must not raise warnings.
 			if ( ! $nodes || 0 === $nodes->length ) {
 				continue;
 			}

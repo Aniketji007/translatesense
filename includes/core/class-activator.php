@@ -259,7 +259,7 @@ class Activator {
 		$path = Xml_Engine::get_master_xml_path();
 
 		if ( file_exists( $path ) ) {
-			$all_xml = file_get_contents( $path );
+			$all_xml = file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local plugin file.
 
 			if ( false !== $all_xml && '' !== $all_xml ) {
 				update_option( 'translatesense_all_xml', $all_xml );

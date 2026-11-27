@@ -1,4 +1,9 @@
 <?php
+/**
+ * Shared helper utilities.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -185,7 +190,7 @@ class Utils {
 
 		$trimmed = trim( $value );
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Safely decode serialized metadata without instantiating PHP objects.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize, WordPress.PHP.NoSilencedErrors.Discouraged -- Safely decode serialized metadata without instantiating PHP objects.
 		$unserialized = @unserialize(
 			$trimmed,
 			array(
@@ -241,7 +246,10 @@ class Utils {
 		bool $enforce_permissions = true,
 		string $context = 'translation'
 	) {
-		$context     = sanitize_key( $context ) ?: 'translation';
+		$context = sanitize_key( $context );
+		if ( '' === $context ) {
+			$context = 'translation';
+		}
 		$target_lang = sanitize_key( $target_lang );
 		$languages   = Polylang_Bridge::get_languages();
 

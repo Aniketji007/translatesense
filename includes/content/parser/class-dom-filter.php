@@ -87,7 +87,7 @@ class Dom_Filter {
 			return $text;
 		}
 
-		// Handle UTF-16 surrogate pairs (e.g. \uD83D\uDE00 -> emoji)
+		// Handle UTF-16 surrogate pairs (e.g. \uD83D\uDE00 -> emoji).
 		$surrogate_pattern = '/\\\\u([dD][89abAB][0-9a-fA-F]{2})\\\\u([dD][c-fC-F][0-9a-fA-F]{2})/i';
 		$text              = preg_replace_callback(
 			$surrogate_pattern,
@@ -100,7 +100,7 @@ class Dom_Filter {
 			$text
 		);
 
-		// Handle standard BMP \uXXXX
+		// Handle standard BMP \uXXXX.
 		$text = preg_replace_callback(
 			'/\\\\u([0-9a-fA-F]{4})/i',
 			static function ( $m ) {

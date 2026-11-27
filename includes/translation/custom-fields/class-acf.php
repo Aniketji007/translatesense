@@ -62,7 +62,7 @@ class Acf {
 				$raw_val = get_post_meta( $source_post_id, $current_path, true );
 				if ( Custom_Field_Rule_Resolver::ACTION_TRANSLATE === $action ) {
 					if ( is_string( $raw_val ) && '' !== trim( $raw_val ) ) {
-						// If value contains only numbers, save as-is without translation
+						// If value contains only numbers, save as-is without translation.
 						if ( Utils::is_only_numbers( $raw_val ) ) {
 							update_post_meta( $target_post_id, $current_path, $raw_val );
 						} else {
@@ -356,5 +356,4 @@ class Acf {
 
 		return $term_id;
 	}
-
 }

@@ -936,6 +936,13 @@ class Translate {
 		return '';
 	}
 
+	/**
+	 * Update the pending translation state of a translated post.
+	 *
+	 * @param int   $source_id   Source post ID.
+	 * @param int   $post_id     Translated post ID.
+	 * @param array $custom_opts Translation options.
+	 */
 	public static function update_pending_translation( int $source_id, int $post_id, array $custom_opts ) {
 		if ( $source_id <= 0 || $post_id <= 0 ) {
 			return;
@@ -955,7 +962,7 @@ class Translate {
 
 		$front_page_id = absint( get_option( 'page_on_front' ) );
 
-		if ( $front_page_id && in_array( $front_page_id, array( $source_id, $post_id ) ) ) {
+		if ( $front_page_id && in_array( $front_page_id, array( $source_id, $post_id ), true ) ) {
 			$post_name           = get_post_field( 'post_name', $post_id );
 			$elementor_post_name = 'elementor-' . $post_id;
 

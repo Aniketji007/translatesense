@@ -34,7 +34,7 @@ class Cron {
 	 * Initialize cron hooks.
 	 */
 	public static function init() {
-		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_schedules' ) );
+		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_schedules' ) ); // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- The interval is defined in add_cron_schedules().
 		add_action( self::CLEANUP_HOOK, array( __CLASS__, 'run_cache_cleanup' ) );
 		add_action( 'admin_init', array( __CLASS__, 'ensure_cleanup_scheduled' ) );
 	}

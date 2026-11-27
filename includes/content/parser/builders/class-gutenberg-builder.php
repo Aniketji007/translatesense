@@ -205,7 +205,7 @@ class Gutenberg_Builder extends Base_Builder {
 				continue;
 			}
 
-			$nodes = $body ? @$xpath->query( $query, $body ) : @$xpath->query( $query );
+			$nodes = $body ? @$xpath->query( $query, $body ) : @$xpath->query( $query ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Invalid XPath must not raise warnings.
 			if ( ! $nodes || 0 === $nodes->length ) {
 				continue;
 			}
