@@ -1,4 +1,4 @@
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * TopHeader Component - Modern SaaS Header Bar
  */
@@ -16,13 +16,13 @@ export function TopHeader({
         <div className="ts-brand-logo-wrap">
           <img
             src={logoSrc}
-            alt={ __( 'TranslateSense Logo', 'translatesense' ) }
+            alt={ sprintf( /* translators: %s: plugin name. */ __( '%s Logo', 'translatesense' ), 'TranslateSense') }
             onError={(e) => {
               e.target.style.display = 'none';
             }}
           />
         </div>
-        <h1 className="ts-brand-title">{ __( 'TranslateSense', 'translatesense' ) }</h1>
+        <h1 className="ts-brand-title">TranslateSense</h1>
       </div>
       <div className="ts-top-actions">
         <a
