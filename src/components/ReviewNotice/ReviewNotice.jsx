@@ -10,6 +10,7 @@ import {
   REVIEW_NOTICE_LINK_TEXT,
   dismissReviewNotice,
 } from '../../services/api/reviewService';
+import { __ } from '@wordpress/i18n';
 
 export function ReviewNotice({ isVisible = false, onDismiss = null, className = '' }) {
   const [isDismissed, setIsDismissed] = useState(false);
@@ -40,7 +41,7 @@ export function ReviewNotice({ isVisible = false, onDismiss = null, className = 
     <div
       className={`ts-review-notice ${className}`.trim()}
       role="region"
-      aria-label="TranslateSense Review Notice"
+      aria-label={ __( 'TranslateSense Review Notice', 'translatesense' ) }
     >
       <p className="ts-review-notice-text">
         <span dangerouslySetInnerHTML={{ __html: REVIEW_NOTICE_BODY }} />{' '}
@@ -61,7 +62,7 @@ export function ReviewNotice({ isVisible = false, onDismiss = null, className = 
           onClick={() => handleDismiss('already_reviewed')}
           style={{ borderLeftWidth: '0px' }}
         >
-          Already Reviewed
+          { __( 'Already Reviewed', 'translatesense' ) }
         </button>
 
         <button
@@ -69,7 +70,7 @@ export function ReviewNotice({ isVisible = false, onDismiss = null, className = 
           className="ts-review-notice-action"
           onClick={() => handleDismiss('not_interested')}
         >
-          Dismiss
+          { __( 'Dismiss', 'translatesense' ) }
         </button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * Centralized API Client for TranslateSense
  */
@@ -78,7 +79,7 @@ export async function apiRequest(endpoint, options = {}) {
 
       return await window.wp.apiFetch(fetchOptions);
     } catch (err) {
-      const message = err.message || err.code || 'API request failed';
+      const message = err.message || err.code || __( 'API request failed', 'translatesense' );
       const status = err.status || (err.data && err.data.status) || 500;
       throw new ApiError(message, status, err);
     }
@@ -110,7 +111,7 @@ export async function apiRequest(endpoint, options = {}) {
   try {
     response = await fetch(fullUrl, fetchConfig);
   } catch (netErr) {
-    throw new ApiError(`Network error: ${netErr.message}`, 0, netErr);
+    throw new ApiError(sprintf( /* translators: %s: Error message. */ __( 'Network error: %s', 'translatesense' ), netErr.message ), 0, netErr);
   }
 
   let resData;
@@ -123,7 +124,7 @@ export async function apiRequest(endpoint, options = {}) {
   if (!response.ok) {
     const errorMsg =
       (resData && (resData.message || resData.error)) ||
-      `HTTP Error ${response.status}: ${response.statusText}`;
+      sprintf( /* translators: %1$s: Status, %2$s: Status text. */ __( 'HTTP Error %1$s: %2$s', 'translatesense' ), response.status, response.statusText );
     throw new ApiError(errorMsg, response.status, resData);
   }
 

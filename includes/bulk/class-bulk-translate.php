@@ -190,19 +190,21 @@ class Bulk_Translate {
 		wp_enqueue_script(
 			'translatesense-chrome-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/chrome-ai/chrome-built-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-chrome-languages' ),
+			array( 'translatesense-chrome-languages', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-chrome-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 3. AI Translate Provider (OpenAI & Gemini)
 		wp_enqueue_script(
 			'translatesense-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/ai-services/ai-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array(),
+			array( 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 4. Providers Aggregator / Register
 		wp_enqueue_script(
@@ -226,6 +228,7 @@ class Bulk_Translate {
 			$asset['version'],
 			true
 		);
+		wp_set_script_translations( 'translatesense-bulk', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		$is_taxonomy_screen = ( '' !== $taxonomy );
 

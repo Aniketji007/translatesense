@@ -3,7 +3,7 @@
  * Encapsulates Progress Monitoring, Results Table, and Actions in its own Modal
  */
 
-import { useState, useMemo } from '@wordpress/element';
+import { useState, useMemo, createInterpolateElement } from '@wordpress/element';
 import { Modal, ModalHeader, ModalFooter } from '../../components/Modal';
 import { Button } from '../../components/Button';
 import { ReviewNotice } from '../../components/ReviewNotice';
@@ -12,6 +12,7 @@ import { ProgressSummary } from './ProgressSummary';
 import { TranslationResults } from './TranslationResults';
 import { BulkProgressSkeleton } from './BulkProgressSkeleton';
 import { getBulkItemLabels } from '../utils/bulkFormatters';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function BulkProgressModal({
   isOpen = true,
@@ -69,9 +70,9 @@ export function BulkProgressModal({
   }, [postResultsMap]);
 
   const filterOptions = [
-    failedCount > 0 ? { key: 'failed', label: 'Show Failed' } : null,
-    completedCount > 0 ? { key: 'completed', label: 'Show Completed' } : null,
-    skipExistCount > 0 ? { key: 'skip_exist', label: 'Show Skip/Exist' } : null,
+    failedCount > 0 ? { key: 'failed', label: __( 'Show Failed', 'translatesense' ) } : null,
+    completedCount > 0 ? { key: 'completed', label: __( 'Show Completed', 'translatesense' ) } : null,
+    skipExistCount > 0 ? { key: 'skip_exist', label: __( 'Show Skip/Exist', 'translatesense' ) } : null,
   ].filter(Boolean);
 
   const showStatusFilters = filterOptions.length >= 2;
@@ -105,8 +106,8 @@ export function BulkProgressModal({
       dataStep={3}
       header={
         <ModalHeader
-          title="Bulk Translation"
-          subtitle="Monitor translation progress"
+          title={ __( 'Bulk Translation', 'translatesense' ) }
+          subtitle={ __( 'Monitor translation progress', 'translatesense' ) }
           onClose={onClose}
           closeClass="ts-bulk-close"
         />
@@ -121,7 +122,7 @@ export function BulkProgressModal({
                 id="ts-progress-back-btn"
                 className="ts-bulk-progress-back-btn"
               >
-                &larr; Back
+                { __( '← Back', 'translatesense' ) }
               </Button>
             )}
             {showStatusFilters && (
@@ -146,10 +147,10 @@ export function BulkProgressModal({
                 variant="secondary"
                 className="ts-translate-again-btn"
                 onClick={onTranslateAgain}
-                title="Retry and translate remaining failed items"
+                title={ __( 'Retry and translate remaining failed items', 'translatesense' ) }
               >
                 <span className="dashicons dashicons-update" />
-                Translate Again
+                { __( 'Translate Again', 'translatesense' ) }
               </Button>
             )}
             <Button
@@ -163,10 +164,10 @@ export function BulkProgressModal({
               }}
             >
               {isTranslating && isChromeAi
-                ? 'Translation In Progress...'
+                ? __( 'Translation In Progress...', 'translatesense' )
                 : isCompleted
-                  ? 'Done (Reload)'
-                  : 'Close'}
+                  ? __( 'Done (Reload)', 'translatesense' )
+                  : __( 'Close', 'translatesense' )}
             </Button>
           </div>
         </ModalFooter>
@@ -184,9 +185,9 @@ export function BulkProgressModal({
             <div className="ts-empty-batches-icon">
               <span className="dashicons dashicons-translation" />
             </div>
-            <h3 className="ts-empty-batches-title">No Active Batches Found</h3>
+            <h3 className="ts-empty-batches-title">{ __( 'No Active Batches Found', 'translatesense' ) }</h3>
             <p className="ts-empty-batches-desc">
-              There are no active translation batches right now. Follow these steps to start bulk translation:
+              { __( 'There are no active translation batches right now. Follow these steps to start bulk translation:', 'translatesense' ) }
             </p>
 
             <div className="ts-empty-steps-list">
@@ -199,10 +200,18 @@ export function BulkProgressModal({
                 </div>
                 <div className="ts-empty-step-content">
                   <h4 className="ts-empty-step-title">
-                    Select {itemPluralTitle || 'Posts'}
+                    {sprintf(
+                      /* translators: %s: Item type in plural, such as Posts. */
+                      __( 'Select %s', 'translatesense' ),
+                      itemPluralTitle || __( 'Posts', 'translatesense' )
+                    )}
                   </h4>
                   <p className="ts-empty-step-text">
-                    Select the {(itemPlural || 'posts').toLowerCase()} you want to translate by clicking their checkboxes in the list table.
+                    {sprintf(
+                      /* translators: %s: Item type in plural, in lowercase, such as posts. */
+                      __( 'Select the %s you want to translate by clicking their checkboxes in the list table.', 'translatesense' ),
+                      (itemPlural || __( 'posts', 'translatesense' )).toLowerCase()
+                    )}
                   </p>
                 </div>
               </div>
@@ -215,9 +224,12 @@ export function BulkProgressModal({
                   <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} viewBox="0 0 448 512"><path d="M91.2 36.9c-12.4-6.8-27.4-6.5-39.6 .7S32 57.9 32 72l0 368c0 14.1 7.5 27.2 19.6 34.4s27.2 7.5 39.6 .7l336-184c12.8-7 20.8-20.5 20.8-35.1s-8-28.1-20.8-35.1l-336-184z" /></svg>
                 </div>
                 <div className="ts-empty-step-content">
-                  <h4 className="ts-empty-step-title">Bulk Translate</h4>
+                  <h4 className="ts-empty-step-title">{ __( 'Bulk Translate', 'translatesense' ) }</h4>
                   <p className="ts-empty-step-text">
-                    Click the <span className="ts-empty-step-badge">Bulk Translate</span> button to select your target languages and translation provider, then start bulk translation.
+                    {createInterpolateElement(
+                      __( 'Click the <badge>Bulk Translate</badge> button to select your target languages and translation provider, then start bulk translation.', 'translatesense' ),
+                      { badge: <span className="ts-empty-step-badge" /> }
+                    )}
                   </p>
                 </div>
               </div>

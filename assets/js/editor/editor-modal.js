@@ -10,6 +10,8 @@
 (function (window, document) {
   'use strict';
 
+  const { __, sprintf } = window.wp.i18n;
+
   var data = window.TranslateSenseEditorModalData || window.TranslateSenseEditorData || window.translatesenseData || {};
   if (!window.translatesenseData && Object.keys(data).length > 0) {
     window.translatesenseData = data;
@@ -418,7 +420,12 @@
       '<div class="ts-modal-body ts-common-body">' +
       '<div class="ts-source-guidance-content">' +
       '<p class="ts-prompt-intro-text">' +
-      'This page was created in ' + safeEditorName + '. Click Translate to open this page in the ' + safeEditorName + ' editor to start translation, or click Close to skip.' +
+      sprintf(
+        /* translators: %s: Name of the editor the page was created in, such as Elementor or Gutenberg. */
+        __( 'This page was created in %1$s. Click Translate to open this page in the %2$s editor to start translation, or click Close to skip.', 'translatesense' ),
+        safeEditorName,
+        safeEditorName
+      ) +
       '</p>' +
 
       '<div class="ts-prompt-languages-row">' +

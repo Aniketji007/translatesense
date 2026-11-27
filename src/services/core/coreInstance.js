@@ -1,3 +1,4 @@
+import { __, sprintf } from '@wordpress/i18n';
 class TranslateSenseCore {
     constructor() {
         this.providers = new Map();
@@ -316,11 +317,11 @@ class TranslateSenseCore {
     async validateProvider(providerId, sourceLang = 'en', targetLang = 'es', bypassCache = false) {
         const provider = this.getProvider(providerId);
         if (!provider) {
-            return { available: false, reason: `Provider "${providerId}" is not registered.`, noticeType: 'error' };
+            return { available: false, reason: sprintf( /* translators: %s: Provider id. */ __( 'Provider "%s" is not registered.', 'translatesense' ), providerId ), noticeType: 'error' };
         }
 
         if (!this.isProviderEnabled(providerId)) {
-            return { available: false, reason: `Provider "${provider.title}" is disabled in settings.`, noticeType: 'warning' };
+            return { available: false, reason: sprintf( /* translators: %s: Title. */ __( 'Provider "%s" is disabled in settings.', 'translatesense' ), provider.title ), noticeType: 'warning' };
         }
 
         // Check language support definition
@@ -330,7 +331,7 @@ class TranslateSenseCore {
             if (supported.available === false) {
                 return {
                     available: false,
-                    reason: supported.reason || `Language pair (${sourceLang.toUpperCase()} → ${targetLang.toUpperCase()}) is not supported by ${provider.title}.`,
+                    reason: supported.reason || sprintf( /* translators: 1: Source language code, 2: Target language code, 3: AI provider name. */ __( 'Language pair (%1$s → %2$s) is not supported by %3$s.', 'translatesense' ), sourceLang.toUpperCase(), targetLang.toUpperCase(), provider.title ),
                     reasonHTML: supported.reasonHTML || false,
                     reasonTitle: supported.reasonTitle || false,
                     actionHtml: supported.actionHtml || false,
@@ -344,7 +345,7 @@ class TranslateSenseCore {
             const check = await provider.checkAvailability(sourceLang, targetLang, bypassCache);
             return check || { available: true };
         } catch (err) {
-            return { available: false, reason: err.message || 'Provider availability check failed.', noticeType: 'error' };
+            return { available: false, reason: err.message || __( 'Provider availability check failed.', 'translatesense' ), noticeType: 'error' };
         }
     }
 
@@ -710,7 +711,7 @@ class TranslateSenseCore {
         const sourcePageData = params.sourcePageData || options.sourcePageData || null;
 
         if (!Array.isArray(strings) || strings.length === 0) {
-            return { success: false, message: 'No strings to apply' };
+            return { success: false, message: __( 'No strings to apply', 'translatesense' ) };
         }
 
         let editor = editorId ? this.getPageEditor(editorId) : null;

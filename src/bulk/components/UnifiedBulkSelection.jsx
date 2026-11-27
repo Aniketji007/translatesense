@@ -7,6 +7,7 @@ import { useState, useMemo } from '@wordpress/element';
 import { Modal, ModalHeader } from '../../components/Modal';
 import { getLanguageFlag } from '../../utils/language';
 import { getBulkItemLabels } from '../utils/bulkFormatters';
+import { __, sprintf } from '@wordpress/i18n';
 
 function GlobeIcon({ size = 18, color = 'currentColor' }) {
   return (
@@ -242,13 +243,13 @@ export function UnifiedBulkSelection({
         <button
           type="button"
           className="ts-provider-badge error-badge ts-provider-error-btn"
-          title='View Error Details'
+          title={ __( 'View Error Details', 'translatesense' ) }
           onClick={(e) => {
             e.stopPropagation();
             if (onViewError) onViewError(p);
           }}
         >
-          ⚠️ View Error
+          { __( '⚠️ View Error', 'translatesense' ) }
         </button>
       );
     }
@@ -261,9 +262,9 @@ export function UnifiedBulkSelection({
           rel="noopener noreferrer"
           className="ts-provider-badge error-badge api-required"
           onClick={(e) => e.stopPropagation()}
-          title={p.badgeText || 'Configuration required'}
+          title={p.badgeText || __( 'Configuration required', 'translatesense' )}
         >
-          {p.badgeText || 'API key required'}
+          {p.badgeText || __( 'API key required', 'translatesense' )}
         </a>
       );
     }
@@ -278,7 +279,7 @@ export function UnifiedBulkSelection({
     }
 
     // 4. If OpenAI or Gemini is supported and available: display Available badge
-    return <span className="ts-provider-badge available-badge">Available</span>;
+    return <span className="ts-provider-badge available-badge">{ __( 'Available', 'translatesense' ) }</span>;
   };
 
   // Calculations for summary bar
@@ -323,8 +324,8 @@ export function UnifiedBulkSelection({
       dataStep={1}
       header={
         <ModalHeader
-          title="Bulk Translation"
-          subtitle={`Translate multiple ${itemPlural} into one or more languages using AI.`}
+          title={ __( 'Bulk Translation', 'translatesense' ) }
+          subtitle={sprintf( /* translators: %s: Item plural. */ __( 'Translate multiple %s into one or more languages using AI.', 'translatesense' ), itemPlural )}
           onClose={onClose}
           closeClass="ts-bulk-close"
         />
@@ -336,7 +337,7 @@ export function UnifiedBulkSelection({
             className="ts-btn ts-btn-secondary button-secondary"
             onClick={onClose}
           >
-            Cancel
+            { __( 'Cancel', 'translatesense' ) }
           </button>
           <button
             type="button"
@@ -348,7 +349,7 @@ export function UnifiedBulkSelection({
             <span className="ts-start-icon">
               <TranslateIcon size={16} />
             </span>
-            <span>Start Bulk Translation</span>
+            <span>{ __( 'Start Bulk Translation', 'translatesense' ) }</span>
             <span className="ts-start-arrow">&rarr;</span>
           </button>
         </div>
@@ -363,11 +364,11 @@ export function UnifiedBulkSelection({
                 ⚡
               </span>
               <div className="ts-notice-text">
-                <strong className="ts-notice-title">Background translations are running</strong>
+                <strong className="ts-notice-title">{ __( 'Background translations are running', 'translatesense' ) }</strong>
                 <span className="ts-notice-desc">
                   {activeBatches.length === 1
-                    ? 'There is 1 active translation batch in progress.'
-                    : `There are ${activeBatches.length} active translation batches in progress.`}
+                    ? __( 'There is 1 active translation batch in progress.', 'translatesense' )
+                    : sprintf( /* translators: %s: Number of items. */ __( 'There are %s active translation batches in progress.', 'translatesense' ), activeBatches.length )}
                 </span>
               </div>
             </div>
@@ -377,7 +378,7 @@ export function UnifiedBulkSelection({
                 className="button button-secondary ts-show-running-btn"
                 onClick={onShowRunning}
               >
-                View Progress
+                { __( 'View Progress', 'translatesense' ) }
               </button>
             )}
           </div>
@@ -403,7 +404,7 @@ export function UnifiedBulkSelection({
           >
             <span style={{ fontSize: '14px', flexShrink: 0 }}>ℹ️</span>
             <span>
-              <strong>Polylang Synchronization active:</strong> Custom fields are synced automatically and will not be translated.
+              <strong>{ __( 'Polylang Synchronization active:', 'translatesense' ) }</strong> { __( 'Custom fields are synced automatically and will not be translated.', 'translatesense' ) }
             </span>
           </div>
         )}
@@ -423,12 +424,17 @@ export function UnifiedBulkSelection({
                   <GlobeIcon size={19} color="#3858e9" />
                 </div>
                 <div>
-                  <h3 className="ts-panel-title">Target Languages</h3>
-                  <p className="ts-panel-subtitle">Choose the languages to translate into.</p>
+                  <h3 className="ts-panel-title">{ __( 'Target Languages', 'translatesense' ) }</h3>
+                  <p className="ts-panel-subtitle">{ __( 'Choose the languages to translate into.', 'translatesense' ) }</p>
                 </div>
               </div>
               <div className="ts-bulk-count-pill">
-                {selectedLanguages.length} of {allLanguages.length} selected
+                {sprintf(
+                  /* translators: 1: Number of selected languages, 2: Total number of languages. */
+                  __( '%1$s of %2$s selected', 'translatesense' ),
+                  selectedLanguages.length,
+                  allLanguages.length
+                )}
               </div>
             </div>
 
@@ -442,7 +448,7 @@ export function UnifiedBulkSelection({
                   <input
                     type="text"
                     className="ts-bulk-search-input"
-                    placeholder="Search language..."
+                    placeholder={ __( 'Search language...', 'translatesense' ) }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -454,14 +460,14 @@ export function UnifiedBulkSelection({
                   className="ts-bulk-action-btn"
                   onClick={handleSelectAll}
                 >
-                  Select All
+                  { __( 'Select All', 'translatesense' ) }
                 </button>
                 <button
                   type="button"
                   className="ts-bulk-action-btn"
                   onClick={handleClearAll}
                 >
-                  Clear All
+                  { __( 'Clear All', 'translatesense' ) }
                 </button>
               </div>
             </div>
@@ -469,7 +475,7 @@ export function UnifiedBulkSelection({
             {/* 2-Column Languages Grid */}
             <div className="ts-bulk-lang-grid">
               {filteredLanguages.length === 0 ? (
-                <div className="ts-bulk-empty-langs">No languages found.</div>
+                <div className="ts-bulk-empty-langs">{ __( 'No languages found.', 'translatesense' ) }</div>
               ) : (
                 filteredLanguages.map((lang) => {
                   const isSource = isSourceLang(lang);
@@ -485,7 +491,7 @@ export function UnifiedBulkSelection({
                       dir={lang.rtl ? 'rtl' : 'ltr'}
                       title={
                         isSource
-                          ? `${lang.name} is the default language`
+                          ? sprintf( /* translators: %s: Name. */ __( '%s is the default language', 'translatesense' ), lang.name )
                           : lang.name
                       }
                     >
@@ -508,7 +514,7 @@ export function UnifiedBulkSelection({
                       <span className="ts-bulk-lang-code">{displayCode}</span>
 
                       {isSource && (
-                        <span className="ts-bulk-source-badge">Source</span>
+                        <span className="ts-bulk-source-badge">{ __( 'Source', 'translatesense' ) }</span>
                       )}
                     </div>
                   );
@@ -537,8 +543,8 @@ export function UnifiedBulkSelection({
                   <SparklesIcon size={18} color="#3858e9" />
                 </div>
                 <div>
-                  <h3 className="ts-panel-title">AI Provider</h3>
-                  <p className="ts-panel-subtitle">Choose a translation provider for this job.</p>
+                  <h3 className="ts-panel-title">{ __( 'AI Provider', 'translatesense' ) }</h3>
+                  <p className="ts-panel-subtitle">{ __( 'Choose a translation provider for this job.', 'translatesense' ) }</p>
                 </div>
               </div>
             </div>
@@ -603,7 +609,7 @@ export function UnifiedBulkSelection({
             </span>
             <div className="ts-summary-text">
               <span className="ts-summary-num">{targetLangsCount}</span>
-              <span className="ts-summary-lbl">Target Languages</span>
+              <span className="ts-summary-lbl">{ __( 'Target Languages', 'translatesense' ) }</span>
             </div>
           </div>
 

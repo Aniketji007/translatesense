@@ -10,6 +10,7 @@ import { BulkProgressModal } from './BulkProgressModal';
 import { SkipConfirmation } from './SkipConfirmation';
 import { ErrorModal } from '../../components/ErrorModal';
 import { useIsCompact } from '../hooks/useIsCompact';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function BulkWizard({
   isOpen,
@@ -204,7 +205,7 @@ export function BulkWizard({
               onViewError={(p) =>
                 setErrorModal({
                   isOpen: true,
-                  title: `${p.title} Notice`,
+                  title: sprintf( /* translators: %s: Title. */ __( '%s Notice', 'translatesense' ), p.title ),
                   message: '',
                   reasonHTML: p.isSupported?.reasonHTML || p.isSupported?.reason,
                   icon: p.logo,
@@ -230,7 +231,7 @@ export function BulkWizard({
             onViewError={(p) =>
               setErrorModal({
                 isOpen: true,
-                title: `${p.title} Notice`,
+                title: sprintf( /* translators: %s: Title. */ __( '%s Notice', 'translatesense' ), p.title ),
                 message: '',
                 reasonHTML: p.isSupported?.reasonHTML || p.isSupported?.reason,
                 icon: p.logo,
@@ -299,7 +300,7 @@ export function BulkWizard({
               errorObj: detail.errorObj,
               reasonHTML: detail.reasonHTML || detail.errorObj?.reasonHTML,
               actionUrl: detail.actionUrl || '',
-              actionLabel: detail.actionLabel || 'Edit',
+              actionLabel: detail.actionLabel || __( 'Edit', 'translatesense' ),
               icon: detail.icon || 'dashicons-warning',
             })
           }

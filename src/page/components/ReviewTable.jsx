@@ -3,7 +3,9 @@
  */
 
 import { ReviewRow } from './ReviewRow';
+import { __, sprintf } from '@wordpress/i18n';
 
+import { createInterpolateElement } from '@wordpress/element';
 export function ReviewTable({
   strings = [],
   filterQuery = '',
@@ -17,8 +19,8 @@ export function ReviewTable({
         <table className="ts-strings-table">
           <thead>
             <tr>
-              <th style={{ width: '48%' }}>SOURCE TEXT</th>
-              <th style={{ width: '52%' }}>TRANSLATED TEXT</th>
+              <th style={{ width: '48%' }}>{ __( 'SOURCE TEXT', 'translatesense' ) }</th>
+              <th style={{ width: '52%' }}>{ __( 'TRANSLATED TEXT', 'translatesense' ) }</th>
             </tr>
           </thead>
           <tbody>
@@ -27,7 +29,7 @@ export function ReviewTable({
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
                   <div className="ts-circle-spinner" />
                   <span style={{ fontSize: '13px', fontWeight: '600', color: '#334155' }}>
-                    Extracting page content & translatable strings...
+                    { __( 'Extracting page content & translatable strings...', 'translatesense' ) }
                   </span>
                 </div>
               </td>
@@ -69,8 +71,8 @@ export function ReviewTable({
       <table className="ts-strings-table">
         <thead>
           <tr>
-            <th style={{ width: '48%' }}>SOURCE TEXT</th>
-            <th style={{ width: '52%' }}>TRANSLATED TEXT</th>
+            <th style={{ width: '48%' }}>{ __( 'SOURCE TEXT', 'translatesense' ) }</th>
+            <th style={{ width: '52%' }}>{ __( 'TRANSLATED TEXT', 'translatesense' ) }</th>
           </tr>
         </thead>
         <tbody id="ts-review-table-tbody">
@@ -79,7 +81,14 @@ export function ReviewTable({
               <td colSpan="2" style={{ textAlign: 'center', padding: '36px 20px', color: '#64748b' }}>
                 <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
                 <div>
-                  No matching strings found for "<strong>{filterQuery}</strong>".
+                  {createInterpolateElement(
+                  sprintf(
+                    /* translators: %s: Search term entered by the user. */
+                    __( 'No matching strings found for "<strong>%s</strong>".', 'translatesense' ),
+                    filterQuery
+                  ),
+                  { strong: <strong /> }
+                )}
                 </div>
               </td>
             </tr>

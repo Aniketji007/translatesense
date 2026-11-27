@@ -4,15 +4,16 @@
  */
 
 import { getLanguageDisplay } from '../../utils/language';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function TranslationProgress({
   isOpen = false,
   percent = 0,
-  status = 'Translation in progress...',
+  status = __( 'Translation in progress...', 'translatesense' ),
   subText = '',
   targetLang = 'es',
   languages = [],
-  providerTitle = 'AI Provider',
+  providerTitle = __( 'AI Provider', 'translatesense' ),
   isExtracting = false,
 }) {
   if (!isOpen) return null;
@@ -81,14 +82,18 @@ export function TranslationProgress({
       </div>
 
       <div className="ts-progress-header-badge">
-        <span>Translating to {getLanguageDisplay(targetLang, languages)}</span>
+        <span>{sprintf(
+          /* translators: %s: Target language name. */
+          __( 'Translating to %s', 'translatesense' ),
+          getLanguageDisplay(targetLang, languages)
+        )}</span>
       </div>
 
       <h3 className="ts-progress-title">
-        {isExtracting ? 'Extracting page content...' : 'Translation in progress...'}
+        {isExtracting ? __( 'Extracting page content...', 'translatesense' ) : __( 'Translation in progress...', 'translatesense' )}
       </h3>
       <p className="ts-progress-coffee-quote">
-        Translation will take a few seconds or a minute, you can enjoy your coffee ☕ during this process.
+        { __( 'Translation will take a few seconds or a minute, you can enjoy your coffee ☕ during this process.', 'translatesense' ) }
       </p>
 
       <div className="ts-progress-section">

@@ -4,15 +4,16 @@
 
 import { Modal } from '../Modal';
 import { Button } from '../Button';
+import { __ } from '@wordpress/i18n';
 
 export function ConfirmDialog({
   isOpen,
   onClose,
   onConfirm,
-  title = 'Are you sure?',
+  title = __( 'Are you sure?', 'translatesense' ),
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = __( 'Confirm', 'translatesense' ),
+  cancelLabel = __( 'Cancel', 'translatesense' ),
   isDanger = false,
   loading = false,
   icon = 'dashicons-warning',

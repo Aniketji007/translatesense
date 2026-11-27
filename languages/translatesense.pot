@@ -1,0 +1,4028 @@
+# Copyright (C) 2026 dragwyb
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: TranslateSense – AI Translation for Polylang 0.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/translatesense/\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-24T10:49:25+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: translatesense\n"
+
+#. Plugin Name of the plugin
+#: translatesense.php:3
+msgid "TranslateSense – AI Translation for Polylang"
+msgstr ""
+
+#. Description of the plugin
+#: translatesense.php:4
+msgid "A high-performance automatic translation addon for Polylang with Gutenberg & Elementor XML mapping, auto-detection, and DB caching."
+msgstr ""
+
+#. Author of the plugin
+#: translatesense.php:6
+msgid "dragwyb"
+msgstr ""
+
+#. Author URI of the plugin
+#: translatesense.php:7
+msgid "https://dragwyb.com/"
+msgstr ""
+
+#: includes/admin/class-admin-menu.php:83
+msgid "Security check failed."
+msgstr ""
+
+#: includes/admin/class-admin-menu.php:92
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: includes/admin/class-admin-menu.php:104
+msgid "Invalid review notice action."
+msgstr ""
+
+#: includes/admin/class-admin-menu.php:115
+msgid "Unable to save review notice preference."
+msgstr ""
+
+#: includes/admin/class-admin-menu.php:138
+#: includes/admin/class-admin-menu.php:147
+msgid "TranslateSense Config"
+msgstr ""
+
+#: includes/admin/class-admin-menu.php:139
+#: includes/admin/class-admin-menu.php:148
+#: includes/admin/class-editor-integration.php:728
+#: assets/build/dashboard/index.js:1
+msgid "TranslateSense"
+msgstr ""
+
+#: includes/admin/class-admin-menu.php:296
+#: assets/build/dashboard/index.js:9
+msgid "Loading TranslateSense Dashboard..."
+msgstr ""
+
+#: includes/admin/class-editor-integration.php:765
+#: includes/admin/class-editor-integration.php:799
+#: assets/build/page/index.js:1
+msgid "Auto Translate"
+msgstr ""
+
+#. translators: %1$s source language flag, %2$s source language name, %3$s target langauge flag, %4$s target langauge name.
+#: includes/admin/class-editor-integration.php:770
+#, php-format
+msgid "Language: %1$s (%2$s) to %3$s (%4$s)"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:111
+msgid "Technical difficulties with the plugin"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:115
+msgid "Please describe the technical issues you encountered."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:122
+msgid "Switched to another plugin"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:126
+msgid "Which plugin are you using instead?"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:133
+msgid "Difficulty with plugin configuration"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:137
+msgid "What configuration issue did you experience?"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:144
+msgid "Temporarily disabling the plugin"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:152
+msgid "Other reason"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:156
+msgid "Please tell us why you are deactivating the plugin."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:177
+msgid "Help us improve"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:186
+msgid "Why are you deactivating this plugin?"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:198
+msgid "Close feedback form"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:226
+msgid "Please select a reason before submitting your feedback."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:235
+msgid "Select a reason"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:277
+msgid "Tell us more"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:285
+#: includes/admin/feedback/class-feedback-form.php:338
+msgid "(Optional)"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:298
+msgid "Tell us more about your experience..."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:330
+msgid "Share technical details for debugging"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:348
+msgid "If enabled, we may collect your admin email, site URL, plugin version, WordPress version, and PHP version to help diagnose issues."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:360
+msgid "Read more"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:383
+msgid "Skip & Deactivate"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:397
+msgid "Submit Feedback"
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:475
+msgid "You do not have permission to submit feedback."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:505
+msgid "Please select a valid feedback reason."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:584
+msgid "Unable to send feedback. Please try again."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:602
+msgid "The feedback server could not process your request."
+msgstr ""
+
+#: includes/admin/feedback/class-feedback-form.php:613
+msgid "Thank you for your feedback."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:124
+msgid "No provider specified"
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:129
+msgid "Invalid Provider"
+msgstr ""
+
+#. translators: %s: Provider name
+#: includes/ai/class-ai-connector-bridge.php:155
+#, php-format
+msgid "Provider %s is not connected or configured in WordPress AI Connectors."
+msgstr ""
+
+#. translators: %s: Provider name
+#: includes/ai/class-ai-connector-bridge.php:168
+#, php-format
+msgid "Provider connector plugin for %s is not active."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:264
+msgid "No strings were provided for translation."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:273
+msgid "No translation prompt was provided."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:284
+msgid "Invalid AI provider."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:301
+msgid "The WordPress AI Client is not available."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:341
+msgid "The WordPress AI Client registry is not available."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:354
+msgid "The selected AI provider is not configured."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:371
+msgid "The selected AI provider is invalid."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:384
+msgid "Unable to initialize the WordPress AI Client."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:401
+msgid "The selected AI model is invalid."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:430
+msgid "Empty response received from the WordPress AI Client."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:448
+msgid "Failed to parse translations from the WordPress AI response."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:462
+msgid "An error occurred while processing the AI translation request."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:505
+msgid "OpenAI API key is missing. Please configure it in TranslateSense Settings."
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: includes/ai/class-ai-connector-bridge.php:550
+#, php-format
+msgid "OpenAI HTTP Error %d"
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:555
+msgid "OpenAI returned an empty content choice."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:560
+msgid "Could not parse JSON translations from OpenAI response."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:570
+msgid "Google Gemini API key is missing. Please configure it in TranslateSense Settings."
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: includes/ai/class-ai-connector-bridge.php:611
+#, php-format
+msgid "Gemini HTTP Error %d"
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:616
+msgid "Gemini returned an empty response candidate."
+msgstr ""
+
+#: includes/ai/class-ai-connector-bridge.php:621
+msgid "Could not parse JSON translations from Gemini response."
+msgstr ""
+
+#. translators: %s: Provider slug
+#: includes/ai/class-ai-connector-bridge.php:634
+#, php-format
+msgid "Translation provider \"%s\" is not supported by TranslateSense or WordPress Core."
+msgstr ""
+
+#. translators: %s: Provider name in uppercase
+#: includes/ai/class-ai-connector-bridge.php:854
+#, php-format
+msgid "API Quota / Rate Limit reached for %s. Please verify your billing plan or API quota limits."
+msgstr ""
+
+#. translators: %s: Provider name in uppercase
+#: includes/ai/class-ai-connector-bridge.php:858
+#, php-format
+msgid "Authentication failed for %s. Please verify that your API key is correct in TranslateSense Settings."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:48
+msgid "Every Minute (TranslateSense Bulk Queue)"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:202
+msgid "Please select a valid translation provider."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:232
+#: includes/rest/class-rest-api.php:1479
+msgid "The selected taxonomy is not registered or supported for translation in Polylang."
+msgstr ""
+
+#. translators: %s: Target language name
+#: includes/bulk/class-bulk-process.php:370
+#, php-format
+msgid "This post already has a %s translation in the Trash. Delete the existing translated post first if you want to translate it again."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:458
+msgid "No new translation jobs were added. The selected items may already be translated or could not be queued."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:484
+msgid "Invalid batch ID."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:504
+msgid "No failed or language-unassigned jobs to retry in this batch."
+msgstr ""
+
+#. translators: %d: number of retried jobs
+#: includes/bulk/class-bulk-process.php:631
+#, php-format
+msgid "%d translation job restarted."
+msgid_plural "%d translation jobs restarted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/bulk/class-bulk-process.php:635
+msgid "Selected items still do not have a language assigned in Polylang. Please assign a language first."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:636
+msgid "No failed jobs were restarted."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:662
+msgid "Translation job expired: it remained pending for more than 1 day."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:663
+msgid "Failed: Job expired (more than 1 day old)"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:719
+msgid "Failed: Taxonomy job could not be recovered"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:720
+msgid "The taxonomy source term or target language is no longer valid."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:728
+msgid "Completed successfully (recovered)"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:736
+msgid "Failed: Taxonomy job timed out"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:737
+msgid "The browser translation did not finish before the recovery timeout. Retry this job to continue."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1029
+#: assets/build/bulk/index.js:13
+msgid "Translation job expired: queued for more than 1 day."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1149
+#: includes/bulk/class-bulk-process.php:1201
+#: includes/bulk/class-bulk-process.php:1262
+#: includes/bulk/class-bulk-process.php:1356
+#: includes/bulk/class-bulk-process.php:1876
+msgid "Skipped by user"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1300
+msgid "Existing translation updated successfully"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1301
+msgid "Completed successfully"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1304
+msgid "Translation completed with synchronization warnings. Review the target post."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1409
+msgid "The translation job has no valid initiating user."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1414
+msgid "The initiating user no longer exists."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1419
+msgid "The initiating user no longer has permission to edit the source post."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1428
+msgid "The initiating user no longer has permission to update the target translation post."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1437
+msgid "The initiating user no longer has permission to create target translation posts."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1550
+#: assets/build/bulk/index.js:15
+msgid "All selected translations already exist."
+msgstr ""
+
+#. translators: 1: Number of translated posts, 2: Number of already existing posts
+#: includes/bulk/class-bulk-process.php:1739
+#, php-format
+msgid "Completed! %1$d posts translated, %2$d already existed."
+msgstr ""
+
+#. translators: %d: Number of already existing posts
+#: includes/bulk/class-bulk-process.php:1742
+#, php-format
+msgid "All %d selected translations already exist."
+msgstr ""
+
+#. translators: %d: Number of failed translation jobs
+#: includes/bulk/class-bulk-process.php:1745
+#, php-format
+msgid "Completed with %d failed."
+msgstr ""
+
+#. translators: %d: Number of translated posts
+#: includes/bulk/class-bulk-process.php:1748
+#, php-format
+msgid "Completed! %d posts translated successfully."
+msgstr ""
+
+#. translators: %d: Number of skipped translation jobs
+#: includes/bulk/class-bulk-process.php:1752
+#, php-format
+msgid "%d skipped"
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1755
+msgid "Batch translations skipped."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1757
+msgid "Batch translation failed."
+msgstr ""
+
+#. translators: 1: Completed jobs count, 2: Total jobs count
+#: includes/bulk/class-bulk-process.php:1760
+#, php-format
+msgid "Processing (%1$d/%2$d jobs)..."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1799
+msgid "Invalid batch ID or post ID provided."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1818
+msgid "No translation jobs found for the specified batch and item."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1835
+msgid "You are not allowed to manage translation jobs for this item."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1846
+msgid "Skip functionality is only available for OpenAI and Google Gemini background translations."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1864
+#: includes/rest/class-rest-api.php:2066
+msgid "No pending or running translation jobs remain to skip for this post."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1888
+msgid "Cancellation requested..."
+msgstr ""
+
+#: includes/bulk/class-bulk-process.php:1903
+msgid "Translations skipped successfully."
+msgstr ""
+
+#: includes/bulk/class-bulk-translate.php:80
+#: assets/build/bulk/index.js:13
+msgid "Bulk Translate"
+msgstr ""
+
+#: includes/bulk/class-bulk-translate.php:81
+#: assets/build/bulk/index.js:15
+msgid "Background translations running"
+msgstr ""
+
+#: includes/bulk/class-bulk-translate.php:198
+msgid "Terms"
+msgstr ""
+
+#: includes/bulk/class-bulk-translate.php:198
+#: assets/build/bulk/index.js:12
+msgid "Posts"
+msgstr ""
+
+#: includes/bulk/class-bulk-translate.php:199
+msgid "term"
+msgstr ""
+
+#: includes/bulk/class-bulk-translate.php:199
+msgid "post"
+msgstr ""
+
+#: includes/core/class-detector.php:48
+msgid "TranslateSense Config Posts"
+msgstr ""
+
+#: includes/core/class-detector.php:49
+msgid "TranslateSense Config Post"
+msgstr ""
+
+#: includes/cron/class-cron.php:45
+msgid "Every 3 Days"
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:239
+msgid "A valid source post and target language are required."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:244
+#: includes/translation/builders/class-base-builder.php:157
+msgid "Source post not found."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:251
+msgid "The requested target language is not configured in Polylang."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:257
+msgid "The source post already belongs to the requested target language."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:264
+msgid "The existing translated post is not a valid target for this source post."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:270
+msgid "The existing translated post belongs to a different language."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:391
+msgid "The existing translated post could not be updated."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-bridge.php:402
+msgid "The translated post could not be saved."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-synchronizer.php:165
+msgid "A nested Polylang synchronization was skipped to prevent recursive copy operations."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-synchronizer.php:174
+msgid "Polylang synchronization skipped because the source or target post no longer exists."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-synchronizer.php:180
+msgid "Polylang synchronization skipped because the source and target post types do not match."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-synchronizer.php:187
+msgid "Polylang synchronization skipped because the target post language does not match the requested language."
+msgstr ""
+
+#: includes/integrations/polylang/class-polylang-synchronizer.php:204
+msgid "Polylang synchronization models are unavailable. The translated post was saved, but taxonomy and metadata synchronization could not run."
+msgstr ""
+
+#. translators: %s: error message
+#: includes/integrations/polylang/class-polylang-synchronizer.php:304
+#, php-format
+msgid "Polylang synchronization encountered an error: %s"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:976
+msgid "You are not allowed to manage TranslateSense configuration."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:996
+msgid "A valid post ID is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1004
+#: includes/rest/class-rest-api.php:2017
+#: includes/rest/class-rest-api.php:4304
+#: includes/rest/class-rest-api.php:4547
+#: includes/rest/class-rest-api.php:4601
+msgid "The requested post could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1078
+#: includes/rest/class-rest-api.php:2571
+#: includes/rest/class-rest-api.php:2660
+msgid "Invalid builder."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1115
+msgid "You are not allowed to access this post content."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1205
+#: includes/rest/class-rest-api.php:1463
+#: includes/rest/class-rest-api.php:1768
+#: includes/rest/class-rest-api.php:3391
+#: includes/rest/class-rest-api.php:3846
+#: includes/rest/class-rest-api.php:4066
+msgid "Invalid item type specified."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1210
+msgid "You must be logged in to extract taxonomy strings."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1216
+#: includes/rest/class-rest-api.php:3396
+msgid "The selected taxonomy is not supported for translation."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1221
+msgid "The selected taxonomy term could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1225
+msgid "You are not allowed to extract strings from this taxonomy term."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1233
+msgid "You are not allowed to extract strings from this post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1255
+#: includes/rest/class-rest-api.php:2555
+#: includes/rest/class-rest-api.php:2648
+#: includes/rest/class-rest-api.php:3083
+#: includes/rest/class-rest-api.php:3586
+#: includes/rest/class-rest-api.php:3953
+msgid "Invalid request data."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1263
+msgid "A non-empty strings array is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1271
+msgid "The translation batch contains too many items."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1280
+msgid "Every translation item must be a non-empty string."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1293
+msgid "A valid post ID is required to translate strings."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1301
+#: includes/rest/class-rest-api.php:1310
+msgid "You are not allowed to translate this post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1319
+msgid "One or more submitted strings do not belong to the source post for this translation."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1343
+msgid "You are not allowed to edit the source post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1358
+#: includes/rest/class-rest-api.php:3620
+msgid "A target language is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1372
+msgid "You are not allowed to edit the target translation post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1380
+msgid "The source post type could not be determined."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1392
+msgid "You are not allowed to create the target translation post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1423
+msgid "At least one item ID is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1431
+msgid "At least one target language is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1488
+msgid "Valid taxonomy term IDs and target languages are required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1496
+#: includes/rest/class-rest-api.php:1540
+msgid "The bulk translation request is too large."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1506
+msgid "One or more requested taxonomy terms could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1532
+msgid "Valid post IDs and target languages are required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1552
+msgid "One or more requested posts could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1560
+msgid "You are not allowed to translate one or more requested posts."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1568
+msgid "A requested post has an invalid post type."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1586
+msgid "A translation target associated with this post could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1594
+msgid "You are not allowed to update one or more target translation posts."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1600
+msgid "You are not allowed to create one or more target translation posts."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1626
+#: includes/rest/class-rest-api.php:3921
+msgid "A valid batch ID is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1638
+#: includes/rest/class-rest-api.php:1968
+msgid "The translation batch storage is unavailable."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1655
+msgid "Batch not found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1673
+msgid "A taxonomy term associated with this batch could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1680
+msgid "A post associated with this batch could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1696
+msgid "A target translation term associated with this batch could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1703
+msgid "A target translation post associated with this batch could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1711
+msgid "You are not allowed to access a target translation in this batch."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1720
+msgid "You are not allowed to access this batch."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1749
+msgid "A valid job ID is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1759
+#: includes/rest/class-rest-api.php:4037
+msgid "The requested translation job could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1783
+msgid "The translation job has no valid source taxonomy term."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1790
+msgid "The translation job has no valid source post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1798
+msgid "You are not allowed to update this translation job."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1809
+msgid "The translation job has an invalid target term."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1816
+msgid "The translation job has an invalid target post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1824
+msgid "The job target does not match the source translation relationship."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1830
+msgid "You are not allowed to update the target translation item."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1845
+msgid "The target ID is invalid."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1854
+msgid "The target term could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1861
+msgid "The target post could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1869
+msgid "The requested target is not the translation target for this job."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1875
+msgid "You are not allowed to update the requested target translation item."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1923
+msgid "You are not allowed to view active translation batches."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1957
+msgid "A valid batch ID and item ID are required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:1986
+msgid "No translation jobs found for the requested item in this batch."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2003
+msgid "The requested taxonomy term could not be found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2011
+msgid "You are not allowed to modify translations for this term."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2025
+msgid "You are not allowed to modify translations for this post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2035
+msgid "Skip functionality is strictly restricted to OpenAI and Google Gemini background translations."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2045
+msgid "You are not allowed to modify target translations for this term."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2050
+msgid "You are not allowed to modify target translations for this post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2085
+msgid "You are not allowed to mark this post as translated."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2102
+msgid "You must be logged in to translate taxonomy terms."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2114
+msgid "A valid taxonomy term ID, taxonomy slug, and target language are required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2138
+msgid "You are not allowed to clear block process status for this post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2152
+msgid "You are not allowed to update this post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2405
+msgid "Post Title"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2409
+msgid "Post Body (Classic Editor)"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2413
+msgid "Post Excerpt"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2417
+msgid "Yoast SEO Title"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2421
+msgid "Yoast Meta Description"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2425
+msgid "Rank Math Title"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2429
+msgid "Rank Math Description"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2583
+msgid "The XML configuration is too large."
+msgstr ""
+
+#. translators: %s: Page builder name.
+#: includes/rest/class-rest-api.php:2619
+#, php-format
+msgid "%s XML configuration saved successfully."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2692
+msgid "No placeholder text 'Translate This Content' was found. Please add this text into the block/widget fields you wish to map."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2708
+msgid "XML configuration rule generated successfully!"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2740
+msgid "Unable to create mapping sandbox."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2838
+msgid "Invalid or missing editor parameter. Please specify a specific editor (gutenberg, elementor)."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2891
+msgid "A valid post_id parameter is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:2903
+#: includes/rest/class-rest-api.php:3432
+#: includes/translation/class-translate.php:116
+msgid "Post not found."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3137
+msgid "Settings updated successfully."
+msgstr ""
+
+#. translators: %1$s: AI provider ID, %2$s: validation error.
+#: includes/rest/class-rest-api.php:3297
+#, php-format
+msgid "%1$s: %2$s"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3300
+msgid "Invalid API key."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3301
+msgid "API key validation failed."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3380
+msgid "Post or term ID is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3401
+msgid "Taxonomy term not found."
+msgstr ""
+
+#. translators: 1: Source editor type, 2: Target editor type.
+#: includes/rest/class-rest-api.php:3468
+#, php-format
+msgid "Source editor type (%1$s) must be same as Current Post editor type (%2$s)."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3488
+msgid "Source language is required. It seems the post is not assigned a language."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3610
+msgid "A valid strings array is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3682
+#: includes/translation/class-translate.php:111
+msgid "Post ID and Target Language are required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3695
+msgid "The selected post does not have a language assigned in Polylang."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3705
+#: includes/rest/class-rest-api.php:3719
+msgid "Invalid translation data."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3727
+msgid "The translation data is too large."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3807
+msgid "Item IDs array is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3820
+msgid "Target languages array is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3866
+msgid "No valid item IDs were supplied."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:3975
+msgid "Job ID and update data are required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4056
+msgid "Invalid translation job status."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4078
+msgid "The target post does not belong to this translation job."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4086
+msgid "No valid job fields were supplied."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4112
+msgid "You are not allowed to update the target translation term."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4124
+msgid "You are not allowed to update the target translation post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4292
+#: includes/rest/class-rest-api.php:4535
+#: includes/rest/class-rest-api.php:4589
+msgid "A valid Post ID is required."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4314
+#: includes/rest/class-rest-api.php:4557
+#: includes/rest/class-rest-api.php:4611
+msgid "You do not have permission to edit this post."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4382
+msgid "The selected taxonomy term does not have a language assigned in Polylang."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4393
+msgid "Invalid taxonomy translation data."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4397
+msgid "The taxonomy translation payload is too large."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4436
+msgid "The translated taxonomy term could not be saved."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4484
+msgid "Invalid cache type specified."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4494
+msgid "Failed to clear cache."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4500
+msgid "Strings cache"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4501
+msgid "Translations cache"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4502
+msgid "Translation logs & queue"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4503
+msgid "Packages cache"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4504
+msgid "All caches"
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4507
+#: assets/build/dashboard/index.js:9
+msgid "Cache"
+msgstr ""
+
+#. translators: %s: Cache type label
+#: includes/rest/class-rest-api.php:4514
+#, php-format
+msgid "%s cleared successfully."
+msgstr ""
+
+#: includes/rest/class-rest-api.php:4627
+msgid "Initial prompt modal dismissed."
+msgstr ""
+
+#: includes/translation/builders/class-base-builder.php:172
+msgid "The source post does not have a language assigned in Polylang."
+msgstr ""
+
+#: includes/translation/class-translate.php:651
+msgid "Invalid translation provider."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:61
+msgid "The selected taxonomy target language is not configured in Polylang."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:67
+msgid "The user account for taxonomy translation could not be verified."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:96
+msgid "You are not allowed to translate taxonomy terms for this post."
+msgstr ""
+
+#. translators: %s: taxonomy label
+#: includes/translation/taxonomy/class-taxonomy-translator.php:146
+#, php-format
+msgid "You are not allowed to create translated terms for the %s taxonomy."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:165
+msgid "You are not allowed to update the translated taxonomy term or its configured metadata."
+msgstr ""
+
+#. translators: %s: taxonomy label
+#: includes/translation/taxonomy/class-taxonomy-translator.php:220
+#: includes/translation/taxonomy/class-taxonomy-translator.php:804
+#, php-format
+msgid "You are not allowed to assign terms for the %s taxonomy."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:349
+msgid "The browser AI translation for one or more taxonomy strings is missing. Please retry the translation."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:377
+msgid "The AI provider did not return a valid taxonomy translation."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:506
+msgid "The selected taxonomy is not registered or enabled for translation in Polylang."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:511
+msgid "The selected taxonomy could not be found."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:518
+msgid "No valid taxonomy terms were provided for translation."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:529
+msgid "You are not allowed to translate one or more selected taxonomy terms."
+msgstr ""
+
+#. translators: 1: Term ID, 2: Taxonomy slug
+#: includes/translation/taxonomy/class-taxonomy-translator.php:728
+#, php-format
+msgid "Taxonomy term %1$d in \"%2$s\" skipped: no language assigned (reason: no_language)."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:842
+msgid "You are not allowed to update taxonomy assignments for the translated post."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:855
+msgid "You are not allowed to assign translated taxonomy terms."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:861
+msgid "A translated taxonomy term is invalid."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:944
+msgid "The source and translated posts are not a valid translation pair."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:949
+msgid "The translated post language does not match the requested taxonomy language."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:1184
+msgid "Polylang term translation APIs are unavailable."
+msgstr ""
+
+#. translators: %d: term ID
+#: includes/translation/taxonomy/class-taxonomy-translator.php:1203
+#, php-format
+msgid "Taxonomy term %d does not have a language assigned."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:1222
+msgid "The linked translated taxonomy term could not be found."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:1301
+msgid "This taxonomy term is already being translated. Please retry shortly."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:1313
+msgid "The translated taxonomy term name is empty."
+msgstr ""
+
+#: includes/translation/taxonomy/class-taxonomy-translator.php:1461
+msgid "The translated taxonomy term could not be created."
+msgstr ""
+
+#: includes/xml/class-xml-engine.php:594
+msgid "XML content cannot be empty."
+msgstr ""
+
+#: includes/xml/class-xml-engine.php:599
+msgid "XML DOCTYPE declarations are not allowed."
+msgstr ""
+
+#: includes/xml/class-xml-engine.php:776
+msgid "Invalid XML snippet."
+msgstr ""
+
+#: includes/xml/class-xml-engine.php:782
+#: includes/xml/class-xml-engine.php:1050
+msgid "Unsupported builder."
+msgstr ""
+
+#: translatesense.php:61
+msgid "TranslateSense requires Polylang to be installed and active."
+msgstr ""
+
+#: translatesense.php:62
+msgid "Please install and activate Polylang to enable multi-language linking and automatic translations."
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/page/index.js:1
+msgid "Close modal"
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:3
+#: assets/build/bulk/index.js:4
+#: assets/build/bulk/index.js:11
+#: assets/build/dashboard/index.js:3
+msgid "Bulk Translation"
+msgstr ""
+
+#. translators: %s: Item plural.
+#: assets/build/bulk/index.js:1
+#, js-format
+msgid "Translate multiple %s into one or more languages using AI."
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:13
+#: assets/build/dashboard/index.js:2
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:1
+#: assets/build/page/index.js:4
+msgid "Cancel"
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:4
+#: assets/build/dashboard/index.js:3
+msgid "Start Bulk Translation"
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:3
+msgid "Background translations are running"
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:3
+msgid "There is 1 active translation batch in progress."
+msgstr ""
+
+#. translators: %s: Number of items.
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:3
+#, js-format
+msgid "There are %s active translation batches in progress."
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:3
+msgid "View Progress"
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:3
+msgid "Polylang Synchronization active:"
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:3
+msgid "Custom fields are synced automatically and will not be translated."
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+#: assets/build/bulk/index.js:2
+msgid "Target Languages"
+msgstr ""
+
+#: assets/build/bulk/index.js:1
+msgid "Choose the languages to translate into."
+msgstr ""
+
+#. translators: 1: Number of selected languages, 2: Total number of languages.
+#: assets/build/bulk/index.js:2
+#: assets/build/bulk/index.js:3
+#, js-format
+msgid "%1$s of %2$s selected"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Search language..."
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Select All"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Clear All"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "No languages found."
+msgstr ""
+
+#. translators: %s: Name.
+#: assets/build/bulk/index.js:2
+#, js-format
+msgid "%s is the default language"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Source"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+#: assets/build/page/index.js:2
+#: assets/build/page/index.js:6
+msgid "AI Provider"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Choose a translation provider for this job."
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "View Error Details"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+#: assets/build/bulk/index.js:4
+#: assets/build/page/index.js:1
+msgid "⚠️ View Error"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Configuration required"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "API key required"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "On Device"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Runs on-device via Chrome Built-in AI"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "Available"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Translation Jobs"
+msgstr ""
+
+#. translators: %1$s: Posts count, %2$s: Item plural, %3$s: Target langs count, %4$s: Total jobs.
+#: assets/build/bulk/index.js:2
+#, js-format
+msgid "%1$s %2$s × %3$s target languages = %4$s jobs"
+msgstr ""
+
+#: assets/build/bulk/index.js:2
+msgid "Unselect All"
+msgstr ""
+
+#: assets/build/bulk/index.js:3
+msgid "Fast & Accurate Multi-Language Content Localizer"
+msgstr ""
+
+#: assets/build/bulk/index.js:3
+msgid "Next: Choose Provider →"
+msgstr ""
+
+#. translators: %s: Number of items followed by the item type.
+#: assets/build/bulk/index.js:4
+#, js-format
+msgid "Targeting <strong>%s</strong>. Choose target language(s) to translate into:"
+msgstr ""
+
+#: assets/build/bulk/index.js:4
+#: assets/build/page/index.js:1
+msgid "Choose a translation provider"
+msgstr ""
+
+#: assets/build/bulk/index.js:4
+#: assets/build/bulk/index.js:11
+msgid "← Back"
+msgstr ""
+
+#. translators: 1: Number of items followed by the item type, 2: Number of target languages.
+#: assets/build/bulk/index.js:5
+#, js-format
+msgid "Targeting <strong>%1$s</strong> across <strong>%2$s</strong>:"
+msgstr ""
+
+#. translators: %s: Number of languages.
+#: assets/build/bulk/index.js:6
+#, js-format
+msgid "%s language"
+msgid_plural "%s languages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/build/bulk/index.js:6
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:1
+msgid "If <strong class='ts-review-notice-lead'>TranslateSense</strong> making your translation work easier,"
+msgstr ""
+
+#: assets/build/bulk/index.js:6
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:1
+msgid "leave a review on WordPress.org."
+msgstr ""
+
+#: assets/build/bulk/index.js:6
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:1
+msgid "TranslateSense Review Notice"
+msgstr ""
+
+#: assets/build/bulk/index.js:6
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:1
+msgid "Already Reviewed"
+msgstr ""
+
+#: assets/build/bulk/index.js:6
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:1
+msgid "Dismiss"
+msgstr ""
+
+#: assets/build/bulk/index.js:6
+#: assets/build/bulk/index.js:11
+msgid "Translating content..."
+msgstr ""
+
+#: assets/build/bulk/index.js:6
+msgid "Background Batch:"
+msgstr ""
+
+#. translators: 1: Short batch ID, 2: Finished jobs, 3: Total jobs, 4: Batch status.
+#: assets/build/bulk/index.js:7
+#, js-format
+msgid "Batch %1$s... (%2$s/%3$s done, %4$s)"
+msgstr ""
+
+#: assets/build/bulk/index.js:7
+msgid "Keep Window Open "
+msgstr ""
+
+#: assets/build/bulk/index.js:7
+msgid "Server-Side Translation Active "
+msgstr ""
+
+#: assets/build/bulk/index.js:7
+msgid "Translation is running in your browser session. Navigating away will cancel remaining jobs."
+msgstr ""
+
+#: assets/build/bulk/index.js:7
+msgid "Your translations are processing in the background on the server. You can safely close this window or navigate away at any time."
+msgstr ""
+
+#. translators: %s: Item type in plural, such as posts.
+#: assets/build/bulk/index.js:8
+#, js-format
+msgid "Completed %s"
+msgstr ""
+
+#. translators: %s: Item type in plural, such as posts.
+#: assets/build/bulk/index.js:9
+#, js-format
+msgid "Skipped %s"
+msgstr ""
+
+#. translators: %s: Item type in plural, such as posts.
+#: assets/build/bulk/index.js:10
+#, js-format
+msgid "Failed %s"
+msgstr ""
+
+#: assets/build/bulk/index.js:10
+msgid "Total Characters"
+msgstr ""
+
+#: assets/build/bulk/index.js:10
+msgid "Elapsed Time"
+msgstr ""
+
+#. translators: %s: Item singular.
+#: assets/build/bulk/index.js:10
+#, js-format
+msgid "Skip remaining translations for this %s"
+msgstr ""
+
+#: assets/build/bulk/index.js:10
+msgid "Skip Translations"
+msgstr ""
+
+#. translators: %s: Number of failed translations.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "Failed (%s)"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "No Language"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Skipped"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+#: assets/build/bulk/index.js:13
+msgid "Term"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+#: assets/build/bulk/index.js:13
+msgid "Post"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Waiting in queue"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Language not supported"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Failed"
+msgstr ""
+
+#. translators: %1$s: Name, %2$s: Code.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "%1$s (%2$s) — Already Exists"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Click to view details"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Already exist In Trash"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Already exist"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Completed"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Language Not Assigned"
+msgstr ""
+
+#. translators: %s: Target label.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "This %s doesn't have a language assigned in Polylang."
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "Assign a language before translating it. Open the editor to select the default language or choose another language."
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "After assigning a language, click Translate Again in the progress modal to translate only failed items."
+msgstr ""
+
+#. translators: %s: Capitalized target.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "Edit %s"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Click to view details and assign a language"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Cancelling..."
+msgstr ""
+
+#. translators: %1$s: Name, %2$s: Code.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "%1$s (%2$s) Error"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Translation failed."
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Click to view error details"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Translating"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Pending..."
+msgstr ""
+
+#. translators: %s: Item singular.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "View translated %s on site"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "View"
+msgstr ""
+
+#. translators: %s: Item singular.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "Edit translated %s"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "Edit"
+msgstr ""
+
+#. translators: %s: Item singular.
+#: assets/build/bulk/index.js:11
+#, js-format
+msgid "Edit source %s to assign language"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Initiating translation batch..."
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Retrieving active translation batches..."
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Show Failed"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Show Completed"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Show Skip/Exist"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Monitor translation progress"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Retry and translate remaining failed items"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Translate Again"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Translation In Progress..."
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "Done (Reload)"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+#: assets/build/bulk/index.js:13
+#: assets/build/dashboard/index.js:1
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:1
+#: assets/build/page/index.js:5
+msgid "Close"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "No Active Batches Found"
+msgstr ""
+
+#: assets/build/bulk/index.js:11
+msgid "There are no active translation batches right now. Follow these steps to start bulk translation:"
+msgstr ""
+
+#. translators: %s: Item type in plural, such as Posts.
+#: assets/build/bulk/index.js:12
+#, js-format
+msgid "Select %s"
+msgstr ""
+
+#. translators: %s: Item type in plural, in lowercase, such as posts.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Select the %s you want to translate by clicking their checkboxes in the list table."
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "posts"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Click the <badge>Bulk Translate</badge> button to select your target languages and translation provider, then start bulk translation."
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Are you sure?"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Confirm"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Skip remaining translations?"
+msgstr ""
+
+#. translators: %s: Item singular.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "This will skip the remaining pending translations for this %s in the selected batch. Completed translations will not be affected."
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Skip Remaining Translations"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Keep Translating"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "Translation Error"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "Retry"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "Copied!"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "This item doesn't have a language assigned in Polylang."
+msgstr ""
+
+#. translators: %s: Title.
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:6
+#, js-format
+msgid "%s Notice"
+msgstr ""
+
+#. translators: %s: Provider id.
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:1
+#, js-format
+msgid "Provider \"%s\" is not registered."
+msgstr ""
+
+#. translators: %s: Title.
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:1
+#, js-format
+msgid "Provider \"%s\" is disabled in settings."
+msgstr ""
+
+#. translators: 1: Source language code, 2: Target language code, 3: AI provider name.
+#: assets/build/bulk/index.js:13
+#: assets/build/bulk/index.js:14
+#: assets/build/bulk/index.js:15
+#: assets/build/page/index.js:1
+#, js-format
+msgid "Language pair (%1$s → %2$s) is not supported by %3$s."
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:1
+msgid "Provider availability check failed."
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:1
+msgid "No strings to apply"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/dashboard/index.js:1
+#: assets/build/page/index.js:1
+msgid "API request failed"
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/bulk/index.js:13
+#: assets/build/dashboard/index.js:1
+#: assets/build/page/index.js:1
+#, js-format
+msgid "Network error: %s"
+msgstr ""
+
+#. translators: %1$s: Status, %2$s: Status text.
+#: assets/build/bulk/index.js:13
+#: assets/build/dashboard/index.js:1
+#: assets/build/page/index.js:1
+#, js-format
+msgid "HTTP Error %1$s: %2$s"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "On-device"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/page/index.js:5
+msgid "View Error"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+#: assets/build/dashboard/index.js:3
+#: assets/build/page/index.js:5
+msgid "Activate Provider"
+msgstr ""
+
+#. translators: %s: Progress percentage.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Translating content in background... (%s%%)"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "No active translation batches."
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Failed to load active translation batches."
+msgstr ""
+
+#. translators: %1$s: Runtime label, %2$s: Initial percentage.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Starting %1$s... (%2$s%%)"
+msgstr ""
+
+#. translators: %s: Runtime label.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Starting %s..."
+msgstr ""
+
+#. translators: %s: Post title.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Translating %s..."
+msgstr ""
+
+#. translators: %s: Post title.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Extracting strings for %s..."
+msgstr ""
+
+#. translators: %1$s: Post title, %2$s: Dynamic value, %3$s: Job start percentage.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Translating %1$s (%2$s)... (%3$s%%)"
+msgstr ""
+
+#. translators: %1$s: Post title, %2$s: Dynamic value, %3$s: Job start percentage.
+#: assets/build/bulk/index.js:13
+#, js-format
+msgid "Extracting strings for %1$s (%2$s)... (%3$s%%)"
+msgstr ""
+
+#: assets/build/bulk/index.js:13
+msgid "Built-in AI translation provider is not registered."
+msgstr ""
+
+#: assets/build/bulk/index.js:14
+#: assets/build/bulk/index.js:15
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:897
+msgid "Built-in AI"
+msgstr ""
+
+#. translators: %1$s: Total strings, %2$s: Post title, %3$s: Dynamic value, %4$s: Extract done percentage.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Translating %1$s strings on-device for %2$s (%3$s)... (%4$s%%)"
+msgstr ""
+
+#. translators: %s: Total strings.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "0/%s strings translated"
+msgstr ""
+
+#. translators: %s: Total strings.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Translating 0/%s strings..."
+msgstr ""
+
+#. translators: %1$s: Post title, %2$s: Dynamic value, %3$s: Completed strings, %4$s: Total strings, %5$s: Overall percentage.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Translating on-device: %1$s (%2$s) - string %3$s of %4$s (%5$s%%)"
+msgstr ""
+
+#. translators: %1$s: Completed strings, %2$s: Total strings, %3$s: Post percentage.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Translating string %1$s of %2$s (%3$s%%)"
+msgstr ""
+
+#. translators: %1$s: Completed strings, %2$s: Total strings, %3$s: Post percentage.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Translating string %1$s of %2$s (%3$s%%)..."
+msgstr ""
+
+#. translators: %1$s: Post title, %2$s: Dynamic value.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Saving %1$s (%2$s) to WordPress..."
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Saving translated term to WordPress..."
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Saving translated post to WordPress..."
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Completed with %s errors."
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "All translations completed successfully!"
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Translation completed!"
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Error: %s"
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Batch Creation Error"
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Skip Failed"
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Could not skip translations."
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Restarting failed translations..."
+msgstr ""
+
+#: assets/build/bulk/index.js:15
+msgid "Failed to retry translations."
+msgstr ""
+
+#. translators: %s: Retried count.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Restarted %s translation job(s)..."
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Retry failed: %s"
+msgstr ""
+
+#. translators: %s: Item plural.
+#: assets/build/bulk/index.js:15
+#, js-format
+msgid "Please select %s first."
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "TranslateSense Logo"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Documentation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Support"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Dashboard Sidebar"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Translation Overview"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Total Posts"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+#: assets/build/page/index.js:1
+msgid "Strings"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+#: assets/build/page/index.js:1
+msgid "Characters"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Time Taken"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Translation Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Active Packages"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "More by Dragwyb"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Automate WordPress workflows with AI agents."
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "AI Agent Workflows"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Advanced contact forms and lead generation."
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Smart Form Builder"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "AI chatbot and customer support."
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "AI Chatbot"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Click to Chat"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+#: assets/build/dashboard/index.js:9
+msgid "Clear Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:1
+msgid "Required Warning"
+msgstr ""
+
+#. translators: %s: Number of cached records.
+#: assets/build/dashboard/index.js:2
+#, js-format
+msgid "You are about to permanently remove <strong>%s cached records</strong> from your database. This action is irreversible."
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "💡 Tip: Keeping your translation cache preserves your API tokens for repeated texts and makes retranslating pages much faster."
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Clearing Cache..."
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Yes, Confirm & Clear Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Dragwyb Logo"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Dragwyb"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Built with ❤️ by Dragwyb"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Refresh cache counts from database"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Refreshing..."
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Refresh Counts"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+#: assets/build/dashboard/index.js:9
+msgid "Clear Entire TranslateSense Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+#: assets/build/dashboard/index.js:9
+msgid "Permanently purges ALL translated sentences, extracted source strings, widget mapping packages, and bulk batch logs."
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Clear all stored strings, translations, packages, and logs"
+msgstr ""
+
+#: assets/build/dashboard/index.js:2
+msgid "Clear All Caches"
+msgstr ""
+
+#. translators: %s: Keyboard shortcut, wrapped in the kbd tag.
+#: assets/build/dashboard/index.js:3
+msgid "Tip: Press <kbd>Ctrl + S</kbd>"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Saving..."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Save Settings"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Gutenberg"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Classic"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Elementor"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translation method"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Gutenberg Block Editor Translation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Follow these simple steps to translate your Gutenberg posts and pages while preserving all blocks and formatting."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "The generated translation is not applied to the page until you click Apply To Page."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Open Language Creation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Navigate to Pages → All Pages and click the + (Add Language) icon in the page row."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Pages list showing the + (Add Language) icon in Polylang columns"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Automatic Translation Popup"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Continue using the Automatic Translation – Translate Page Content popup by clicking Continue to Translate."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Automatic Translation dialog with Continue to Translate button"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Open Page in Gutenberg"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "If the popup does not appear or was closed, open the translated page in Gutenberg."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Locate TranslateSense Metabox"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Locate the TranslateSense metabox in the right sidebar, above the Polylang language metabox."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Right editor sidebar with TranslateSense metabox above Polylang"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Auto Translate"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Auto Translate to initialize content block extraction."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select AI Provider & Start"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select an AI provider and click Start Translation."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Wait for Translation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Wait for translation to finish. Translatable content is mapped and cached strings are reused."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Apply Generated Translation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Apply To Page to apply the generated translation."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Classic Editor Translation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translate traditional WordPress content, WooCommerce descriptions, and custom post types using the Classic Editor."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Classic Editor support includes WooCommerce content and supported custom post types."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Navigate to the Pages, Products, or relevant custom post type listing where the content you want to translate is located, then click the + (Add Language) icon in the Polylang columns."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "WordPress content list showing the + (Add Language) icon in Polylang columns"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Continue using the Automatic Translation popup by clicking Continue to Translate."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Open Content in Classic Editor"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "If the popup does not appear or was closed, open the translated content in the Classic Editor."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Locate Auto Translate Button"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Find the TranslateSense Auto Translate button above the Add Media button in the WYSIWYG editor."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Classic Editor showing the Auto Translate button above Add Media"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Auto Translate to initialize content extraction."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Elementor Page Builder Translation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translate visual Elementor layouts, custom widgets, and styled sections seamlessly without losing design hierarchy."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Navigate to Pages"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Navigate to Pages → All Pages and click + (Add Language)."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Continue via Popup"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Continue using the initial automatic translation popup."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Open Page in Elementor"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "If the popup does not appear or was closed, open page in Elementor Editor."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Locate Header Button"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Locate Auto Translate in the Elementor editor header."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Elementor header panel with TranslateSense Auto Translate button"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Auto Translate."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Wait for translation to finish."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Apply To Page."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Bulk Translation (Batch Queue)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translate multiple posts and pages in a single batch with real-time background progress monitoring."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translations are queued and processed safely in the background. You can monitor live progress and cancel or skip at any time."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Navigate to Content Listing"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Navigate to Pages → All Pages or Posts → All Posts."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select Multiple Items"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select multiple pages or posts using the table checkboxes."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Bulk Translation Button"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Bulk Translation, available above and below the list table after the page filter options."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "List table navigation showing the Translate button"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select Target Languages"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select one or more target languages."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Choose Provider Step"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Next: Choose Provider."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select AI Provider"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Select an AI provider in the provider modal."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Click Start Bulk Translation."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Progress Modal Appears"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "The bulk translation progress modal appears."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Monitor Live Progress"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Monitor live translation progress in the modal."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Review Summary Breakdown"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Review successful, failed and incomplete translations after completion."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translations are linked in Polylang automatically. Taxonomies, categories, and post meta are synchronized."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translation Workflow Guides"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "How to Translate"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Choose a translation method to view its step-by-step guide."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "NOTE:"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Documentation & Workflow Guide"
+msgstr ""
+
+#. translators: %s: Dynamic value.
+#: assets/build/dashboard/index.js:3
+#, js-format
+msgid "Polylang Connected (%s Languages)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Polylang Inactive"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Welcome to TranslateSense 👋"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "TranslateSense is a high-performance automated translation suite built for WordPress & Polylang. It preserves your exact layout and styling across Gutenberg, Classic Editor & Elementor while utilizing a 4-tier database cache to eliminate duplicate AI token costs."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "TranslateSense Architecture & Token Savings"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Database Translation Memory"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Every unique sentence is hashed (MD5) and cached in your MySQL database. If the same paragraph appears across 50 posts, AI is called only once, saving thousands of tokens."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Structural Tag Protection"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "HTML tags, block comments, and shortcodes are shielded before translation, preventing AI from breaking your styling, links, or Elementor widgets."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Cache & Memory Management"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Use the Cache tab to inspect and clean your translation memory. Note that removing translation cache means repeated text will be sent to AI again."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Configure AI Settings"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "View Gutenberg Blocks"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "View Elementor Widgets"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Manage Cache & Memory"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Go to Posts (Bulk Translate) ↗"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "At least one translation provider must remain enabled."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Disabled"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "WP Connector Active"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Managed natively via WordPress AI Client."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Manage in WP Connectors ↗"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "API Key Needed"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "WordPress AI Connector plugin is active. API key is needed."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Connect in WP Connectors ↗"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "WordPress AI Connector plugin for OpenAI is installed but inactive."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Activate in WP Connectors ↗"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Configured"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Managed natively via WordPress AI Client (Google)."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "WordPress AI Connector plugin for Google Gemini is installed but inactive."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "AI Translation Engines & Models"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Configure active translation engines, API authentication keys, and target neural models."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Default Engine:"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "— Select Default —"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Chrome Built-in AI"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "OpenAI (ChatGPT)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Google Gemini AI"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "OpenAI"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Enable/Disable OpenAI"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Industry standard high-accuracy neural machine translation with strict HTML tags and attribute preservation."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "WordPress AI Connector"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "OpenAI API Key"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Get Key ↗"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Translation Model"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Enable/Disable Gemini"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Ultra-fast contextual multilingual models by Google with massive token windows and excellent localization fluency."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Gemini API Key"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "AIzaSy..."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Local & Free"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Enable/Disable Chrome Built-in AI"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "100% private on-device local translation using Chrome 128+ built-in Translation API. Zero cloud latency and zero API cost."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "On-Device Processing"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "No API keys required. Operates directly in supporting browsers."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "100% Local Processing"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Your data stays on your device."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Zero Latency & Zero Cost"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Fast, private and always available."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "AI Performance & Execution Controls"
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Tune batching concurrency, token allocation, timeouts, and translation creativity."
+msgstr ""
+
+#: assets/build/dashboard/index.js:3
+msgid "Batch Size"
+msgstr ""
+
+#. translators: %s: Number of items processed per batch.
+#: assets/build/dashboard/index.js:4
+#, js-format
+msgid "%s item"
+msgid_plural "%s items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Translatable strings packaged per single AI request."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Timeout Wait"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Maximum wait limit before retrying API translation."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Max Tokens"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Max output tokens allocated for JSON translated responses."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Temperature"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "0.0 - 0.25: Highly Precise & Literal (Best for UI & Technical Terms)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "0.3 - 0.6: Balanced & Natural (Recommended)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "0.7 - 1.0: Creative & Fluid (More expressive variation)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Create Post Settings"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Configure default post status and URL slug handling applied during bulk translation."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Post Status"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Status for created posts in bulk translation (Draft or Publish)."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Draft (Default)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Publish"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Slug Translation"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "KEEP ORIGINAL"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "TITLE BASED"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "TRANSLATE SLUG"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "How URL permalinks/slugs are generated for translated posts."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Translate Slug (Default)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Generate from Translated Title"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Keep Original Slug"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "AI Prompt Engineering Studio"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Customize system instructions, tone, and HTML formatting constraints delivered to OpenAI and Gemini."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Click to insert token:"
+msgstr ""
+
+#. translators: %s: Token.
+#: assets/build/dashboard/index.js:4
+#, js-format
+msgid "Insert %s into prompt template"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Enter custom prompt instructions..."
+msgstr ""
+
+#. translators: %1$s: Number of items, %2$s: Dynamic value.
+#: assets/build/dashboard/index.js:4
+#, js-format
+msgid "%1$s characters • %2$s lines"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Prompt template copied to clipboard!"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Copy Prompt"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Reset to Default"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Multilingual Setup (Polylang)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Active languages detected from Polylang integration for full-site automatic and editor translations."
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Manage Languages ↗"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "DEFAULT"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+#: assets/build/dashboard/index.js:7
+msgid "Supported"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+msgid "Custom"
+msgstr ""
+
+#: assets/build/dashboard/index.js:4
+#: assets/build/dashboard/index.js:7
+msgid "Unsupported"
+msgstr ""
+
+#. translators: %s: Widget category name.
+#: assets/build/dashboard/index.js:5
+#, js-format
+msgid "Category: %s"
+msgstr ""
+
+#: assets/build/dashboard/index.js:5
+msgid "Standard"
+msgstr ""
+
+#. translators: %s: Number of fields to translate.
+#: assets/build/dashboard/index.js:6
+#, js-format
+msgid "%s Translate Field"
+msgid_plural "%s Translate Fields"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: Number of fields that are not translated.
+#: assets/build/dashboard/index.js:6
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "%s No Translate"
+msgstr ""
+
+#. translators: %s: XPath expression.
+#: assets/build/dashboard/index.js:6
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "XPath: %s"
+msgstr ""
+
+#. translators: %s: Number of items.
+#: assets/build/dashboard/index.js:6
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "%s XPaths"
+msgstr ""
+
+#: assets/build/dashboard/index.js:6
+#: assets/build/dashboard/index.js:7
+msgid "Edit Config"
+msgstr ""
+
+#: assets/build/dashboard/index.js:6
+#: assets/build/dashboard/index.js:7
+msgid "Generate"
+msgstr ""
+
+#. translators: %s: Number of fields to translate.
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "%s Translate field"
+msgid_plural "%s Translate fields"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Edit XML rule directly"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Generate XML configuration rule"
+msgstr ""
+
+#. translators: %1$s: Start idx, %2$s: End idx, %3$s: Total items, %4$s: Unit.
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "Showing %1$s–%2$s of %3$s %4$s"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "< Prev"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Next >"
+msgstr ""
+
+#. translators: %1$s: Builder name, %2$s: Unit name.
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "Search %1$s %2$s..."
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "All Categories"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "All Statuses"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Custom Config"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Name (A to Z)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Name (Z to A)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Fields (High to Low)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Fields (Low to High)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Status (Supported first)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Grid"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "List"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Reset"
+msgstr ""
+
+#: assets/build/dashboard/index.js:7
+msgid "Opening..."
+msgstr ""
+
+#. translators: %s: Builder name.
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "Generate %s Config"
+msgstr ""
+
+#. translators: %s: Builder name.
+#: assets/build/dashboard/index.js:7
+#, js-format
+msgid "Edit %s Config"
+msgstr ""
+
+#. translators: %s: Name of the item type, such as widgets or blocks.
+#: assets/build/dashboard/index.js:8
+#, js-format
+msgid "No matching %s found for the selected filters."
+msgstr ""
+
+#: assets/build/dashboard/index.js:8
+msgid "CATEGORY"
+msgstr ""
+
+#: assets/build/dashboard/index.js:8
+msgid "MAPPED FIELDS"
+msgstr ""
+
+#: assets/build/dashboard/index.js:8
+msgid "STATUS"
+msgstr ""
+
+#: assets/build/dashboard/index.js:8
+msgid "ACTIONS"
+msgstr ""
+
+#. translators: %s: Name of the item type, such as widgets or blocks.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "No matching %s found."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Are you sure you want to proceed?"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Translations Cache (Memory)"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Removing this cache means repeated texts and previously translated sentences will call AI again, incurring additional token usage."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Central Source Strings Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Removes extracted source strings from local memory index. Strings will be re-extracted when translating posts."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Translation Logs & Batches"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Permanently clears historical background batch logs, error reports, and translation execution time records."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Block & Widget Packages"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Post-level widget/block mappings will be cleared and regenerated automatically during the next translation.."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "TOTAL CACHED DATABASE RECORDS"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Across Translation Memory, Source Strings, Bulk Logs & Widget Packages"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Translations:"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Strings:"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Packages:"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Logs:"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Translations Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "AI Translation Memory"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Active & Caching"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Empty"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "translated string pairs"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Stores previously translated sentences mapped to target languages and MD5 hashes. Eliminates duplicate AI queries when retranslating pages or encountering repeated texts."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Translations Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Strings Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Central Translation Memory"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Active & Indexed"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "unique source strings"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Stores normalized source strings extracted from your blocks and widgets with their respective MD5 hashes as central Translation Memory index references."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Strings Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Translation Logs & Queue"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Bulk History & Batches"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Logged"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "No Logs"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "queue & history records"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Stores bulk translation batch entries, execution time statistics, completed/failed statuses, and background queue records for historical auditing."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Translation Logs"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Packages Cache"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Block & Widget Mapping Context"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Active & Linked"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "mapped field packages"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Maintains associations between specific post IDs, editor types, widget keys, and string hashes. Allows instant reconstruction of translated layouts without reparsing."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Clear Packages Cache"
+msgstr ""
+
+#. translators: %1$s: Name, %2$s: Dynamic value.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Configure XML: %1$s (%2$s)"
+msgstr ""
+
+#. translators: %s: Dynamic value.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Edit %s Custom XML Configuration"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Specify translation mappings and child <xpath> tags for GUTENBERG. When saved, this updates the active configuration."
+msgstr ""
+
+#. translators: %s: Dynamic value.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Specify translation mappings for %s. When saved, this updates the active configuration."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Save Config"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Something went wrong while fetching the data."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Settings saved successfully!"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Failed to save settings"
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Error saving settings: %s"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+#: assets/build/page/index.js:5
+msgid "Unknown error"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Cache statistics refreshed successfully!"
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Failed to refresh cache stats: %s"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Cache cleared successfully!"
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Failed to clear cache: %s"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Dashboard Tabs"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Home"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "General Settings"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Gutenberg Blocks"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Elementor Widgets"
+msgstr ""
+
+#. translators: %s: Page builder name.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Opening %s Editor sandbox... Add widget with placeholder 'Translate This Content'."
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Sandbox generated, but no editor URL was returned."
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Failed to open mapping sandbox: %s"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "XML configuration saved successfully!"
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/dashboard/index.js:9
+#, js-format
+msgid "Error saving XML: %s"
+msgstr ""
+
+#: assets/build/dashboard/index.js:9
+msgid "Validation error"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Translation failed or empty"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Translations Applied"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Translate Page Content"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Automatic Page Translation"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Continue to Translation"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Automatically translate this page with AI while keeping your design and formatting intact."
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Select Provider"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Start Translation"
+msgstr ""
+
+#: assets/build/page/index.js:1
+#: assets/build/page/index.js:4
+msgid "Apply to Page"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Choose Translation Provider"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Clear search"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Time"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Enter translation..."
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Reset to provider translation"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Edit translation"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "SOURCE TEXT"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "TRANSLATED TEXT"
+msgstr ""
+
+#: assets/build/page/index.js:1
+msgid "Extracting page content & translatable strings..."
+msgstr ""
+
+#. translators: %s: Search term entered by the user.
+#: assets/build/page/index.js:2
+#, js-format
+msgid "No matching strings found for \"<strong>%s</strong>\"."
+msgstr ""
+
+#: assets/build/page/index.js:2
+#: assets/build/page/index.js:3
+msgid "Translation in progress..."
+msgstr ""
+
+#. translators: %s: Target language name.
+#: assets/build/page/index.js:3
+#, js-format
+msgid "Translating to %s"
+msgstr ""
+
+#: assets/build/page/index.js:3
+msgid "Extracting page content..."
+msgstr ""
+
+#: assets/build/page/index.js:3
+msgid "Translation will take a few seconds or a minute, you can enjoy your coffee ☕ during this process."
+msgstr ""
+
+#: assets/build/page/index.js:3
+msgid "Review Translations"
+msgstr ""
+
+#: assets/build/page/index.js:3
+msgid "Review and edit translations before applying to the page."
+msgstr ""
+
+#. translators: 1: Number of translated strings, 2: Total number of strings.
+#: assets/build/page/index.js:4
+#: assets/build/page/index.js:5
+#, js-format
+msgid "%1$s of %2$s strings translated"
+msgstr ""
+
+#: assets/build/page/index.js:4
+msgid "Re-Translate only failed or untranslated strings"
+msgstr ""
+
+#: assets/build/page/index.js:4
+msgid "Re-Translate"
+msgstr ""
+
+#. translators: %s: Number of skipped custom fields.
+#: assets/build/page/index.js:5
+#, js-format
+msgid "%s custom fields found:"
+msgstr ""
+
+#: assets/build/page/index.js:5
+msgid "Not translated because Polylang Custom Fields Synchronization is enabled."
+msgstr ""
+
+#: assets/build/page/index.js:5
+msgid "Search source or translation..."
+msgstr ""
+
+#: assets/build/page/index.js:5
+msgid "Preparing strings for re-translation..."
+msgstr ""
+
+#: assets/build/page/index.js:5
+msgid "Extracting strings..."
+msgstr ""
+
+#: assets/build/page/index.js:5
+msgid "Initializing translation..."
+msgstr ""
+
+#. translators: %s: Error message.
+#: assets/build/page/index.js:5
+#, js-format
+msgid "Extraction Error: %s"
+msgstr ""
+
+#: assets/build/page/index.js:5
+msgid "Translating strings..."
+msgstr ""
+
+#. translators: %s: Total number of strings.
+#: assets/build/page/index.js:5
+#, js-format
+msgid "0 of %s strings translated"
+msgstr ""
+
+#. translators: %s: Progress percentage.
+#: assets/build/page/index.js:5
+#, js-format
+msgid "Translating strings... (%s%%)"
+msgstr ""
+
+#: assets/build/page/index.js:5
+msgid "✓ Translation Completed (100%)"
+msgstr ""
+
+#. translators: %s: Total number of strings.
+#: assets/build/page/index.js:5
+#, js-format
+msgid "All %s strings translated successfully!"
+msgstr ""
+
+#. translators: %1$s: Completed count, %2$s: Total number of strings.
+#: assets/build/page/index.js:5
+#, js-format
+msgid "Translation Completed (%1$s/%2$s)"
+msgstr ""
+
+#. translators: %s: Number of untranslated strings.
+#: assets/build/page/index.js:6
+#, js-format
+msgid "Re-translating %s untranslated string..."
+msgid_plural "Re-translating %s untranslated strings..."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/build/page/index.js:6
+msgid "✓ All Strings Translated"
+msgstr ""
+
+#: assets/build/page/index.js:6
+msgid "Retry Completed"
+msgstr ""
+
+#. translators: %1$s: Successful retry count, %2$s: Total failed.
+#: assets/build/page/index.js:6
+#, js-format
+msgid "%1$s of %2$s strings translated successfully"
+msgstr ""
+
+#: assets/js/editor/classic.js:919
+msgid "Translations applied to Classic Editor successfully!"
+msgstr ""
+
+#. translators: %s: Name of the editor the page was created in, such as Elementor or Gutenberg.
+#: assets/js/editor/editor-modal.js:425
+#, js-format
+msgid "This page was created in %1$s. Click Translate to open this page in the %2$s editor to start translation, or click Close to skip."
+msgstr ""
+
+#: assets/js/editor/gutenberg.js:652
+msgid "✨ Source post content translated and inserted into Gutenberg successfully!"
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/ai-services/ai-translate.js:100
+#, js-format
+msgid "API Quota / Rate Limit reached for %s. Please check your API account plan."
+msgstr ""
+
+#: assets/js/translation/providers/ai-services/ai-translate.js:135
+msgid "Translation missing or empty"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:191
+msgid "Browser Not Supported"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:193
+msgid "Secure Context (HTTPS) Required"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:195
+msgid "Translation API Not Enabled"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:197
+msgid "Language Pack Downloadable"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:199
+msgid "Language Pack Downloading"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:201
+msgid "User Action Required"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:203
+msgid "Language Pair Not Supported"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:205
+msgid "Model Download Timed Out"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:207
+msgid "Language Pack Unavailable"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:209
+msgid "Source Language Not Supported"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:211
+msgid "Target Language Not Supported"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:214
+msgid "Translation Initialization Error"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:276
+msgid "Click to copy url to clipboard"
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:286
+#, js-format
+msgid "%s Local AI Translation Reference"
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:287
+#, js-format
+msgid "%s Supported Languages Reference"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:294
+msgid "Built-in AI runs locally on your device and requires <strong>Google Chrome</strong> (v131+) or <strong>Microsoft Edge</strong> (v131+)."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:295
+msgid "To use local AI, please open your WordPress dashboard in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:296
+#, js-format
+msgid "<strong>Alternative:</strong> If you prefer to stay in %s, choose <strong>OpenAI</strong> or <strong>Google Gemini AI</strong> to translate without any special browser requirements."
+msgstr ""
+
+#. translators: %s: Link to the reference documentation.
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:297
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:316
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:348
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:358
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:368
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:376
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:384
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:395
+#, js-format
+msgid "Reference: %s"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:303
+msgid "The browser blocks offline AI models on insecure (<code>http://</code>) connections to protect your privacy."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:304
+msgid "<strong>Recommended:</strong> Open your WordPress site using a secure address with an SSL certificate (<strong>HTTPS</strong>)."
+msgstr ""
+
+#. translators: %1$s: First value, %2$s: Second value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:305
+#, js-format
+msgid ""
+"<strong>For Local Development:</strong>\n"
+"            <div style=\"margin-top:6px;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;line-height:1.6;\">\n"
+"              1. Open this flag in a new tab: %1$s<br/>\n"
+"              2. Change it to <strong>Enabled</strong>, add your site origin %2$s, and click <strong>Relaunch</strong>.\n"
+"            </div>"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:306
+msgid "<strong>Alternative:</strong> Switch to <strong>OpenAI</strong> or <strong>Gemini AI</strong>, which work on both HTTP and HTTPS."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:312
+#, js-format
+msgid "<strong>Step 1 (Enable Translation):</strong> Open %s and set it to <strong>Enabled</strong>."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:313
+#, js-format
+msgid "<strong>Step 2 (Enable AI Model):</strong> Open %s and set it to <strong>Enabled BypassPrefRequirement</strong>."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:314
+msgid "<strong>Step 3 (Relaunch):</strong> Click the <strong>Relaunch</strong> button at the bottom of the flags page to apply changes."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:315
+#, js-format
+msgid "<strong>Step 4 (Download Model):</strong> Open %s, locate <em>Optimization Guide On Device Model</em>, and click <strong>Check for update</strong>."
+msgstr ""
+
+#. translators: %1$s: source display, %2$s: target display
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:322
+#, js-format
+msgid "Translation from <strong>%1$s</strong> to <strong>%2$s</strong> is supported."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:323
+msgid "The translation model (~20MB–100MB) will download automatically in the background when translation starts."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:324
+msgid "Ensure your device is connected to the internet, then click <strong>Start Translation</strong> to begin."
+msgstr ""
+
+#. translators: %1$s: value, %2$s: source display, %3$s: target display
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:330
+#, js-format
+msgid "%1$s is currently downloading the language pack for <strong>%2$s &rarr; %3$s</strong>."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:331
+msgid "Downloads usually take 15–45 seconds depending on your connection speed."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:332
+msgid "Please leave this tab open. It will automatically switch to ready once completed."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:338
+#, js-format
+msgid "%s requires your authorization before downloading the offline translation model."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:339
+msgid "<strong>To authorize:</strong> Simply click anywhere inside this dialog or press any key on your keyboard."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:340
+msgid "TranslateSense is listening and will immediately start the download upon your interaction."
+msgstr ""
+
+#. translators: %1$s: source display, %2$s: target display
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:346
+#, js-format
+msgid "The local model does not currently support translating directly between <strong>%1$s</strong> and <strong>%2$s</strong>."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:347
+msgid "<strong>Solution:</strong> Switch to <strong>Google Gemini AI</strong> or <strong>OpenAI (GPT-4o)</strong> in the provider list for 100+ supported languages."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:354
+msgid "The translation model could not complete downloading."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:355
+msgid "Ensure you have at least <strong>22 GB free disk space</strong> on your system drive."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:356
+#, js-format
+msgid "Open %s, locate <em>Optimization Guide On Device Model</em>, and click <strong>Check for update</strong>."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:357
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:393
+#, js-format
+msgid "Restart %s and try again."
+msgstr ""
+
+#. translators: %1$s: source display, %2$s: target display
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:364
+#, js-format
+msgid "The required language pack for <strong>%1$s &rarr; %2$s</strong> is not installed in the browser."
+msgstr ""
+
+#. translators: %1$s: First value, %2$s: Second value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:365
+#, js-format
+msgid "Verify that flags at %1$s and %2$s are Enabled."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:366
+#, js-format
+msgid "Open %s and ensure all Translation components are updated."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:367
+msgid "<strong>Alternative:</strong> Use <strong>Gemini AI</strong> or <strong>OpenAI</strong> to translate immediately without downloading files."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:374
+#, js-format
+msgid "The source language (<code>%s</code>) is not supported by Built-in AI."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:375
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:383
+msgid "Select <strong>Google Gemini AI</strong> or <strong>OpenAI (GPT-4o)</strong> for full support of this language."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:382
+#, js-format
+msgid "The target language (<code>%s</code>) is not supported by Built-in AI."
+msgstr ""
+
+#. translators: %s: raw error
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:391
+#, js-format
+msgid "Error details: <code>%s</code>"
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:391
+msgid "An unexpected error occurred while initializing Built-in AI."
+msgstr ""
+
+#. translators: %s: Dynamic value
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:392
+#, js-format
+msgid "Verify translation flags are enabled at %s."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:394
+msgid "<strong>Alternative:</strong> Switch to <strong>OpenAI</strong> or <strong>Gemini AI</strong> to continue translating without local setup."
+msgstr ""
+
+#. translators: %s: items html
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:404
+#, js-format
+msgid ""
+"\n"
+"      <div class=\"ts-guidance-container\">\n"
+"        <ul class=\"ts-guidance-list\">\n"
+"          %s\n"
+"        </ul>\n"
+"      </div>\n"
+"    "
+msgstr ""
+
+#. translators: %s: resolved browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:525
+#, js-format
+msgid "%s is downloading the required language pack in the background. The first translation might take a few seconds."
+msgstr ""
+
+#. translators: %s: resolved browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:544
+#, js-format
+msgid "The required %s translation language pack is currently downloading. Please wait for the download to complete."
+msgstr ""
+
+#. translators: %s: resolved browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:563
+#, js-format
+msgid "%s requires a user action before the translation model can be downloaded."
+msgstr ""
+
+#. translators: %1$s: source language, %2$s: target language, %3$s: resolved browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:582
+#, js-format
+msgid "Language pair (%1$s → %2$s) cannot be translated by the current %3$s on-device model."
+msgstr ""
+
+#. translators: %s: resolved browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:600
+#, js-format
+msgid "The %s translation model could not be loaded completely. Please check the browser's language model status and try again."
+msgstr ""
+
+#. translators: %s: resolved browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:618
+#, js-format
+msgid "The required %s translation language pack is not currently available."
+msgstr ""
+
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:666
+msgid "TranslateSense Built-in AI translation requires Google Chrome or Microsoft Edge."
+msgstr ""
+
+#. translators: %s: browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:685
+#, js-format
+msgid "%s Built-in AI translation requires a secure connection (HTTPS) or localhost. "
+msgstr ""
+
+#. translators: %s: browser url
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:686
+#, js-format
+msgid "For local development, configure %s://flags/#unsafely-treat-insecure-origin-as-secure."
+msgstr ""
+
+#. translators: %1$s: Language code, %2$s: Browser name.
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:708
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:726
+#, js-format
+msgid "Language %1$s is not supported by %2$s Built-in AI translation."
+msgstr ""
+
+#. translators: %s: browser type
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:761
+#, js-format
+msgid "%s Built-in AI translation API is not available in this browser. "
+msgstr ""
+
+#. translators: %s: flag url
+#: assets/js/translation/providers/chrome-ai/chrome-built-translate.js:762
+#, js-format
+msgid "If you are using an experimental browser build, enable the Experimental translation API at %s."
+msgstr ""

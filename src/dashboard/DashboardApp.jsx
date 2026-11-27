@@ -25,6 +25,7 @@ import {
   dismissReviewNotice,
 } from '../services/api/reviewService';
 import { escapeHtml } from '../utils/html'
+import { __, sprintf } from '@wordpress/i18n';
 
 export function DashboardApp() {
   const {
@@ -106,13 +107,13 @@ export function DashboardApp() {
       const payload = newSettings && newSettings.enabled_providers ? newSettings : settings;
       const res = await dashboardService.saveSettings(payload);
       if (res && res.success !== false) {
-        showNotice(res.message || 'Settings saved successfully!');
+        showNotice(res.message || __( 'Settings saved successfully!', 'translatesense' ));
         loadData();
       } else {
-        showNotice((res && res.message) || 'Failed to save settings', 'error');
+        showNotice((res && res.message) || __( 'Failed to save settings', 'translatesense' ), 'error');
       }
     } catch (err) {
-      showNotice('Error saving settings: ' + (err.message || 'Unknown error'), 'error');
+      showNotice(sprintf( /* translators: %s: Error message. */ __( 'Error saving settings: %s', 'translatesense' ), err.message || __( 'Unknown error', 'translatesense' ) ), 'error');
     } finally {
       setIsSavingSettings(false);
     }
@@ -143,11 +144,11 @@ export function DashboardApp() {
   const handleSaveXml = async (newXml) => {
     try {
       const res = await dashboardService.saveXmlConfig(xmlModal.builder, newXml);
-      showNotice(res.message || 'XML configuration saved successfully!');
+      showNotice(res.message || sprintf( /* translators: %s: XML text. */ __( '%s configuration saved successfully!', 'translatesense' ), 'XML' ) );
       handleCloseXmlModal();
       loadData();
     } catch (err) {
-      showNotice('Error saving XML: ' + (err.message || 'Validation error'), 'error');
+      showNotice(sprintf( /* translators: %1$s: XML text, %2$s: Error message. */ __( 'Error saving %1$s: %2$s', 'translatesense' ), 'XML', err.message || __( 'Validation error', 'translatesense' ) ), 'error');
     }
   };
 
@@ -159,13 +160,13 @@ export function DashboardApp() {
         data: { builder, widget_slug: widgetSlug },
       });
       if (res && res.editor_url) {
-        showNotice(`Opening ${builder.toUpperCase()} Editor sandbox... Add widget with placeholder 'Translate This Content'.`);
+        showNotice(sprintf( /* translators: %s: Page builder name. */ __( 'Opening %s Editor sandbox... Add widget with placeholder \'Translate This Content\'.', 'translatesense' ), builder.toUpperCase() ));
         window.open(res.editor_url, '_blank');
       } else {
-        showNotice('Sandbox generated, but no editor URL was returned.', 'info');
+        showNotice(__( 'Sandbox generated, but no editor URL was returned.', 'translatesense' ), 'info');
       }
     } catch (err) {
-      showNotice('Failed to open mapping sandbox: ' + (err.message || 'Unknown error'), 'error');
+      showNotice(sprintf( /* translators: %s: Error message. */ __( 'Failed to open mapping sandbox: %s', 'translatesense' ), err.message || __( 'Unknown error', 'translatesense' ) ), 'error');
     } finally {
       setIsCreatingSandbox(false);
     }
@@ -178,9 +179,9 @@ export function DashboardApp() {
       if (res && res.counts) {
         setCacheCounts(res.counts);
       }
-      showNotice('Cache statistics refreshed successfully!');
+      showNotice(__( 'Cache statistics refreshed successfully!', 'translatesense' ));
     } catch (err) {
-      showNotice('Failed to refresh cache stats: ' + (err.message || 'Unknown error'), 'error');
+      showNotice(sprintf( /* translators: %s: Error message. */ __( 'Failed to refresh cache stats: %s', 'translatesense' ), err.message || __( 'Unknown error', 'translatesense' ) ), 'error');
     } finally {
       setIsRefreshingCache(false);
     }
@@ -192,10 +193,10 @@ export function DashboardApp() {
       if (res && res.counts) {
         setCacheCounts(res.counts);
       }
-      showNotice(res.message || 'Cache cleared successfully!');
+      showNotice(res.message || __( 'Cache cleared successfully!', 'translatesense' ));
       loadData();
     } catch (err) {
-      showNotice('Failed to clear cache: ' + (err.message || 'Unknown error'), 'error');
+      showNotice(sprintf( /* translators: %s: Error message. */ __( 'Failed to clear cache: %s', 'translatesense' ), err.message || __( 'Unknown error', 'translatesense' ) ), 'error');
     }
   };
 
@@ -209,7 +210,7 @@ export function DashboardApp() {
         />
         <div className="ts-loading-placeholder">
           <div className="ts-spinner" />
-          <p>Loading TranslateSense Dashboard...</p>
+          <p>{ sprintf( /* translators: %s: plugin name. */ __( 'Loading %s Dashboard...', 'translatesense' ), 'TranslateSense' ) }</p>
         </div>
       </div>
     );
@@ -235,7 +236,7 @@ export function DashboardApp() {
         <div
           className="ts-review-notice ts-dashboard-review-notice"
           role="region"
-          aria-label="TranslateSense Review Notice"
+          aria-label={ sprintf( /* translators: %s: plugin name. */ __( '%s Review Notice', 'translatesense' ), 'TranslateSense' ) }
         >
           <p className="ts-review-notice-text">
             <span dangerouslySetInnerHTML={{ __html: REVIEW_NOTICE_BODY }} />{' '}
@@ -256,7 +257,7 @@ export function DashboardApp() {
               onClick={() => handleDismissReviewNotice('already_reviewed')}
               style={{ borderLeftWidth: '0px' }}
             >
-              Already Reviewed
+              { __( 'Already Reviewed', 'translatesense' ) }
             </button>
 
             <button
@@ -264,7 +265,7 @@ export function DashboardApp() {
               className="ts-review-notice-action"
               onClick={() => handleDismissReviewNotice('not_interested')}
             >
-              Dismiss
+              { __( 'Dismiss', 'translatesense' ) }
             </button>
           </div>
         </div>
@@ -285,7 +286,7 @@ export function DashboardApp() {
             type="button"
             className="ts-notice-close"
             onClick={dismissNotice}
-            aria-label="Close"
+            aria-label={ __( 'Close', 'translatesense' ) }
           >
             {DashboardIcons.close({ size: 14 })}
           </button>
@@ -297,7 +298,7 @@ export function DashboardApp() {
         {/* Left Main Column */}
         <main className="ts-main-column">
           {/* Tabs Card */}
-          <nav className="ts-tabs-card" aria-label="Dashboard Tabs">
+          <nav className="ts-tabs-card" aria-label={ __( 'Dashboard Tabs', 'translatesense' ) }>
             <button
               type="button"
               className={`ts-tab-btn ${activeTab === 'home' ? 'active' : ''}`}
@@ -306,7 +307,7 @@ export function DashboardApp() {
               <span className="ts-tab-icon" style={{ display: 'inline-flex', marginRight: '6px' }}>
                 {DashboardIcons.home({ size: 14 })}
               </span>
-              Home
+              { __( 'Home', 'translatesense' ) }
             </button>
 
             <button
@@ -314,7 +315,7 @@ export function DashboardApp() {
               className={`ts-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
               onClick={() => changeTab('settings')}
             >
-              General Settings
+              { __( 'General Settings', 'translatesense' ) }
             </button>
 
             {activeBuilders.gutenberg && (
@@ -323,7 +324,7 @@ export function DashboardApp() {
                 className={`ts-tab-btn ${activeTab === 'gutenberg' ? 'active' : ''}`}
                 onClick={() => changeTab('gutenberg')}
               >
-                Gutenberg Blocks
+                { __( 'Gutenberg Blocks', 'translatesense' ) }
                 <span className="ts-tab-count">
                   {widgetsData.gutenberg ? widgetsData.gutenberg.length : 0}
                 </span>
@@ -336,7 +337,7 @@ export function DashboardApp() {
                 className={`ts-tab-btn ${activeTab === 'elementor' ? 'active' : ''}`}
                 onClick={() => changeTab('elementor')}
               >
-                Elementor Widgets
+                { __( 'Elementor Widgets', 'translatesense' ) }
                 <span className="ts-tab-count">
                   {widgetsData.elementor ? widgetsData.elementor.length : 0}
                 </span>
@@ -351,7 +352,7 @@ export function DashboardApp() {
               <span className="ts-tab-icon" style={{ display: 'inline-flex', marginRight: '6px' }}>
                 {DashboardIcons.database({ size: 14 })}
               </span>
-              Cache
+              { __( 'Cache', 'translatesense' ) }
               <span className="ts-tab-count">
                 {totalCacheRecords.toLocaleString()}
               </span>

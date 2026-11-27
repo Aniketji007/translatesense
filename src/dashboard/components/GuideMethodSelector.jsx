@@ -3,12 +3,13 @@
  */
 
 import { DashboardIcons } from './DashboardIcons';
+import { __ } from '@wordpress/i18n';
 
 export const METHODS_CONFIG = [
-  { id: 'gutenberg', label: 'Gutenberg' },
-  { id: 'classic', label: 'Classic' },
-  { id: 'elementor', label: 'Elementor' },
-  { id: 'bulk', label: 'Bulk Translation' },
+  { id: 'gutenberg', label: __( 'Gutenberg', 'translatesense' ) },
+  { id: 'classic', label: __( 'Classic', 'translatesense' ) },
+  { id: 'elementor', label: __( 'Elementor', 'translatesense' ) },
+  { id: 'bulk', label: __( 'Bulk Translation', 'translatesense' ) },
 ];
 
 export function GuideMethodSelector({ activeTab, onChange }) {
@@ -34,7 +35,7 @@ export function GuideMethodSelector({ activeTab, onChange }) {
   };
 
   return (
-    <div className="ts-guide-options-row" role="radiogroup" aria-label="Translation method">
+    <div className="ts-guide-options-row" role="radiogroup" aria-label={ __( 'Translation method', 'translatesense' ) }>
       {METHODS_CONFIG.map((method, index) => {
         const isActive = activeTab === method.id;
         return (
