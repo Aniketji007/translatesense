@@ -1,4 +1,4 @@
-import { __ } from '@wordpress/i18n';
+import { __, sprintf  } from '@wordpress/i18n';
 
 /**
  * Review Notice Service
@@ -7,10 +7,10 @@ import { __ } from '@wordpress/i18n';
 
 export const REVIEW_URL = 'https://wordpress.org/support/plugin/translatesense/reviews/#new-post';
 
-export const REVIEW_NOTICE_BODY = __(
-  "If <strong class='ts-review-notice-lead'>TranslateSense</strong> making your translation work easier,",
+export const REVIEW_NOTICE_BODY = sprintf( /* translators: %s: plugin name. */ __(
+  "If %s making your translation work easier,",
   'translatesense'
-);
+), "<strong class='ts-review-notice-lead'>TranslateSense</strong>" );
 
 export const REVIEW_NOTICE_LINK_TEXT = __( 'leave a review on WordPress.org.', 'translatesense' );
 
