@@ -1,4 +1,9 @@
 <?php
+/**
+ * Parses media attachments.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -36,6 +41,8 @@ class Media_Parser {
 
 	/**
 	 * Fetch a valid, non-trashed attachment post, or null.
+	 *
+	 * @param int $attachment_id Attachment ID.
 	 */
 	public static function get_attachment( int $attachment_id ): ?WP_Post {
 		if ( $attachment_id <= 0 ) {
@@ -47,6 +54,8 @@ class Media_Parser {
 
 	/**
 	 * Verify that an ID refers to a valid, non-trashed WordPress attachment.
+	 *
+	 * @param int $attachment_id Attachment ID.
 	 */
 	public static function is_valid_attachment( int $attachment_id ): bool {
 		return null !== self::get_attachment( $attachment_id );
@@ -54,6 +63,8 @@ class Media_Parser {
 
 	/**
 	 * Get an attachment's Polylang language slug, or empty string when unassigned.
+	 *
+	 * @param int $attachment_id Attachment ID.
 	 */
 	public static function get_attachment_language( int $attachment_id ): string {
 		if ( $attachment_id <= 0 || ! Polylang_Bridge::is_polylang_active() ) {
@@ -65,6 +76,9 @@ class Media_Parser {
 
 	/**
 	 * Resolve and validate the target-language attachment ID via Polylang's ID map.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $target_lang Target lang.
 	 */
 	public static function get_translation_id( int $attachment_id, string $target_lang ): int {
 		$target_lang = sanitize_key( $target_lang );
@@ -82,6 +96,8 @@ class Media_Parser {
 
 	/**
 	 * Check whether an attachment meta key is operational/internal and excluded from translation.
+	 *
+	 * @param string $meta_key Meta key.
 	 */
 	public static function is_protected_meta_key( string $meta_key ): bool {
 		return '' === $meta_key
@@ -94,6 +110,7 @@ class Media_Parser {
 	/**
 	 * Get configured translatable attachment metadata keys via XML rules or filter.
 	 *
+	 * @param WP_Post $attachment Attachment.
 	 * @return string[]
 	 */
 	public static function get_translatable_meta_keys( WP_Post $attachment ): array {
@@ -128,6 +145,7 @@ class Media_Parser {
 	/**
 	 * Filter to valid attachments and deduplicate Polylang-linked translation groups.
 	 *
+	 * @param array $attachment_ids Attachment IDs.
 	 * @return int[]
 	 */
 	public static function filter_linked_attachments( array $attachment_ids ): array {
@@ -141,6 +159,14 @@ class Media_Parser {
 
 	/**
 	 * Normalize and format a media field or meta value into a runtime string item.
+	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $widget Widget.
+	 * @param string $key Key.
+	 * @param mixed  $raw_value Raw value.
+	 * @param string $media_field Media field.
+	 * @param string $target_lang Target lang.
+	 * @param string $meta_key Meta key.
 	 */
 	private static function format_string_item(
 		int $attachment_id,
@@ -182,6 +208,11 @@ class Media_Parser {
 
 	/**
 	 * Extract runtime media strings for explicit attachment IDs (Workflow A).
+	 *
+	 * @param array  $attachment_ids Attachment IDs.
+	 * @param string $target_lang Target lang.
+	 * @param ?int   $user_id User ID.
+	 * @param bool   $enforce_permissions Enforce permissions.
 	 */
 	public static function extract_attachment_strings(
 		array $attachment_ids,
@@ -267,6 +298,11 @@ class Media_Parser {
 
 	/**
 	 * Extract runtime strings for a post's untranslated featured image (Workflow B).
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target lang.
+	 * @param ?int   $user_id User ID.
+	 * @param bool   $enforce_permissions Enforce permissions.
 	 */
 	public static function extract_featured_image_strings(
 		int $post_id,

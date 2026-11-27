@@ -4,6 +4,7 @@
 
 import { DashboardIcons } from './DashboardIcons';
 import { formatMs } from '../../utils/formatting';
+import { __ } from '@wordpress/i18n';
 
 export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/' }) {
   const totalPosts = stats.successful_translations ? Number(stats.successful_translations).toLocaleString() : 0;
@@ -48,13 +49,13 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
   }
 
   return (
-    <aside className="ts-sidebar" aria-label="Dashboard Sidebar">
+    <aside className="ts-sidebar" aria-label={ __( 'Dashboard Sidebar', 'translatesense' ) }>
       {/* Card 1: Translation Overview */}
       {stats && Object.keys(stats).length > 0 &&
         <div className="ts-sidebar-card">
           <h3 className="ts-sidebar-title">
             <span className="ts-title-icon">{DashboardIcons.chart()}</span>
-            Translation Overview
+            { __( 'Translation Overview', 'translatesense' ) }
           </h3>
 
           <div className="ts-overview-grid">
@@ -62,7 +63,7 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
               <div className="ts-metric-icon-box">{DashboardIcons.document()}</div>
               <div className="ts-metric-details">
                 <div className="ts-metric-num">{totalPosts}</div>
-                <div className="ts-metric-sub">Total Posts</div>
+                <div className="ts-metric-sub">{ __( 'Total Posts', 'translatesense' ) }</div>
               </div>
             </div>
 
@@ -70,7 +71,7 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
               <div className="ts-metric-icon-box">&lt;/&gt;</div>
               <div className="ts-metric-details">
                 <div className="ts-metric-num">{totalStrings}</div>
-                <div className="ts-metric-sub">Strings</div>
+                <div className="ts-metric-sub">{ __( 'Strings', 'translatesense' ) }</div>
               </div>
             </div>
 
@@ -78,7 +79,7 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
               <div className="ts-metric-icon-box">A</div>
               <div className="ts-metric-details">
                 <div className="ts-metric-num">{totalCharacters}</div>
-                <div className="ts-metric-sub">Characters</div>
+                <div className="ts-metric-sub">{ __( 'Characters', 'translatesense' ) }</div>
               </div>
             </div>
 
@@ -86,7 +87,7 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
               <div className="ts-metric-icon-box">{DashboardIcons.clock()}</div>
               <div className="ts-metric-details">
                 <div className="ts-metric-num">{timeTaken}</div>
-                <div className="ts-metric-sub">Time Taken</div>
+                <div className="ts-metric-sub">{ __( 'Time Taken', 'translatesense' ) }</div>
               </div>
             </div>
           </div>
@@ -99,7 +100,7 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
                 <span className="ts-subgrid-icon">{DashboardIcons.layers()}</span>
                 <span>{cachedCount}</span>
               </div>
-              <div className="ts-subgrid-lbl">Translation Cache</div>
+              <div className="ts-subgrid-lbl">{ __( 'Translation Cache', 'translatesense' ) }</div>
             </div>
 
             <div className="ts-subgrid-col">
@@ -107,7 +108,7 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
                 <span className="ts-subgrid-icon">{DashboardIcons.package()}</span>
                 <span>{packagesCount}</span>
               </div>
-              <div className="ts-subgrid-lbl">Active Packages</div>
+              <div className="ts-subgrid-lbl">{ __( 'Active Packages', 'translatesense' ) }</div>
             </div>
           </div>
 
@@ -132,7 +133,7 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
       <div className="ts-sidebar-card">
         <h3 className="ts-sidebar-title">
           <span className="ts-title-icon">{DashboardIcons.spark()}</span>
-          More by Dragwyb
+          { __( 'More by Dragwyb', 'translatesense' ) }
         </h3>
 
         <div className="ts-dragwyb-list">
@@ -141,12 +142,12 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
             target="_blank"
             rel="noopener noreferrer"
             className="ts-dragwyb-item thickbox open-plugin-details-modal"
-            title="Automate WordPress workflows with AI agents."
+            title={ __( 'Automate WordPress workflows with AI agents.', 'translatesense' ) }
           >
-            <div className="ts-dragwyb-icon"><img src={docsUrl + 'wp-content/uploads/2026/10/ai-agent-workflow.png'} alt="AI Agent Workflows" /></div>
+            <div className="ts-dragwyb-icon"><img src={docsUrl + 'wp-content/uploads/2026/10/ai-agent-workflow.png'} alt={ __( 'AI Agent Workflows', 'translatesense' ) } /></div>
             <div className="ts-dragwyb-info">
-              <div className="ts-dragwyb-title">AI Agent Workflows</div>
-              <div className="ts-dragwyb-desc">Automate WordPress workflows with AI agents.</div>
+              <div className="ts-dragwyb-title">{ __( 'AI Agent Workflows', 'translatesense' ) }</div>
+              <div className="ts-dragwyb-desc">{ __( 'Automate WordPress workflows with AI agents.', 'translatesense' ) }</div>
             </div>
             <span className="ts-dragwyb-arrow">›</span>
           </a>
@@ -156,12 +157,12 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
             target="_blank"
             rel="noopener noreferrer"
             className="ts-dragwyb-item thickbox open-plugin-details-modal"
-            title="Advanced contact forms and lead generation."
+            title={ __( 'Advanced contact forms and lead generation.', 'translatesense' ) }
           >
-            <div className="ts-dragwyb-icon"><img src={docsUrl + 'wp-content/uploads/2026/10/form-builder.png'} alt="Smart Form Builder" /></div>
+            <div className="ts-dragwyb-icon"><img src={docsUrl + 'wp-content/uploads/2026/10/form-builder.png'} alt={ __( 'Smart Form Builder', 'translatesense' ) } /></div>
             <div className="ts-dragwyb-info">
-              <div className="ts-dragwyb-title">Smart Form Builder</div>
-              <div className="ts-dragwyb-desc">Advanced contact forms and lead generation.</div>
+              <div className="ts-dragwyb-title">{ __( 'Smart Form Builder', 'translatesense' ) }</div>
+              <div className="ts-dragwyb-desc">{ __( 'Advanced contact forms and lead generation.', 'translatesense' ) }</div>
             </div>
             <span className="ts-dragwyb-arrow">›</span>
           </a>
@@ -171,12 +172,12 @@ export function RightSidebar({ stats = {}, docsUrl = 'https://docs.dragwyb.com/'
             target="_blank"
             rel="noopener noreferrer"
             className="ts-dragwyb-item thickbox open-plugin-details-modal"
-            title="AI chatbot and customer support."
+            title={ __( 'AI chatbot and customer support.', 'translatesense' ) }
           >
-            <div className="ts-dragwyb-icon"><img src={docsUrl + 'wp-content/uploads/2026/10/ai-chatbot.png'} alt="AI Chatbot" /></div>
+            <div className="ts-dragwyb-icon"><img src={docsUrl + 'wp-content/uploads/2026/10/ai-chatbot.png'} alt={ __( 'AI Chatbot', 'translatesense' ) } /></div>
             <div className="ts-dragwyb-info">
-              <div className="ts-dragwyb-title">Click to Chat</div>
-              <div className="ts-dragwyb-desc">AI chatbot and customer support.</div>
+              <div className="ts-dragwyb-title">{ __( 'Click to Chat', 'translatesense' ) }</div>
+              <div className="ts-dragwyb-desc">{ __( 'AI chatbot and customer support.', 'translatesense' ) }</div>
             </div>
             <span className="ts-dragwyb-arrow">›</span>
           </a>

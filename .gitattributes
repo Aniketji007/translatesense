@@ -11,3 +11,6 @@ package.json  export-ignore
 package-lock.json  export-ignore
 webpack.config.js  export-ignore
 *.md export-ignore
+composer.json export-ignore
+phpcs.xml.dist export-ignore
+composer.lock export-ignore

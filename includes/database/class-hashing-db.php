@@ -1,4 +1,9 @@
 <?php
+/**
+ * Database layer for hashed strings, translations, packages and the queue.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -8,13 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Database layer for hashed strings, translations, packages and the queue.
+ */
 class Hashing_Db {
 
 	/**
 	 * Initialize.
 	 */
 	public static function init() {
-		// Automatically clean up package entries and orphan strings when a post is permanently deleted
+		// Automatically clean up package entries and orphan strings when a post is permanently deleted.
 		add_action( 'before_delete_post', array( __CLASS__, 'delete_post_packages' ), 10, 1 );
 	}
 
@@ -45,8 +53,8 @@ class Hashing_Db {
 	/**
 	 * Compute md5 hash for a string or package context.
 	 *
-	 * @param string|int $widget_id
-	 * @param string     $string_value
+	 * @param string|int $widget_id Widget ID.
+	 * @param string     $string_value String value.
 	 * @return string 32-char md5 hash
 	 */
 	public static function generate_hash( $widget_id, $string_value ): string {
@@ -107,15 +115,15 @@ class Hashing_Db {
 	 * Register/Store a translation package in db if not exists.
 	 * Initializes last_used_at with the current database datetime for new records.
 	 *
-	 * @param int         $post_id
-	 * @param string      $target_lang
-	 * @param string|null $hash
-	 * @param string      $editor_type
-	 * @param string      $widget_name
-	 * @param string      $widget_key
-	 * @param string      $source_string
-	 * @param string      $filter_string
-	 * @param string      $string_hash Optional string_hash if already resolved
+	 * @param int         $post_id Post ID.
+	 * @param string      $target_lang Target language code.
+	 * @param string|null $hash Content hash.
+	 * @param string      $editor_type Editor type, such as gutenberg, elementor or classic.
+	 * @param string      $widget_name Widget name.
+	 * @param string      $widget_key Widget key.
+	 * @param string      $source_string Source string.
+	 * @param string      $filter_string Filter string.
+	 * @param string      $string_hash Optional string_hash if already resolved.
 	 * @return int Package ID
 	 */
 	public static function record_package(
@@ -135,7 +143,7 @@ class Hashing_Db {
 			return 0;
 		}
 
-		// Do not record packages for values that contain only numbers
+		// Do not record packages for values that contain only numbers.
 		$clean_filter = trim( wp_strip_all_tags( (string) $filter_string ) );
 		if ( '' !== $clean_filter && is_numeric( $clean_filter ) ) {
 			return 0;
@@ -163,7 +171,7 @@ class Hashing_Db {
 		// 2. Calculate package hash
 		$package_hash = ! empty( $hash ) ? (string) $hash : md5( $string_hash . $widget_name );
 
-		// Check if package already exists
+		// Check if package already exists.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$existing_id = $wpdb->get_var(
 			$wpdb->prepare(
@@ -177,7 +185,7 @@ class Hashing_Db {
 			return (int) $existing_id;
 		}
 
-		// Initialize last_used_at with current database datetime (NOW()) for newly inserted package
+		// Initialize last_used_at with current database datetime (NOW()) for newly inserted package.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$wpdb->query(
 			$wpdb->prepare(
@@ -192,7 +200,7 @@ class Hashing_Db {
 			)
 		);
 
-		return (int) ( $wpdb->insert_id ?: 0 );
+		return (int) ( ! empty( $wpdb->insert_id ) ? $wpdb->insert_id : 0 );
 	}
 
 	/**
@@ -200,9 +208,9 @@ class Hashing_Db {
 	 * Initializes last_used_at with current database datetime for new records.
 	 * Does not modify last_used_at on duplicate key update.
 	 *
-	 * @param string $string_hash       32-char md5 string hash
-	 * @param string $target_lang       Target language code
-	 * @param string $translated_string Translated content
+	 * @param string $string_hash 32-char md5 string hash.
+	 * @param string $target_lang Target language code.
+	 * @param string $translated_string Translated content.
 	 * @return bool
 	 */
 	public static function save_translation_result( string $string_hash, string $target_lang, string $translated_string ): bool {
@@ -235,8 +243,8 @@ class Hashing_Db {
 	 * Check if a translation exists for a package hash or string_id.
 	 * Updates last_used_at timestamp on successful retrieval.
 	 *
-	 * @param int|string $identifier  package_hash (string), string_hash (string), or string_id (int)
-	 * @param string     $target_lang
+	 * @param int|string $identifier package_hash (string), string_hash (string), or string_id (int).
+	 * @param string     $target_lang Target language code.
 	 * @return string|null Translated string or null if not cached
 	 */
 	public static function get_cached_translation( $identifier, string $target_lang ): ?string {
@@ -271,7 +279,7 @@ class Hashing_Db {
 			return null;
 		}
 
-		// Check by string_hash
+		// Check by string_hash.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
@@ -295,7 +303,7 @@ class Hashing_Db {
 			return (string) $row['translated_string'];
 		}
 
-		// Check by package_hash
+		// Check by package_hash.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
@@ -334,8 +342,8 @@ class Hashing_Db {
 	/**
 	 * Fetch a translated string directly by string_hash and language.
 	 *
-	 * @param string $string_hash 32-char md5 hash of the string
-	 * @param string $language    Language code
+	 * @param string $string_hash 32-char md5 hash of the string.
+	 * @param string $language Language code.
 	 * @return string|null
 	 */
 	public static function get_translation( string $string_hash, string $language ): ?string {
@@ -345,8 +353,8 @@ class Hashing_Db {
 	/**
 	 * Bulk fetch translations by string hashes and language.
 	 *
-	 * @param array  $string_hashes Array of string hashes
-	 * @param string $language      Language code
+	 * @param array  $string_hashes Array of string hashes.
+	 * @param string $language Language code.
 	 * @return array Hash => translated_string
 	 */
 	public static function get_translations_by_hashes( array $string_hashes, string $language ): array {
@@ -357,8 +365,8 @@ class Hashing_Db {
 	 * Batch get cached translations for multiple package hashes or string hashes.
 	 * Efficiently bulk-updates last_used_at for all matched translation and package records.
 	 *
-	 * @param array  $hashes
-	 * @param string $target_lang
+	 * @param array  $hashes Hashes.
+	 * @param string $target_lang Target language code.
 	 * @return array Hash => translated_string
 	 */
 	public static function get_cached_translations_batch( array $hashes, string $target_lang ): array {
@@ -429,7 +437,7 @@ class Hashing_Db {
 			}
 		}
 
-		// Bulk update last_used_at for all matched translation records efficiently
+		// Bulk update last_used_at for all matched translation records efficiently.
 		if ( ! empty( $translation_ids_to_touch ) ) {
 			$translation_ids_to_touch = array_values( array_unique( $translation_ids_to_touch ) );
 			$ids_placeholders         = implode( ',', array_fill( 0, count( $translation_ids_to_touch ), '%d' ) );
@@ -442,7 +450,7 @@ class Hashing_Db {
 			);
 		}
 
-		// Bulk update last_used_at for all matched package records efficiently
+		// Bulk update last_used_at for all matched package records efficiently.
 		if ( ! empty( $package_ids_to_touch ) ) {
 			$package_ids_to_touch = array_values( array_unique( $package_ids_to_touch ) );
 			$pkg_placeholders     = implode( ',', array_fill( 0, count( $package_ids_to_touch ), '%d' ) );
@@ -462,9 +470,9 @@ class Hashing_Db {
 	 * Get post packages joined with central translatesense_strings.
 	 * Updates last_used_at timestamp on successful package retrieval.
 	 *
-	 * @param int    $post_id
-	 * @param string $lang
-	 * @param string $editor_type
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
 	 * @param array  $options Optional retrieval options (e.g. ['exclude' => ['custom_field']]).
 	 * @return array
 	 */
@@ -474,7 +482,7 @@ class Hashing_Db {
 		$packages_table = self::get_packages_table();
 		$strings_table  = self::get_strings_table();
 
-		// Whitelist of valid exclude enum values for security
+		// Whitelist of valid exclude enum values for security.
 		$allowed_excludes = array( 'custom_field' );
 		$exclude_clauses  = array();
 		$query_params     = array( $post_id, $lang, $editor_type );
@@ -506,7 +514,7 @@ class Hashing_Db {
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( ! empty( $results ) ) {
-			// Update last_used_at for all matching retrieved packages efficiently
+			// Update last_used_at for all matching retrieved packages efficiently.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$wpdb->query(
 				$wpdb->prepare(
@@ -526,7 +534,7 @@ class Hashing_Db {
 	/**
 	 * Check if a post has packages recorded in the translatesense_packages table.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return bool
 	 */
 	public static function has_post_packages( int $post_id ): bool {
@@ -580,10 +588,10 @@ class Hashing_Db {
 	/**
 	 * Delete existing translation package data for a post and clean up unused strings.
 	 *
-	 * @param int         $post_id                Post ID
-	 * @param string|null $lang                   Language code filter (optional)
-	 * @param string|null $editor_type            Editor type filter (optional)
-	 * @param bool        $cleanup_unused_strings Whether to verify and clean unused strings
+	 * @param int         $post_id Post ID.
+	 * @param string|null $lang Language code filter (optional).
+	 * @param string|null $editor_type Editor type filter (optional).
+	 * @param bool        $cleanup_unused_strings Whether to verify and clean unused strings.
 	 * @return int Number of deleted package rows
 	 */
 	public static function delete_post_packages(
@@ -616,7 +624,7 @@ class Hashing_Db {
 		$deleted       = $wpdb->delete( $packages_table, $where, $format );
 		$deleted_count = false !== $deleted ? (int) $deleted : 0;
 
-		// Clean up any strings in translatesense_strings that are no longer used by any package
+		// Clean up any strings in translatesense_strings that are no longer used by any package.
 		if ( $cleanup_unused_strings && $deleted_count > 0 ) {
 			self::cleanup_unused_strings();
 		}

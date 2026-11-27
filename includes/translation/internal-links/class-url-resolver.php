@@ -1,4 +1,9 @@
 <?php
+/**
+ * Resolves site URLs to posts, terms and translated equivalents.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -30,14 +35,14 @@ class URL_Resolver {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$home = home_url();
+		$home             = home_url();
 		$this->home_parts = (array) wp_parse_url( $home );
 	}
 
 	/**
 	 * Check whether a URL is internal to this WordPress site.
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return bool
 	 */
 	public function is_internal_url( string $url ): bool {
@@ -46,7 +51,7 @@ class URL_Resolver {
 			return false;
 		}
 
-		// Relative URL with path or query
+		// Relative URL with path or query.
 		if ( 0 === strpos( $url, '/' ) && 0 !== strpos( $url, '//' ) ) {
 			return true;
 		}
@@ -65,7 +70,7 @@ class URL_Resolver {
 			return false;
 		}
 
-		// Exact host match or www/non-www equivalence
+		// Exact host match or www/non-www equivalence.
 		$url_host  = strtolower( (string) $parts['host'] );
 		$home_host = strtolower( (string) $home_host );
 
@@ -80,9 +85,9 @@ class URL_Resolver {
 	 * Resolve an internal URL into its translated counterpart if available.
 	 * Returns null if the URL is external, unknown, or has no target translation.
 	 *
-	 * @param string               $url
-	 * @param string               $target_language
-	 * @param Reference_Cache|null $cache
+	 * @param string               $url URL.
+	 * @param string               $target_language Target language code.
+	 * @param Reference_Cache|null $cache Cache data.
 	 * @return string|null
 	 */
 	public function resolve_translated_url( string $url, string $target_language, ?Reference_Cache $cache = null ): ?string {
@@ -116,10 +121,10 @@ class URL_Resolver {
 		}
 		$fragment = ! empty( $parsed['fragment'] ) ? '#' . $parsed['fragment'] : '';
 
-		// Identify the object referenced by this URL
+		// Identify the object referenced by this URL.
 		$object = $this->resolve_url_object( $url, $parsed, $query_params );
 		if ( ! $object ) {
-			// If it is an internal URL that contains percent-encoded characters, decode it so it's readable
+			// If it is an internal URL that contains percent-encoded characters, decode it so it's readable.
 			if ( false !== strpos( $url, '%' ) ) {
 				$decoded = $this->decode_url( $url );
 				if ( $decoded !== $url ) {
@@ -134,8 +139,8 @@ class URL_Resolver {
 		$translated_url = null;
 
 		if ( 'post' === $object['type'] || 'media' === $object['type'] ) {
-			$post_id        = (int) $object['id'];
-			$translated_id  = 0;
+			$post_id       = (int) $object['id'];
+			$translated_id = 0;
 
 			if ( $cache->has_post( $post_id, $target_language ) ) {
 				$translated_id = $cache->get_post( $post_id, $target_language );
@@ -205,9 +210,9 @@ class URL_Resolver {
 	/**
 	 * Identify whether a URL references a Post, Page, CPT, Taxonomy/Term, or Media.
 	 *
-	 * @param string $url
-	 * @param array  $parsed
-	 * @param array  $query_params
+	 * @param string $url URL.
+	 * @param array  $parsed Parsed.
+	 * @param array  $query_params Query params.
 	 * @return array|null { 'type' => 'post'|'term'|'media', 'id' => int, 'taxonomy' => string|null }
 	 */
 	public function resolve_url_object( string $url, array $parsed, array $query_params ): ?array {
@@ -254,7 +259,7 @@ class URL_Resolver {
 		$full_url = $this->make_absolute_url( $url );
 		$post_id  = function_exists( 'url_to_postid' ) ? url_to_postid( $full_url ) : 0;
 		if ( $post_id <= 0 && false !== strpos( $full_url, '%' ) && function_exists( 'url_to_postid' ) ) {
-			// Fallback: try decoded URL in case rewrite rules match decoded Unicode slug
+			// Fallback: try decoded URL in case rewrite rules match decoded Unicode slug.
 			$post_id = url_to_postid( $this->decode_url( $full_url ) );
 		}
 		if ( $post_id > 0 ) {
@@ -273,7 +278,7 @@ class URL_Resolver {
 	/**
 	 * Build post object result after validating existence.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return array|null
 	 */
 	protected function build_post_object_result( int $post_id ): ?array {
@@ -297,8 +302,8 @@ class URL_Resolver {
 	 * Resolve pretty taxonomy permalinks using registered taxonomy information.
 	 * Supports categories, tags, custom taxonomies, and WooCommerce product categories & tags.
 	 *
-	 * @param string $full_url
-	 * @param array  $parsed
+	 * @param string $full_url Full URL.
+	 * @param array  $parsed Parsed.
 	 * @return array|null
 	 */
 	protected function resolve_taxonomy_url( string $full_url, array $parsed ): ?array {
@@ -313,7 +318,7 @@ class URL_Resolver {
 			return null;
 		}
 
-		// Get all public taxonomies
+		// Get all public taxonomies.
 		$taxonomies = function_exists( 'get_taxonomies' ) ? get_taxonomies( array( 'public' => true ), 'objects' ) : array();
 		if ( empty( $taxonomies ) ) {
 			return null;
@@ -326,14 +331,14 @@ class URL_Resolver {
 				continue;
 			}
 
-			// Path starts with taxonomy rewrite slug (e.g. "category/news" or "product-category/shoes")
+			// Path starts with taxonomy rewrite slug (e.g. "category/news" or "product-category/shoes").
 			if ( 0 === strpos( $url_path, $slug . '/' ) || $url_path === $slug ) {
 				$term_path = trim( substr( $url_path, strlen( $slug ) ), '/' );
 				if ( '' === $term_path ) {
 					continue;
 				}
 
-				// If hierarchical (e.g. parent/child), get the leaf slug
+				// If hierarchical (e.g. parent/child), get the leaf slug.
 				$segments  = explode( '/', $term_path );
 				$leaf_slug = sanitize_title( end( $segments ) );
 
@@ -354,7 +359,7 @@ class URL_Resolver {
 	/**
 	 * Make a URL absolute using site home URL.
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return string
 	 */
 	public function make_absolute_url( string $url ): string {
@@ -373,10 +378,10 @@ class URL_Resolver {
 	/**
 	 * Rebuild a URL keeping non-WordPress query parameters and fragment.
 	 *
-	 * @param string   $base_url
-	 * @param array    $original_query_params
-	 * @param string   $fragment
-	 * @param string[] $strip_keys
+	 * @param string   $base_url Base URL.
+	 * @param array    $original_query_params Original query params.
+	 * @param string   $fragment HTML fragment.
+	 * @param string[] $strip_keys Strip keys.
 	 * @return string
 	 */
 	protected function rebuild_url( string $base_url, array $original_query_params, string $fragment, array $strip_keys = array() ): string {
@@ -398,7 +403,7 @@ class URL_Resolver {
 	 * are human-readable instead of %xx percent-encoded sequences.
 	 * Preserves query parameter delimiters (&, =, +, #, ?).
 	 *
-	 * @param string $url
+	 * @param string $url URL.
 	 * @return string
 	 */
 	public function decode_url( string $url ): string {
@@ -419,19 +424,19 @@ class URL_Resolver {
 			$scheme = $parts['scheme'] . '://';
 		}
 
-		$host     = $parts['host'] ?? '';
-		$port     = isset( $parts['port'] ) ? ':' . $parts['port'] : '';
-		$user     = $parts['user'] ?? '';
-		$pass     = isset( $parts['pass'] ) ? ':' . $parts['pass'] : '';
-		$auth     = ( '' !== $user || '' !== $pass ) ? $user . $pass . '@' : '';
-		$path     = isset( $parts['path'] ) ? implode( '/', array_map( 'rawurldecode', explode( '/', (string) $parts['path'] ) ) ) : '';
-		$query    = '';
+		$host  = $parts['host'] ?? '';
+		$port  = isset( $parts['port'] ) ? ':' . $parts['port'] : '';
+		$user  = $parts['user'] ?? '';
+		$pass  = isset( $parts['pass'] ) ? ':' . $parts['pass'] : '';
+		$auth  = ( '' !== $user || '' !== $pass ) ? $user . $pass . '@' : '';
+		$path  = isset( $parts['path'] ) ? implode( '/', array_map( 'rawurldecode', explode( '/', (string) $parts['path'] ) ) ) : '';
+		$query = '';
 		if ( isset( $parts['query'] ) ) {
 			$decoded_query = preg_replace_callback(
 				'/%[0-9a-fA-F]{2}/',
 				static function ( $m ) {
 					$hex = strtoupper( $m[0] );
-					// Do not decode reserved query characters &, =, +, #, ?, space
+					// Do not decode reserved query characters &, =, +, #, ?, space.
 					if ( in_array( $hex, array( '%26', '%3D', '%2B', '%23', '%3F', '%20' ), true ) ) {
 						return $m[0];
 					}
@@ -439,7 +444,7 @@ class URL_Resolver {
 				},
 				(string) $parts['query']
 			);
-			$query = '?' . $decoded_query;
+			$query         = '?' . $decoded_query;
 		}
 		$fragment = isset( $parts['fragment'] ) ? '#' . rawurldecode( (string) $parts['fragment'] ) : '';
 

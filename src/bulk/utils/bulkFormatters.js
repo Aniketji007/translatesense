@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Get status badge CSS class and dashicon for a translation status
  * @param {string} status

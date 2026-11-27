@@ -3,6 +3,7 @@
  */
 
 import { getLanguageDisplay, getLanguageFlag } from '../../utils/language';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function LanguageSelector({
   languages = [],
@@ -53,18 +54,23 @@ export function LanguageSelector({
             className="ts-lang-action-btn"
             onClick={handleSelectAll}
           >
-            Select All
+            { __( 'Select All', 'translatesense' ) }
           </button>
           <button
             type="button"
             className="ts-lang-action-btn"
             onClick={handleUnselectAll}
           >
-            Unselect All
+            { __( 'Unselect All', 'translatesense' ) }
           </button>
         </div>
         <div className="ts-lang-counter">
-          {selectedLanguages.length} of {languages.length} selected
+          {sprintf(
+                  /* translators: 1: Number of selected languages, 2: Total number of languages. */
+                  __( '%1$s of %2$s selected', 'translatesense' ),
+                  selectedLanguages.length,
+                  languages.length
+                )}
         </div>
       </div>
 

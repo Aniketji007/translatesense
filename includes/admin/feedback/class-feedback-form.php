@@ -1,9 +1,10 @@
 <?php
-
 /**
  * Feedback_Form class.
  *
  * Handles plugin deactivation feedback.
+ *
+ * @package TranslateSense
  */
 
 namespace TranslateSense\Includes\Admin\Feedback;
@@ -53,6 +54,13 @@ if ( ! class_exists( 'Feedback_Form' ) ) {
 		 * @var string
 		 */
 		private $plugin_version;
+
+		/**
+		 * Temporary feedback payload for the deactivate request.
+		 *
+		 * @var array
+		 */
+		private $feedback_data = array();
 
 		/**
 		 * Get instance.

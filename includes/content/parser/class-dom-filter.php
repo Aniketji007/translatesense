@@ -1,4 +1,9 @@
 <?php
+/**
+ * Filters DOM nodes to find translatable text.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -27,6 +32,8 @@ class Dom_Filter {
 	private static $cache = array();
 
 	/**
+	 * Cache of attribute placeholders.
+	 *
 	 * @var array<string, string>
 	 */
 	private static $attr_placeholders_cache = array();
@@ -80,7 +87,7 @@ class Dom_Filter {
 			return $text;
 		}
 
-		// Handle UTF-16 surrogate pairs (e.g. \uD83D\uDE00 -> emoji)
+		// Handle UTF-16 surrogate pairs (e.g. \uD83D\uDE00 -> emoji).
 		$surrogate_pattern = '/\\\\u([dD][89abAB][0-9a-fA-F]{2})\\\\u([dD][c-fC-F][0-9a-fA-F]{2})/i';
 		$text              = preg_replace_callback(
 			$surrogate_pattern,
@@ -93,7 +100,7 @@ class Dom_Filter {
 			$text
 		);
 
-		// Handle standard BMP \uXXXX
+		// Handle standard BMP \uXXXX.
 		$text = preg_replace_callback(
 			'/\\\\u([0-9a-fA-F]{4})/i',
 			static function ( $m ) {
@@ -108,13 +115,13 @@ class Dom_Filter {
 	/**
 	 * Decode HTML entities and clean selected invisible characters.
 	 *
-	 * @param string $string Input string.
+	 * @param string $text Input string.
 	 * @return string
 	 */
-	public static function decode_html_string( string $string ): string {
+	public static function decode_html_string( string $text ): string {
 
-		if ( ! isset( $string ) || empty( $string ) ) {
-			return $string;
+		if ( ! isset( $text ) || empty( $text ) ) {
+			return $text;
 		}
 
 		$decoded = self::decode_unicode_escapes( $string );

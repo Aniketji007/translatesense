@@ -1,4 +1,9 @@
 <?php
+/**
+ * Applies translated strings to Gutenberg block content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -33,10 +38,10 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Translate Gutenberg blocks tree.
 	 *
-	 * @param WP_Post $source_post
-	 * @param string  $source_lang
-	 * @param string  $target_lang
-	 * @param array   $custom_opts
+	 * @param WP_Post $source_post Source post.
+	 * @param string  $source_lang Source language code.
+	 * @param string  $target_lang Target language code.
+	 * @param array   $custom_opts Custom options.
 	 * @return string
 	 */
 	public function translate_content( WP_Post $source_post, string $source_lang, string $target_lang, array $custom_opts = array() ): string {
@@ -55,11 +60,12 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Recursively translate Gutenberg blocks tree.
 	 *
-	 * @param array  $blocks
-	 * @param array  $rules
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $custom_opts
+	 * @param array  $blocks List of parsed blocks.
+	 * @param array  $rules List of rules.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $custom_opts Custom options.
+	 * @param int    $depth Nesting depth.
 	 */
 	public static function translate_blocks_tree( array &$blocks, array $rules, string $source_lang, string $target_lang, array $custom_opts, int $depth = 0 ): void {
 		if ( empty( $blocks ) || $depth > 100 ) {
@@ -115,7 +121,7 @@ class Gutenberg_Builder extends Base_Builder {
 				if ( isset( $block['innerContent'] ) && is_array( $block['innerContent'] ) && ! empty( $block['innerContent'] ) ) {
 					if ( ! empty( $xpaths ) ) {
 						if ( class_exists( 'DOMDocument' ) && class_exists( 'DOMXPath' ) ) {
-							// sort by content_lenght
+							// sort by content_lenght.
 							$temp_strings = array_column( $found_strings, 'original' );
 							usort( $temp_strings, static fn( $a, $b ) => strlen( $b ) <=> strlen( $a ) );
 							$inner_content_modified = false;
@@ -208,7 +214,7 @@ class Gutenberg_Builder extends Base_Builder {
 							$block['innerHTML'] = implode( '', $block['innerContent'] );
 						}
 					} elseif ( isset( $block['innerContent'] ) && ! empty( $block['innerContent'] ) && ! empty( $found_strings ) ) {
-						// sort by content_lenght
+						// sort by content_lenght.
 						$temp_strings = array_column( $found_strings, 'original' );
 						usort( $temp_strings, static fn( $a, $b ) => strlen( $b ) <=> strlen( $a ) );
 						$inner_content_modified = false;
@@ -285,12 +291,12 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Translate an HTML chunk of innerContent using DOMDocument and XPath expressions.
 	 *
-	 * @param string $html
-	 * @param array  $xpaths
-	 * @param string $block_name
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $custom_opts
+	 * @param string $html HTML markup.
+	 * @param array  $xpaths List of XPath expressions.
+	 * @param string $block_name Block name.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $custom_opts Custom options.
 	 * @return string
 	 */
 	public static function translate_inner_content_with_xpath( string $html, array $xpaths, string $block_name, string $source_lang, string $target_lang, array $custom_opts ): string {
@@ -303,7 +309,7 @@ class Gutenberg_Builder extends Base_Builder {
 		$dom              = new DOMDocument( '1.0', 'UTF-8' );
 		$previous_setting = libxml_use_internal_errors( true );
 		$wrapped          = '<?xml encoding="UTF-8"><body>' . $html . '</body>';
-		$loaded           = $dom->loadHTML( $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+		$loaded           = $dom->loadHTML( $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET );
 		libxml_clear_errors();
 		libxml_use_internal_errors( $previous_setting );
 
@@ -417,6 +423,13 @@ class Gutenberg_Builder extends Base_Builder {
 		return $modified ? $source_html : $html;
 	}
 
+	/**
+	 * Set inner html.
+	 *
+	 * @param DOMElement $node DOM node.
+	 * @param string     $html HTML markup.
+	 * @return bool
+	 */
 	private static function set_inner_html(
 		DOMElement $node,
 		string $html
@@ -436,7 +449,7 @@ class Gutenberg_Builder extends Base_Builder {
 			'<?xml encoding="UTF-8"><div id="ts-fragment-root">' .
 			$html .
 			'</div>',
-			LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+			LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET
 		);
 
 		libxml_clear_errors();
@@ -477,10 +490,11 @@ class Gutenberg_Builder extends Base_Builder {
 	 * processed DOM. This preserves incomplete opening/closing tag boundaries in
 	 * Gutenberg innerContent fragments.
 	 *
-	 * @param string  $source_html    Original source fragment (or already patched fragment).
-	 * @param DOMNode $node           XPath-selected node from the working DOM.
-	 * @param string  $original_value Original value read from the node.
-	 * @param string  $translated     Translated value.
+	 * @param string      $source_html    Original source fragment (or already patched fragment).
+	 * @param DOMNode     $node           XPath-selected node from the working DOM.
+	 * @param string      $original_value Original value read from the node.
+	 * @param string      $translated     Translated value.
+	 * @param DOMDocument $dom DOM document.
 	 * @return string
 	 */
 	private static function replace_translated_value_in_source(
@@ -566,7 +580,7 @@ class Gutenberg_Builder extends Base_Builder {
 		$text_node = null;
 		if ( $node instanceof DOMText ) {
 			$text_node = $node;
-		} elseif ( $node instanceof \DOMElement && false === strpos( $original_value, '<' ) && $node->childNodes->length === 1 && $node->firstChild instanceof DOMText ) {
+		} elseif ( $node instanceof \DOMElement && false === strpos( $original_value, '<' ) && 1 === $node->childNodes->length && $node->firstChild instanceof DOMText ) {
 			$text_node = $node->firstChild;
 		}
 
@@ -662,10 +676,11 @@ class Gutenberg_Builder extends Base_Builder {
 			return $source_html;
 		}
 
-		$matches     = array();
-		$token_count = count( $original_tokens );
+		$matches      = array();
+		$token_count  = count( $original_tokens );
+		$source_count = count( $source_tokens );
 
-		for ( $i = 0; $i <= count( $source_tokens ) - $token_count; $i++ ) {
+		for ( $i = 0; $i <= $source_count - $token_count; $i++ ) {
 			$matched = true;
 
 			for ( $j = 0; $j < $token_count; $j++ ) {
@@ -683,15 +698,13 @@ class Gutenberg_Builder extends Base_Builder {
 						$matched = false;
 						break;
 					}
-				} else {
+				} elseif (
 					// Compare decoded text, but retain raw source offsets.
-					if (
-						html_entity_decode( $original_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
-						!== html_entity_decode( $source_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
-					) {
-						$matched = false;
-						break;
-					}
+					html_entity_decode( $original_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
+					!== html_entity_decode( $source_token['raw'], ENT_QUOTES | ENT_HTML5, 'UTF-8' )
+				) {
+					$matched = false;
+					break;
 				}
 			}
 
@@ -805,8 +818,8 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Get extracted content of a DOMNode (inner HTML for DOMElement, value for DOMAttr or DOMText).
 	 *
-	 * @param DOMNode     $node
-	 * @param DOMDocument $dom
+	 * @param DOMNode     $node DOM node.
+	 * @param DOMDocument $dom DOM document.
 	 * @return string
 	 */
 	public static function get_node_content( DOMNode $node, DOMDocument $dom ): string {
@@ -836,8 +849,8 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Get inner HTML of a DOMNode.
 	 *
-	 * @param DOMNode     $node
-	 * @param DOMDocument $dom
+	 * @param DOMNode     $node DOM node.
+	 * @param DOMDocument $dom DOM document.
 	 * @return string
 	 */
 	public static function get_node_inner_html( DOMNode $node, DOMDocument $dom ): string {
@@ -860,9 +873,10 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Set translated content into a DOMNode (DOMElement, DOMAttr, or DOMText).
 	 *
-	 * @param DOMNode     $node
-	 * @param string      $new_content
-	 * @param DOMDocument $dom
+	 * @param DOMNode     $node DOM node.
+	 * @param string      $new_content New content.
+	 * @param DOMDocument $dom DOM document.
+	 * @param bool        $allow_html Whether HTML is allowed in the value.
 	 * @return void
 	 */
 	public static function set_node_content( DOMNode $node, string $new_content, DOMDocument $dom, bool $allow_html = true ): void {
@@ -888,7 +902,7 @@ class Gutenberg_Builder extends Base_Builder {
 				if ( $allow_html && false !== strpos( $new_content, '<' ) && class_exists( 'DOMDocument' ) ) {
 					$frag_doc = new DOMDocument();
 					libxml_use_internal_errors( true );
-					$frag_doc->loadHTML( '<?xml encoding="UTF-8"><body>' . $new_content . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+					$frag_doc->loadHTML( '<?xml encoding="UTF-8"><body>' . $new_content . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET );
 					libxml_clear_errors();
 					$frag_body = $frag_doc->getElementsByTagName( 'body' )->item( 0 );
 					if ( $frag_body && $frag_body->hasChildNodes() ) {
@@ -899,7 +913,7 @@ class Gutenberg_Builder extends Base_Builder {
 					}
 				}
 
-				// Plain text node
+				// Plain text node.
 				$node->appendChild( $dom->createTextNode( $new_content ) );
 			}
 		} catch ( \Throwable $e ) {
@@ -910,14 +924,14 @@ class Gutenberg_Builder extends Base_Builder {
 	/**
 	 * Helper: Recursively translate block attribute value with depth protection.
 	 *
-	 * @param mixed  $val
-	 * @param mixed  $schema_info
-	 * @param string $block_name
-	 * @param array  $found_strings
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $custom_opts
-	 * @param int    $depth
+	 * @param mixed  $val Value.
+	 * @param mixed  $schema_info Schema info.
+	 * @param string $block_name Block name.
+	 * @param array  $found_strings Found strings.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $custom_opts Custom options.
+	 * @param int    $depth Nesting depth.
 	 */
 	private static function translate_attribute_value_recursive( &$val, $schema_info, string $block_name, &$found_strings, string $source_lang, string $target_lang, array $custom_opts, int $depth = 0 ): void {
 		if ( $depth > 20 || ( is_array( $schema_info ) && isset( $schema_info['type'] ) && 'link' === strtolower( (string) $schema_info['type'] ) ) ) {

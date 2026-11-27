@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Reusable ProviderCard Component
  */
@@ -73,7 +74,7 @@ export function ProviderCard({
                 title={desc}
                 onClick={handleErrorBtnClick}
               >
-                ⚠️ View Error
+                { __( '⚠️ View Error', 'translatesense' ) }
               </button>
             ) : actionUrl ? (
               <a

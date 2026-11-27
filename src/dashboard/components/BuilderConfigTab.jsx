@@ -7,6 +7,7 @@ import { WidgetCard } from './WidgetCard';
 import { WidgetTableRow } from './WidgetTableRow';
 import { PaginationBar } from './PaginationBar';
 import { DashboardIcons } from './DashboardIcons';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function BuilderConfigTab({
   activeTab,
@@ -118,7 +119,7 @@ export function BuilderConfigTab({
             <input
               type="text"
               className="ts-search-input"
-              placeholder={`Search ${builderName} ${unitName}...`}
+              placeholder={sprintf( /* translators: %1$s: Builder name, %2$s: Unit name. */ __( 'Search %1$s %2$s...', 'translatesense' ), builderName, unitName )}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -135,7 +136,7 @@ export function BuilderConfigTab({
               setCurrentPage(1);
             }}
           >
-            <option value="all">All Categories</option>
+            <option value="all">{ __( 'All Categories', 'translatesense' ) }</option>
             {availableCategories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -151,10 +152,10 @@ export function BuilderConfigTab({
               setCurrentPage(1);
             }}
           >
-            <option value="all">All Statuses</option>
-            <option value="supported">Supported</option>
-            <option value="custom">Custom Config</option>
-            <option value="unsupported">Unsupported</option>
+            <option value="all">{ __( 'All Statuses', 'translatesense' ) }</option>
+            <option value="supported">{ __( 'Supported', 'translatesense' ) }</option>
+            <option value="custom">{ __( 'Custom Config', 'translatesense' ) }</option>
+            <option value="unsupported">{ __( 'Unsupported', 'translatesense' ) }</option>
           </select>
 
           <select
@@ -165,11 +166,11 @@ export function BuilderConfigTab({
               setCurrentPage(1);
             }}
           >
-            <option value="name_asc">Name (A to Z)</option>
-            <option value="name_desc">Name (Z to A)</option>
-            <option value="fields_desc">Fields (High to Low)</option>
-            <option value="fields_asc">Fields (Low to High)</option>
-            <option value="status">Status (Supported first)</option>
+            <option value="name_asc">{ __( 'Name (A to Z)', 'translatesense' ) }</option>
+            <option value="name_desc">{ __( 'Name (Z to A)', 'translatesense' ) }</option>
+            <option value="fields_desc">{ __( 'Fields (High to Low)', 'translatesense' ) }</option>
+            <option value="fields_asc">{ __( 'Fields (Low to High)', 'translatesense' ) }</option>
+            <option value="status">{ __( 'Status (Supported first)', 'translatesense' ) }</option>
           </select>
         </div>
 
@@ -182,14 +183,14 @@ export function BuilderConfigTab({
                 className={`ts-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => setViewMode('grid')}
               >
-                Grid
+                { __( 'Grid', 'translatesense' ) }
               </button>
               <button
                 type="button"
                 className={`ts-view-btn ${viewMode === 'list' ? 'active' : ''}`}
                 onClick={() => setViewMode('list')}
               >
-                List
+                { __( 'List', 'translatesense' ) }
               </button>
             </div>
             {isFiltered && (
@@ -198,7 +199,7 @@ export function BuilderConfigTab({
                 className="ts-reset-filter-btn"
                 onClick={handleResetFilters}
               >
-                Reset
+                { __( 'Reset', 'translatesense' ) }
               </button>
             )}
           </div>
@@ -210,7 +211,7 @@ export function BuilderConfigTab({
               disabled={isCreatingSandbox}
               onClick={() => onGenerateSandbox && onGenerateSandbox(activeTab)}
             >
-              {isCreatingSandbox ? 'Opening...' : `Generate ${builderName} Config`}
+              {isCreatingSandbox ? __( 'Opening...', 'translatesense' ) : sprintf( /* translators: %s: Builder name. */ __( 'Generate %s Config', 'translatesense' ), builderName )}
             </button>
             <button
               type="button"
@@ -220,7 +221,7 @@ export function BuilderConfigTab({
               <span style={{ display: 'inline-flex', marginRight: '6px' }}>
                 {DashboardIcons.pencil({ size: 13 })}
               </span>
-              {`Edit ${builderName} Config`}
+              {sprintf( /* translators: %s: Builder name. */ __( 'Edit %s Config', 'translatesense' ), builderName )}
             </button>
           </div>
         </div>
@@ -242,7 +243,11 @@ export function BuilderConfigTab({
               ))
             ) : (
               <div className="ts-empty-state" style={{ gridColumn: '1 / -1', padding: '40px 20px', textAlign: 'center' }}>
-                <p>No matching {unitName} found for the selected filters.</p>
+                <p>{sprintf(
+                  /* translators: %s: Name of the item type, such as widgets or blocks. */
+                  __( 'No matching %s found for the selected filters.', 'translatesense' ),
+                  unitName
+                )}</p>
               </div>
             )}
           </div>
@@ -261,10 +266,10 @@ export function BuilderConfigTab({
             <thead>
               <tr>
                 <th style={{ width: '28%' }}>{builderName.toUpperCase()} {unitName.toUpperCase()}</th>
-                <th style={{ width: '15%' }}>CATEGORY</th>
-                <th style={{ width: '28%' }}>MAPPED FIELDS</th>
-                <th style={{ width: '14%' }}>STATUS</th>
-                <th style={{ width: '15%', textAlign: 'right' }}>ACTIONS</th>
+                <th style={{ width: '15%' }}>{ __( 'CATEGORY', 'translatesense' ) }</th>
+                <th style={{ width: '28%' }}>{ __( 'MAPPED FIELDS', 'translatesense' ) }</th>
+                <th style={{ width: '14%' }}>{ __( 'STATUS', 'translatesense' ) }</th>
+                <th style={{ width: '15%', textAlign: 'right' }}>{ __( 'ACTIONS', 'translatesense' ) }</th>
               </tr>
             </thead>
             <tbody>
@@ -280,7 +285,11 @@ export function BuilderConfigTab({
               ) : (
                 <tr>
                   <td colSpan={5} style={{ textAlign: 'center', padding: '30px' }}>
-                    No matching {unitName} found.
+                    {sprintf(
+                      /* translators: %s: Name of the item type, such as widgets or blocks. */
+                      __( 'No matching %s found.', 'translatesense' ),
+                      unitName
+                    )}
                   </td>
                 </tr>
               )}

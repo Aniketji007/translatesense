@@ -5,6 +5,7 @@
 
 import { formatNumber } from '../../utils/formatting';
 import { getBulkItemLabels } from '../utils/bulkFormatters';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function ProgressSummary({
   completedCount = 0,
@@ -25,7 +26,11 @@ export function ProgressSummary({
             <span className="dashicons dashicons-yes-alt" />
           </div>
           <div className="ts-stat-info">
-            <div className="ts-stat-label">Completed {pluralTitle}</div>
+            <div className="ts-stat-label">{sprintf(
+              /* translators: %s: Item type in plural, such as posts. */
+              __( 'Completed %s', 'translatesense' ),
+              pluralTitle
+            )}</div>
             <div className="ts-stat-val">
               {completedCount} / {totalCount}
             </div>
@@ -39,7 +44,11 @@ export function ProgressSummary({
             <span className="dashicons dashicons-controls-skipforward" />
           </div>
           <div className="ts-stat-info">
-            <div className="ts-stat-label">Skipped {pluralTitle}</div>
+            <div className="ts-stat-label">{sprintf(
+              /* translators: %s: Item type in plural, such as posts. */
+              __( 'Skipped %s', 'translatesense' ),
+              pluralTitle
+            )}</div>
             <div className="ts-stat-val">
               {skippedCount} / {totalCount}
             </div>
@@ -53,7 +62,11 @@ export function ProgressSummary({
             <span className="dashicons dashicons-dismiss" />
           </div>
           <div className="ts-stat-info">
-            <div className="ts-stat-label">Failed {pluralTitle}</div>
+            <div className="ts-stat-label">{sprintf(
+              /* translators: %s: Item type in plural, such as posts. */
+              __( 'Failed %s', 'translatesense' ),
+              pluralTitle
+            )}</div>
             <div className="ts-stat-val">
               {failedCount} / {totalCount}
             </div>
@@ -67,7 +80,7 @@ export function ProgressSummary({
             <span className="dashicons dashicons-editor-textcolor" />
           </div>
           <div className="ts-stat-info">
-            <div className="ts-stat-label">Total Characters</div>
+            <div className="ts-stat-label">{ __( 'Total Characters', 'translatesense' ) }</div>
             <div className="ts-stat-val" title={`${totalCharacters.toLocaleString()} characters`}>
               {formatNumber(totalCharacters)}
             </div>
@@ -80,7 +93,7 @@ export function ProgressSummary({
           <span className="dashicons dashicons-clock" />
         </div>
         <div className="ts-stat-info">
-          <div className="ts-stat-label">Elapsed Time</div>
+          <div className="ts-stat-label">{ __( 'Elapsed Time', 'translatesense' ) }</div>
           <div className="ts-stat-val">{elapsedTime}</div>
         </div>
       </div>

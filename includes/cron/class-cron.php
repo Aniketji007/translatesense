@@ -1,4 +1,9 @@
 <?php
+/**
+ * Scheduled cleanup tasks for the TranslateSense cache.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -10,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Scheduled cleanup tasks for the TranslateSense cache.
+ */
 class Cron {
 
 	/**
@@ -26,7 +34,7 @@ class Cron {
 	 * Initialize cron hooks.
 	 */
 	public static function init() {
-		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_schedules' ) );
+		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_schedules' ) ); // phpcs:ignore WordPress.WP.CronInterval.ChangeDetected -- The interval is defined in add_cron_schedules().
 		add_action( self::CLEANUP_HOOK, array( __CLASS__, 'run_cache_cleanup' ) );
 		add_action( 'admin_init', array( __CLASS__, 'ensure_cleanup_scheduled' ) );
 	}
@@ -90,7 +98,7 @@ class Cron {
 			)
 		);
 
-		// Clean orphaned strings in translatesense_strings
+		// Clean orphaned strings in translatesense_strings.
 		Hashing_Db::cleanup_unused_strings();
 	}
 

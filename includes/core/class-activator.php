@@ -1,4 +1,9 @@
 <?php
+/**
+ * Plugin activation tasks.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -10,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Plugin activation tasks.
+ */
 class Activator {
 
 	const DB_VERSION        = '1.0.0';
@@ -43,6 +51,7 @@ class Activator {
 	/**
 	 * Run backward-compatible schema upgrades.
 	 *
+	 * @param bool $force Whether to force the action.
 	 * @return void
 	 */
 	public static function maybe_upgrade_db( $force = false ): void {
@@ -84,7 +93,7 @@ class Activator {
 	/**
 	 * Create custom database tables for translation packages and cached results.
 	 *
-	 * dbDelta adds missing columns to existing tables.
+	 * The dbDelta function adds missing columns to existing tables.
 	 *
 	 * @return bool
 	 */

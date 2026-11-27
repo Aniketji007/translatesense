@@ -1,4 +1,9 @@
 <?php
+/**
+ * Synchronizes WooCommerce product relationships.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -62,16 +67,31 @@ class Product_Relationship_Synchronizer extends WC_Base {
 	 */
 	private static array $recovered_deletions = array();
 
+	/**
+	 * Register the hooks.
+	 */
 	public function __construct() {
 		parent::__construct( 20 );
 	}
 
+	/**
+	 * Synchronize product relationships.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $target_lang    Target language.
+	 * @param bool   $is_existing    Whether the translation already existed.
+	 * @param array  $sync_result    Sync result.
+	 * @param array  $context        Translation context.
+	 */
 	public function translate( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
 		self::synchronize_relationships( $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $context );
 	}
 
 	/**
 	 * Restore product relationships when a translated product is deleted.
+	 *
+	 * @param int $post_id Post ID.
 	 */
 	public static function handle_before_delete_post( int $post_id ): void {
 		self::handle_product_deletion( $post_id );
@@ -184,7 +204,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 			$target_product->save();
 		}
 
-		// Update recovery metadata only after the relationship replacement is successfully applied
+		// Update recovery metadata only after the relationship replacement is successfully applied.
 		foreach ( $pending_recovery as $meta_key => $mappings ) {
 			self::add_recovery_mappings( $target_post_id, $meta_key, $mappings );
 		}
@@ -210,7 +230,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 		$seen         = array();
 
 		if ( empty( $current_ids ) ) {
-			// Newly created target product: map relationships from source product
+			// Newly created target product: map relationships from source product.
 			foreach ( $source_ids as $source_id ) {
 				$source_id = absint( $source_id );
 				if ( $source_id <= 0 || $source_id === $target_post_id ) {
@@ -235,7 +255,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 			}
 		} else {
 			// Existing target product: preserve target's current list and independent customizations,
-			// only replacing fallback source IDs when their translations become available
+			// only replacing fallback source IDs when their translations become available.
 			foreach ( $current_ids as $id ) {
 				$id = absint( $id );
 				if ( $id <= 0 || $id === $target_post_id ) {
@@ -296,10 +316,10 @@ class Product_Relationship_Synchronizer extends WC_Base {
 				continue;
 			}
 
-			// Look up existing translation in target language using Polylang bridge
+			// Look up existing translation in target language using Polylang bridge.
 			$translated_id = Polylang_Bridge::get_existing_translation_post_id( $source_id, $target_lang );
 
-			// Only replace with translated ID if it exists and is a valid product
+			// Only replace with translated ID if it exists and is a valid product.
 			if ( $translated_id > 0 && $translated_id !== $source_id ) {
 				$trans_post = get_post( $translated_id );
 				$final_id   = ( $trans_post && 'product' === $trans_post->post_type ) ? $translated_id : $source_id;
@@ -307,7 +327,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 				$final_id = $source_id;
 			}
 
-			// Prevent self-reference, invalid IDs, and duplicates while preserving ordering
+			// Prevent self-reference, invalid IDs, and duplicates while preserving ordering.
 			if ( $final_id > 0 && $final_id !== $target_post_id && ! isset( $seen[ $final_id ] ) ) {
 				$seen[ $final_id ] = true;
 				$mapped[]          = $final_id;
@@ -335,7 +355,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 		$user_id             = ( array_key_exists( 'user_id', $context ) && null !== $context['user_id'] ) ? (int) $context['user_id'] : null;
 		$enforce_permissions = array_key_exists( 'enforce_permissions', $context ) ? (bool) $context['enforce_permissions'] : true;
 
-		// Find products referencing source_post_id in upsells, cross-sells, or grouped children in manageable batches
+		// Find products referencing source_post_id in upsells, cross-sells, or grouped children in manageable batches.
 		$candidate_ids = array();
 		$batch_size    = (int) apply_filters( 'translatesense_reverse_relationships_batch_size', 100 );
 		$batch_size    = max( 10, min( 500, $batch_size ) );
@@ -419,17 +439,17 @@ class Product_Relationship_Synchronizer extends WC_Base {
 
 			$ref_lang = sanitize_key( (string) Polylang_Bridge::get_post_language( $ref_id ) );
 
-			// Determine which target product to update:
+			// Determine which target product to update.
 			if ( $ref_lang === $target_lang ) {
 				$target_to_update_id = $ref_id;
 			} else {
 				// Referencing product belongs to another language (e.g. source language).
-				// Look up if its translation already exists in the target language:
+				// Look up if its translation already exists in the target language.
 				$trans_id = Polylang_Bridge::get_existing_translation_post_id( $ref_id, $target_lang );
 				if ( $trans_id > 0 && $trans_id !== $ref_id ) {
 					$target_to_update_id = $trans_id;
 				} else {
-					// Do not create missing linked product translations
+					// Do not create missing linked product translations.
 					continue;
 				}
 			}
@@ -439,13 +459,13 @@ class Product_Relationship_Synchronizer extends WC_Base {
 			}
 			$processed_target_ids[ $target_to_update_id ] = true;
 
-			// Verify target is valid WooCommerce product
+			// Verify target is valid WooCommerce product.
 			$target_ref_product = wc_get_product( $target_to_update_id );
 			if ( ! $target_ref_product instanceof WC_Product ) {
 				continue;
 			}
 
-			// Confirm that the target product belongs to the target language
+			// Confirm that the target product belongs to the target language.
 			if ( Polylang_Bridge::get_post_language( $target_to_update_id ) !== $target_lang ) {
 				continue;
 			}
@@ -532,7 +552,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 				$target_ref_product->save();
 			}
 
-			// Record recovery mappings after relationship update is successfully applied
+			// Record recovery mappings after relationship update is successfully applied.
 			foreach ( $pending_recovery as $meta_key => $mappings ) {
 				self::add_recovery_mappings( $target_to_update_id, $meta_key, $mappings );
 			}
@@ -638,12 +658,12 @@ class Product_Relationship_Synchronizer extends WC_Base {
 			return;
 		}
 
-		// Avoid duplicate recovery execution for the same post in the same request
+		// Avoid duplicate recovery execution for the same post in the same request.
 		if ( isset( self::$recovered_deletions[ $post_id ] ) ) {
 			return;
 		}
 
-		// Check if this post is a WooCommerce product
+		// Check if this post is a WooCommerce product.
 		$post = get_post( $post_id );
 		if ( ! $post || 'product' !== $post->post_type ) {
 			return;
@@ -713,7 +733,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 					}
 
 					if ( $id === $deleted_product_id ) {
-						// Replace deleted translated product ID with original source product ID
+						// Replace deleted translated product ID with original source product ID.
 						if ( ! isset( $seen[ $source_id ] ) ) {
 							$seen[ $source_id ] = true;
 							$new_ids[]          = $source_id;
@@ -725,7 +745,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 					}
 				}
 
-				// If deleted ID was already stripped by another process/hook, restore source fallback
+				// If deleted ID was already stripped by another process/hook, restore source fallback.
 				if ( ! $replaced && ! in_array( $source_id, $new_ids, true ) ) {
 					if ( ! isset( $seen[ $source_id ] ) ) {
 						$seen[ $source_id ] = true;
@@ -739,7 +759,7 @@ class Product_Relationship_Synchronizer extends WC_Base {
 					$dep_product->save();
 				}
 
-				// Remove only the recovered deleted ID from recovery metadata
+				// Remove only the recovered deleted ID from recovery metadata.
 				self::remove_recovery_mapping( $dep_id, $meta_key, $deleted_product_id );
 			}
 		}

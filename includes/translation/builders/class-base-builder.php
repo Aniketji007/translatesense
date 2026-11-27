@@ -1,4 +1,9 @@
 <?php
+/**
+ * Shared base for the translation builders that write translations back to content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -40,10 +45,10 @@ abstract class Base_Builder {
 	 * Translate builder-specific content structure.
 	 * Returns string for block/classic editors or structured data (e.g. array) for page builders.
 	 *
-	 * @param WP_Post $source_post
-	 * @param string  $source_lang
-	 * @param string  $target_lang
-	 * @param array   $custom_opts
+	 * @param WP_Post $source_post Source post.
+	 * @param string  $source_lang Source language code.
+	 * @param string  $target_lang Target language code.
+	 * @param array   $custom_opts Custom options.
 	 * @return mixed
 	 */
 	abstract public function translate_content( WP_Post $source_post, string $source_lang, string $target_lang, array $custom_opts = array() );
@@ -51,10 +56,10 @@ abstract class Base_Builder {
 	/**
 	 * Translate post title.
 	 *
-	 * @param string $title
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $custom_opts
+	 * @param string $title Title.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $custom_opts Custom options.
 	 * @return string
 	 */
 	public function translate_title( string $title, string $source_lang, string $target_lang, array $custom_opts = array() ): string {
@@ -76,10 +81,10 @@ abstract class Base_Builder {
 	/**
 	 * Translate post excerpt.
 	 *
-	 * @param string $excerpt
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $custom_opts
+	 * @param string $excerpt Post excerpt.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $custom_opts Custom options.
 	 * @return string
 	 */
 	public function translate_excerpt( string $excerpt, string $source_lang, string $target_lang, array $custom_opts = array() ): string {
@@ -101,11 +106,11 @@ abstract class Base_Builder {
 	/**
 	 * Execute full post translation workflow for this builder.
 	 *
-	 * @param int    $post_id
-	 * @param string $target_lang
-	 * @param string $provider
-	 * @param array  $in_memory_translations
-	 * @param array  $options
+	 * @param int    $post_id Post ID.
+	 * @param string $target_lang Target language code.
+	 * @param string $provider AI provider ID.
+	 * @param array  $in_memory_translations In memory translations.
+	 * @param array  $options Options array.
 	 * @return array|WP_Error
 	 */
 	public function translate_post( int $post_id, string $target_lang, string $provider = '', array $in_memory_translations = array(), array $options = array() ) {
@@ -155,13 +160,13 @@ abstract class Base_Builder {
 		$translated_title   = $this->translate_title( $source_post->post_title, $source_lang, $target_lang, $custom_opts );
 		$translated_excerpt = $this->translate_excerpt( $source_post->post_excerpt, $source_lang, $target_lang, $custom_opts );
 
-		// Allow style CSS properities temporarily
+		// Allow style CSS properities temporarily.
 		add_filter( 'safe_style_css', array( $this, 'allowed_css_properties' ), 10, 1 );
 
 		// 2. Translate Builder Content
 		$translated_content = $this->translate_content( $source_post, $source_lang, $target_lang, $custom_opts );
 
-		// Remove filter after translation
+		// Remove filter after translation.
 		remove_filter( 'safe_style_css', array( $this, 'allowed_css_properties' ), 10, 1 );
 
 		$wp_post_content = ! empty( $translated_content ) && is_string( $translated_content ) ? $translated_content : $source_post->post_content;
@@ -377,16 +382,16 @@ abstract class Base_Builder {
 	 * Lifecycle method called immediately after target post is inserted/updated.
 	 * Override in specific builder (e.g. Elementor_Builder) to update builder-specific meta & settings.
 	 *
-	 * @param int $target_post_id
+	 * @param int $target_post_id Target post ID.
 	 */
 	public function after_save_post( int $target_post_id ): void {
-		// Base implementation - can be extended by builders
+		// Base implementation - can be extended by builders.
 	}
 
 	/**
 	 * Allow all CSS properties for builder content translation
 	 *
-	 * @param array $properties
+	 * @param array $properties Properties.
 	 * @return array
 	 */
 	public function allowed_css_properties( array $properties ): array {

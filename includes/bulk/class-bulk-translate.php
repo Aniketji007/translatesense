@@ -1,4 +1,9 @@
 <?php
+/**
+ * Bulk translation entry points in the admin list tables.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -14,6 +19,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Bulk translation entry points in the admin list tables.
+ */
 class Bulk_Translate {
 
 	/**
@@ -67,6 +75,8 @@ class Bulk_Translate {
 
 	/**
 	 * Render quick Translate button in top and bottom tablenav (only on Polylang translated post types).
+	 *
+	 * @param mixed $which Table navigation position, either "top" or "bottom".
 	 */
 	public static function render_filter_translate_button( $which ) {
 		$post_type = self::get_current_screen_post_type();
@@ -106,6 +116,8 @@ class Bulk_Translate {
 	/**
 	 * Enqueue assets on edit.php (Polylang translated post types), edit-tags.php (Polylang translated taxonomies),
 	 * and upload.php (WordPress Media Library when Polylang Media translation is enabled).
+	 *
+	 * @param mixed $hook Hook.
 	 */
 	public static function enqueue_bulk_assets( $hook ) {
 		$post_type       = '';
@@ -178,19 +190,21 @@ class Bulk_Translate {
 		wp_enqueue_script(
 			'translatesense-chrome-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/chrome-ai/chrome-built-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-chrome-languages' ),
+			array( 'translatesense-chrome-languages', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-chrome-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 3. AI Translate Provider (OpenAI & Gemini)
 		wp_enqueue_script(
 			'translatesense-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/ai-services/ai-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array(),
+			array( 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 4. Providers Aggregator / Register
 		wp_enqueue_script(
@@ -214,6 +228,7 @@ class Bulk_Translate {
 			$asset['version'],
 			true
 		);
+		wp_set_script_translations( 'translatesense-bulk', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		$is_taxonomy_screen = ( '' !== $taxonomy );
 

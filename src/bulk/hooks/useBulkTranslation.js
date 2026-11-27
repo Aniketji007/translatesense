@@ -259,14 +259,14 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
         setCurrentBatchId(bId);
         currentBatchIdRef.current = bId;
 
-        const pct =
+        const percentage =
           Array.isArray(data.items) && data.items.length > 0
             ? Math.round(getOverallProgress(data.items))
             : Math.round(data.progress_percent || 0);
 
         setProgressPercent(pct);
         setTotalJobsCount(data.total_jobs || (data.items ? data.items.length : 1));
-        setStatusText(data.current_status || `Translating content in background... (${pct}%)`);
+        setStatusText(data.current_status || sprintf( /* translators: %s: Progress percentage. */ __( 'Translating content in background... (%s%%)', 'translatesense' ), percentage ));
 
         populateMapFromBatch(data, false);
 
@@ -366,7 +366,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             setIsCompleted(false);
             setStatsSummary(null);
             stopTimer();
-            setStatusText('No active translation batches.');
+            setStatusText(__( 'No active translation batches.', 'translatesense' ));
             setEmptyBatchesState(true);
             return;
           }
@@ -378,7 +378,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
           setEndpointLoading(null);
           setIsTranslating(false);
           stopTimer();
-          setStatusText('Failed to load active translation batches.');
+          setStatusText(__( 'Failed to load active translation batches.', 'translatesense' ));
           return;
         } finally {
           setEndpointLoading(null);
@@ -414,7 +414,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
             startTimer();
           }
 
-          const pct =
+          const percentage =
             Array.isArray(data.items) && data.items.length > 0
               ? Math.round(getOverallProgress(data.items))
               : Math.round(data.progress_percent || 0);
@@ -422,7 +422,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
           setProgressPercent(pct);
           setTotalJobsCount(data.total_jobs || (data.items ? data.items.length : 1));
           setStatusText(
-            data.current_status || `Translating content in background... (${pct}%)`
+            data.current_status || sprintf( /* translators: %s: Progress percentage. */ __( 'Translating content in background... (%s%%)', 'translatesense' ), percentage )
           );
         } else {
           setIsTranslating(true);
@@ -623,17 +623,17 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
           setIsTranslating(false);
           setIsCompleted(true);
           stopTimer();
-          setStatusText('Translation completed!');
+          setStatusText(__( 'Translation completed!', 'translatesense' ));
         }
       }
     } catch (err) {
       setEndpointLoading(null);
       setHideReviewNotice(true);
       setIsTranslating(false);
-      setStatusText(`Error: ${err.message}`);
+      setStatusText(sprintf( /* translators: %s: Error message. */ __( 'Error: %s', 'translatesense' ), err.message ));
       setErrorModal({
         isOpen: true,
-        title: 'Batch Creation Error',
+        title: __( 'Batch Creation Error', 'translatesense' ),
         message: err.message,
       });
     }
@@ -661,8 +661,8 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       } catch (err) {
         setErrorModal({
           isOpen: true,
-          title: 'Skip Failed',
-          message: err.message || 'Could not skip translations.',
+          title: __( 'Skip Failed', 'translatesense' ),
+          message: err.message || __( 'Could not skip translations.', 'translatesense' ),
         });
       }
     },
@@ -677,7 +677,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
     try {
       setIsTranslating(true);
       setIsCompleted(false);
-      setStatusText('Restarting failed translations...');
+      setStatusText(__( 'Restarting failed translations...', 'translatesense' ));
       startTimer(); // Resumes and merges elapsed timer from where it left off
 
       const res = await retryFailedBatch(bId);
@@ -693,14 +693,14 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
         setCurrentBatch(res.batch);
         populateMapFromBatch(res.batch, false);
 
-        const pct =
+        const percentage =
           Array.isArray(res.batch.items) && res.batch.items.length > 0
             ? Math.round(getOverallProgress(res.batch.items))
             : Math.round(res.batch.progress_percent || 0);
 
         setProgressPercent(pct);
         setTotalJobsCount(res.batch.total_jobs || (res.batch.items ? res.batch.items.length : 1));
-        setStatusText(`Restarted ${res.retried_count} translation job(s)...`);
+        setStatusText(sprintf( /* translators: %s: Retried count. */ __( 'Restarted %s translation job(s)...', 'translatesense' ), res.retried_count ));
       }
 
       // If Chrome AI, taxonomy, or media runtime, execute retried jobs sequentially in browser
@@ -715,7 +715,7 @@ export function useBulkTranslation(initialPostIds = [], options = {}) {
       console.error('[TranslateSense] Retry failed batch error:', err);
       setIsTranslating(false);
       stopTimer();
-      setStatusText(`Retry failed: ${err.message}`);
+      setStatusText(sprintf( /* translators: %s: Error message. */ __( 'Retry failed: %s', 'translatesense' ), err.message ));
     }
   }, [
     currentBatchId,

@@ -71,6 +71,9 @@ class Ai_Connector_Bridge {
 		return self::$instance;
 	}
 
+	/**
+	 * Construct.
+	 */
 	public function __construct() {
 		$this->detect_wp_ai_capabilities();
 		$this->load_saved_settings();
@@ -134,7 +137,7 @@ class Ai_Connector_Bridge {
 
 		$provider = sanitize_key( $provider );
 
-		// Set default prompt if not supplied
+		// Set default prompt if not supplied.
 		if ( empty( $prompt ) ) {
 			$source_lang = $settings['source_lang'] ?? 'en';
 			$target_lang = $settings['target_lang'] ?? 'es';
@@ -144,7 +147,7 @@ class Ai_Connector_Bridge {
 		$active_providers = $this->get_active_providers( false, array( $provider ) );
 		$provider_info    = $active_providers[ $provider ] ?? null;
 
-		// Condition A: If WP 7.0+ and connectors are installed for this provider, always send request through WP Core Connectors
+		// Condition A: If WP 7.0+ and connectors are installed for this provider, always send request through WP Core Connectors.
 		if ( ! empty( $provider_info['connectors'] ) && ! empty( $provider_info['isProviderInstall'] ) ) {
 			if ( empty( $provider_info['isConnected'] ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -179,7 +182,7 @@ class Ai_Connector_Bridge {
 				return $core_result;
 			}
 
-			// Core AI Connector failed: log error and return standardized error (do not trigger legacy direct API fallback)
+			// Core AI Connector failed: log error and return standardized error (do not trigger legacy direct API fallback).
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log( sprintf( '[TranslateSense AI Bridge] WP Core Connector translation error (%s): %s', $provider, $core_result->get_error_message() ) );
@@ -188,7 +191,7 @@ class Ai_Connector_Bridge {
 			return $this->standardize_error( $core_result, $provider );
 		}
 
-		// Condition B: For providers without connectors or uninstalled connector plugins, use legacy direct API endpoints
+		// Condition B: For providers without connectors or uninstalled connector plugins, use legacy direct API endpoints.
 		$legacy_result = $this->translate_via_legacy_api( $strings, $prompt, $model, $provider, $settings );
 
 		if ( is_wp_error( $legacy_result ) ) {
@@ -201,11 +204,11 @@ class Ai_Connector_Bridge {
 	/**
 	 * Check if a provider/model is registered in WordPress 7.0 Core AI Client.
 	 *
-	 * @param string $provider
-	 * @param string $model
+	 * @param string $provider AI provider ID.
+	 * @param string $model AI model ID.
 	 * @return bool
 	 */
-	public function is_provider_registered_in_core( string $provider, string $model = '' ): bool {
+	public function is_provider_registered_in_core( string $provider, string $model = '' ): bool { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( ! $this->has_wp_ai ) {
 			return false;
 		}
@@ -232,7 +235,7 @@ class Ai_Connector_Bridge {
 			}
 		}
 
-		// If WP 7.0 general AI is available without provider restrictions
+		// If WP 7.0 general AI is available without provider restrictions.
 		if ( 'wp_core' === $provider || 'core' === $provider || 'WordPress' === $provider ) {
 			return true;
 		}
@@ -319,7 +322,7 @@ class Ai_Connector_Bridge {
 		/*
 		 * Apply the timeout only for this request.
 		 */
-		$timeout_filter = static function ( $current_timeout ) use ( $timeout ) {
+		$timeout_filter = static function ( $current_timeout ) use ( $timeout ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 			return $timeout;
 		};
 
@@ -642,14 +645,14 @@ class Ai_Connector_Bridge {
 	/**
 	 * Parse batch AI response JSON and map items back to input keys.
 	 *
-	 * @param string $raw_json
-	 * @param array  $keys
+	 * @param string $raw_json Raw JSON.
+	 * @param array  $keys List of keys.
 	 * @return array<string|int, string>|null
 	 */
 	private function parse_batch_json_response( string $raw_json, array $keys ) {
 		$clean_json = trim( $raw_json );
 
-		// Strip markdown code fences (```json ... ```)
+		// Strip markdown code fences around the JSON payload.
 		if ( 0 === strpos( $clean_json, '```' ) ) {
 			$clean_json = preg_replace( '/^```(?:json)?\s*/i', '', $clean_json );
 			$clean_json = preg_replace( '/\s*```$/', '', $clean_json );
@@ -688,10 +691,10 @@ class Ai_Connector_Bridge {
 	/**
 	 * Build default prompt template for batch string translation.
 	 *
-	 * @param array  $strings
-	 * @param string $source_lang
-	 * @param string $target_lang
-	 * @param array  $settings
+	 * @param array  $strings List of strings.
+	 * @param string $source_lang Source language code.
+	 * @param string $target_lang Target language code.
+	 * @param array  $settings Settings array.
 	 * @return string
 	 */
 	private function build_default_prompt( array $strings, string $source_lang, string $target_lang, array $settings = array() ): string {
@@ -715,7 +718,7 @@ class Ai_Connector_Bridge {
 	/**
 	 * Save or update custom API keys when the user is not relying on site-wide WP AI configuration.
 	 *
-	 * @param array<string, string> $keys
+	 * @param array<string, string> $keys List of API keys indexed by provider ID.
 	 * @return bool
 	 */
 	public function update_api_keys( array $keys ): bool {
@@ -730,7 +733,7 @@ class Ai_Connector_Bridge {
 
 		$updated = update_option( 'translatesense_api_keys', $sanitized );
 
-		// Synchronize with main plugin settings for backward compatibility
+		// Synchronize with main plugin settings for backward compatibility.
 		$main_settings = get_option( 'translatesense_settings', array() );
 		if ( isset( $sanitized['openai'] ) ) {
 			$main_settings['openai_api_key'] = $sanitized['openai'];
@@ -741,7 +744,7 @@ class Ai_Connector_Bridge {
 		update_option( 'translatesense_settings', $main_settings );
 
 		$this->legacy_keys      = $sanitized;
-		$this->active_providers = null; // Invalidate cached providers
+		$this->active_providers = null; // Invalidate cached providers.
 
 		return $updated;
 	}
@@ -839,7 +842,7 @@ class Ai_Connector_Bridge {
 			return $this->active_providers;
 		}
 
-		// Normalize requested providers list (mapping aliases e.g. 'google' => 'gemini')
+		// Normalize requested providers list (mapping aliases e.g. 'google' => 'gemini').
 		$requested_providers = array_map(
 			static function ( $p ) {
 				return 'google' === $p ? 'gemini' : sanitize_key( (string) $p );
@@ -853,8 +856,8 @@ class Ai_Connector_Bridge {
 	/**
 	 * Standardize and format WP_Error for consistent UI and REST API output.
 	 *
-	 * @param WP_Error $error
-	 * @param string   $provider
+	 * @param WP_Error $error Error object or message.
+	 * @param string   $provider AI provider ID.
 	 * @return WP_Error
 	 */
 	private function standardize_error( WP_Error $error, string $provider ): WP_Error {
@@ -911,7 +914,7 @@ class Ai_Connector_Bridge {
 	 * Get provider models either from WP Core AI Connectors, provider API endpoint with 1h transient cache, or static cache.
 	 *
 	 * @param string $id        Provider identifier ('openai', 'gemini'/'google', 'chrome_ai').
-	 * @param bool   $connector Whether to retrieve models via WP AI Connectors.
+	 * @param array  $provider_options Provider options.
 	 * @return array<int, array<string, string>> Array of models containing 'id' and 'name'.
 	 */
 	private function get_provider_models( string $id, array $provider_options ): array {
@@ -950,12 +953,12 @@ class Ai_Connector_Bridge {
 			}
 
 			try {
-				// Resolve CapabilityEnum
+				// Resolve CapabilityEnum.
 				$capability = null;
 				if ( class_exists( CapabilityEnum::class ) ) {
 					$capability = CapabilityEnum::textGeneration();
 				}
-				// Resolve MessagePart & UserMessage
+				// Resolve MessagePart & UserMessage.
 				$messages = array();
 				if ( class_exists( '\WordPress\AiClient\Messages\DTO\MessagePart' ) && class_exists( '\WordPress\AiClient\Messages\DTO\UserMessage' ) ) {
 					$part       = new \WordPress\AiClient\Messages\DTO\MessagePart( 'hello' );
@@ -965,7 +968,7 @@ class Ai_Connector_Bridge {
 					$messages[] = new \UserMessage( array( $part ) );
 				}
 
-				// Resolve ModelConfig
+				// Resolve ModelConfig.
 				$modal_config = null;
 				if ( class_exists( '\WordPress\AiClient\Providers\Models\DTO\ModelConfig' ) ) {
 					$modal_config = new \WordPress\AiClient\Providers\Models\DTO\ModelConfig();
@@ -973,7 +976,7 @@ class Ai_Connector_Bridge {
 					$modal_config = new \ModelConfig();
 				}
 
-				// Build ModelRequirements
+				// Build ModelRequirements.
 				$requirements = null;
 
 				if ( null !== $capability && ! empty( $messages ) && null !== $modal_config ) {
@@ -984,10 +987,10 @@ class Ai_Connector_Bridge {
 					}
 				}
 
-				// Query registry for models matching requirements
+				// Query registry for models matching requirements.
 				if ( null !== $requirements && class_exists( '\WordPress\AiClient\AiClient' ) && method_exists( '\WordPress\AiClient\AiClient', 'defaultRegistry' ) ) {
-					$Privders_Registory = \WordPress\AiClient\AiClient::defaultRegistry();
-					$modal_list         = $Privders_Registory->findModelsMetadataForSupport( $requirements );
+					$providers_registry = \WordPress\AiClient\AiClient::defaultRegistry();
+					$modal_list         = $providers_registry->findModelsMetadataForSupport( $requirements );
 
 					$connector_models = array();
 					if ( is_iterable( $modal_list ) ) {
@@ -1024,7 +1027,7 @@ class Ai_Connector_Bridge {
 				}
 			}
 
-			// Do not fall back to manual API endpoint if connector is installed
+			// Do not fall back to manual API endpoint if connector is installed.
 			return array();
 		}
 
@@ -1051,8 +1054,8 @@ class Ai_Connector_Bridge {
 	/**
 	 * Alias for get_provider_models.
 	 *
-	 * @param string $id
-	 * @param array  $provider_options
+	 * @param string $id Item ID.
+	 * @param array  $provider_options Provider options.
 	 * @return array
 	 */
 	public function get_models( string $id, array $provider_options = array() ): array {
@@ -1086,7 +1089,7 @@ class Ai_Connector_Bridge {
 	/**
 	 * Custom fetch models directly from provider API endpoints.
 	 *
-	 * @param string $provider_id
+	 * @param string $provider_id AI provider ID.
 	 * @return array<int, array<string, string>>|\WP_Error
 	 */
 	private function fetch_remote_provider_models( string $provider_id ) {
@@ -1128,7 +1131,7 @@ class Ai_Connector_Bridge {
 					foreach ( $body['data'] as $item ) {
 						if ( ! empty( $item['id'] ) && is_string( $item['id'] ) ) {
 							$model_id = $item['id'];
-							// Filter relevant chat / text generation models
+							// Filter relevant chat / text generation models.
 							if (
 								0 === strpos( $model_id, 'gpt-' ) ||
 								0 === strpos( $model_id, 'o1' ) ||

@@ -1,4 +1,9 @@
 <?php
+/**
+ * Translates media attachments.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -33,6 +38,9 @@ class Media_Translator {
 
 	/**
 	 * Check whether an existing translated attachment is missing configured translatable meta.
+	 *
+	 * @param WP_Post $source_attachment Source attachment.
+	 * @param int     $target_attachment_id Target attachment ID.
 	 */
 	private static function has_missing_translatable_meta( WP_Post $source_attachment, int $target_attachment_id ): bool {
 		foreach ( Media_Parser::get_translatable_meta_keys( $source_attachment ) as $meta_key ) {
@@ -46,6 +54,8 @@ class Media_Translator {
 	/**
 	 * Inspect whether an attachment already has a completed translation or needs creation/update.
 	 *
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $target_lang Target lang.
 	 * @return array{ exists: bool, target_attachment_id: int, needs_update: bool, is_same_lang: bool }
 	 */
 	public static function attachment_has_completed_translation( int $attachment_id, string $target_lang ): array {
@@ -84,6 +94,10 @@ class Media_Translator {
 	/**
 	 * Validate environment, attachments, and capabilities in one pass.
 	 *
+	 * @param array  $attachment_ids Attachment IDs.
+	 * @param string $target_lang Target lang.
+	 * @param ?int   $user_id User ID.
+	 * @param bool   $enforce_permissions Enforce permissions.
 	 * @return array<int, WP_Post>|WP_Error
 	 */
 	private static function authorize_attachments(
@@ -136,6 +150,9 @@ class Media_Translator {
 	/**
 	 * Validate permissions required to translate/create/update explicit attachments.
 	 *
+	 * @param array  $attachment_ids Attachment IDs.
+	 * @param string $target_lang Target lang.
+	 * @param ?int   $user_id User ID.
 	 * @return true|WP_Error
 	 */
 	public static function check_attachments_permissions( array $attachment_ids, string $target_lang, ?int $user_id = null ) {
@@ -148,6 +165,14 @@ class Media_Translator {
 	 * or translated in a single server AI batch call. Never falls back to server AI
 	 * when a browser provider is active and browser translations are missing.
 	 *
+	 * @param array  $items Items.
+	 * @param array  $authorized_attachments Authorized attachments.
+	 * @param int    $job_id Job ID.
+	 * @param int    $attachment_id Attachment ID.
+	 * @param string $source_lang Source lang.
+	 * @param string $target_lang Target lang.
+	 * @param string $provider Provider.
+	 * @param array  $in_memory_translations In memory translations.
 	 * @return true|WP_Error
 	 */
 	private static function ensure_items_translated(
@@ -164,7 +189,10 @@ class Media_Translator {
 			return true;
 		}
 
-		$effective_source_lang = sanitize_key( $source_lang ) ?: sanitize_key( (string) Polylang_Bridge::get_default_language() );
+		$effective_source_lang = sanitize_key( $source_lang );
+		if ( '' === $effective_source_lang ) {
+			$effective_source_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
+		}
 		if ( '' !== $effective_source_lang && $effective_source_lang === $target_lang ) {
 			return true;
 		}
@@ -265,6 +293,12 @@ class Media_Translator {
 	/**
 	 * Translate, create, update, and link explicit media attachments (Workflow A & shared core for Workflow B).
 	 *
+	 * @param array  $attachment_ids Attachment IDs.
+	 * @param int    $job_id Job ID.
+	 * @param string $target_lang Target lang.
+	 * @param string $provider Provider.
+	 * @param array  $in_memory_translations In memory translations.
+	 * @param array  $options Options.
 	 * @return array<int, int>|WP_Error
 	 */
 	public static function translate_attachments(
@@ -355,6 +389,12 @@ class Media_Translator {
 	 * Resolve a post's featured image translation before saving the target post (Workflow B).
 	 * Reuses `translate_attachments()` and converts errors to a non-fatal warning.
 	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param string $target_lang Target lang.
+	 * @param string $source_lang Source lang.
+	 * @param string $provider Provider.
+	 * @param array  $in_memory_translations In memory translations.
+	 * @param array  $options Options.
 	 * @return array{ has_thumbnail: bool, source_thumbnail_id: int, target_thumbnail_id: int, warning: string }
 	 */
 	public static function prepare_featured_image_for_post(
@@ -398,7 +438,10 @@ class Media_Translator {
 			return $result;
 		}
 
-		$post_lang = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) ) ?: sanitize_key( $source_lang );
+		$post_lang = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) );
+		if ( '' === $post_lang ) {
+			$post_lang = sanitize_key( $source_lang );
+		}
 		if ( '' === $att_lang ) {
 			$default_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
 			if ( '' !== $post_lang && $post_lang === $default_lang ) {
@@ -433,6 +476,10 @@ class Media_Translator {
 
 	/**
 	 * Assign resolved translated featured image to the target post (Workflow B).
+	 *
+	 * @param int   $target_post_id Target post ID.
+	 * @param array $featured_result Featured result.
+	 * @param bool  $is_existing Is existing.
 	 */
 	public static function assign_featured_image_to_post( int $target_post_id, array $featured_result, bool $is_existing = false ): void {
 		if ( $target_post_id <= 0 || ! Polylang_Bridge::is_media_translation_enabled() ) {
@@ -499,7 +546,10 @@ class Media_Translator {
 		$result['has_gallery']        = true;
 		$result['source_gallery_ids'] = $source_gallery_ids;
 
-		$post_lang    = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) ) ?: sanitize_key( $source_lang );
+		$post_lang = sanitize_key( (string) Polylang_Bridge::get_post_language( $source_post_id ) );
+		if ( '' === $post_lang ) {
+			$post_lang = sanitize_key( $source_lang );
+		}
 		$default_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
 
 		$user_id             = ( array_key_exists( 'user_id', $options ) && null !== $options['user_id'] ) ? (int) $options['user_id'] : null;
@@ -573,7 +623,7 @@ class Media_Translator {
 			}
 		}
 
-		// Rebuild target gallery IDs preserving the source gallery order
+		// Rebuild target gallery IDs preserving the source gallery order.
 		$target_gallery_ids = array();
 		foreach ( $source_gallery_ids as $source_att_id ) {
 			if ( isset( $resolved_map[ $source_att_id ] ) && $resolved_map[ $source_att_id ] > 0 ) {
@@ -678,6 +728,12 @@ class Media_Translator {
 	/**
 	 * Resolve, update, or create one translated attachment in `$target_lang`.
 	 *
+	 * @param WP_Post $source_attachment Source attachment.
+	 * @param string  $target_lang Target lang.
+	 * @param string  $provider Provider.
+	 * @param array   $in_memory_translations In memory translations.
+	 * @param ?int    $user_id User ID.
+	 * @param bool    $enforce_permissions Enforce permissions.
 	 * @return int|WP_Error
 	 */
 	private static function resolve_attachment(
@@ -715,6 +771,11 @@ class Media_Translator {
 	 * Create a translated attachment via Polylang's media API under a concurrency lock
 	 * and apply translated alt text, caption, description, and configured metadata.
 	 *
+	 * @param WP_Post $source_attachment Source attachment.
+	 * @param string  $actual_source_lang Actual source lang.
+	 * @param string  $target_lang Target lang.
+	 * @param string  $provider Provider.
+	 * @param array   $in_memory_translations In memory translations.
 	 * @return int|WP_Error
 	 */
 	private static function create_translated_attachment(
@@ -814,6 +875,12 @@ class Media_Translator {
 
 	/**
 	 * Translate and sanitize an attachment field (alt, caption, or description).
+	 *
+	 * @param string $source Source.
+	 * @param string $source_lang Source lang.
+	 * @param string $target_lang Target lang.
+	 * @param array  $custom_opts Custom opts.
+	 * @param bool   $single_line Single line.
 	 */
 	private static function translate_field( string $source, string $source_lang, string $target_lang, array $custom_opts, bool $single_line = false ): string {
 		if ( '' === trim( $source ) ) {
@@ -828,6 +895,9 @@ class Media_Translator {
 
 	/**
 	 * Copy non-translatable custom attachment metadata unchanged to the target attachment.
+	 *
+	 * @param WP_Post $source_attachment Source attachment.
+	 * @param int     $target_attachment_id Target attachment ID.
 	 */
 	private static function copy_attachment_meta( WP_Post $source_attachment, int $target_attachment_id ): void {
 		$translate = array_flip( Media_Parser::get_translatable_meta_keys( $source_attachment ) );
@@ -845,6 +915,14 @@ class Media_Translator {
 
 	/**
 	 * Translate configured attachment metadata keys.
+	 *
+	 * @param WP_Post $source_attachment Source attachment.
+	 * @param int     $target_attachment_id Target attachment ID.
+	 * @param string  $source_lang Source lang.
+	 * @param string  $target_lang Target lang.
+	 * @param string  $provider Provider.
+	 * @param array   $in_memory_translations In memory translations.
+	 * @param bool    $overwrite Overwrite.
 	 */
 	private static function translate_attachment_meta(
 		WP_Post $source_attachment,

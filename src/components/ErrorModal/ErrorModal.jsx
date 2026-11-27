@@ -6,12 +6,13 @@ import { useEffect } from '@wordpress/element';
 import { Modal, ModalHeader, ModalFooter } from '../Modal';
 import { Button } from '../Button';
 import copyToClipboard from '../CopyToClipbord';
+import { __ } from '@wordpress/i18n';
 
 export function ErrorModal({
   isOpen,
   onClose,
   type = 'error',
-  title = 'Translation Error',
+  title = __( 'Translation Error', 'translatesense' ),
   subtitle = '',
   heading = '',
   stepTip = '',
@@ -19,10 +20,10 @@ export function ErrorModal({
   reasonHTML = '',
   actionHtml = '',
   actionUrl = '',
-  actionLabel = 'Edit',
+  actionLabel = __( 'Edit', 'translatesense' ),
   icon = 'dashicons-warning',
   onRetry = null,
-  retryLabel = 'Retry',
+  retryLabel = __( 'Retry', 'translatesense' ),
 }) {
   if (!isOpen) return null;
 
@@ -36,8 +37,12 @@ export function ErrorModal({
     toolTip.innerHTML = `
       <span class="ts-tooltip-arrow" aria-hidden="true"></span>
       <span class="ts-copy-spinner" aria-hidden="true"></span>
-      <span class="ts-copy-text">Copied!</span>
+      <span class="ts-copy-text"></span>
     `;
+    const copiedText = toolTip.querySelector('.ts-copy-text');
+    if (copiedText) {
+      copiedText.textContent = __( 'Copied!', 'translatesense' );
+    }
 
     // Trigger smooth translation effect on entrance
     requestAnimationFrame(() => {
@@ -132,7 +137,7 @@ export function ErrorModal({
         >
           <div className="ts-footer-buttons-group ts-error-footer-group">
             <Button variant="secondary" onClick={onClose} className="ts-error-close-btn">
-              Close
+              { __( 'Close', 'translatesense' ) }
             </Button>
             {actionUrl && (
               <a
@@ -141,7 +146,7 @@ export function ErrorModal({
                 rel="noopener noreferrer"
                 className="button-primary ts-btn ts-btn-primary"
               >
-                <span>{actionLabel || 'Edit'}</span>
+                <span>{actionLabel || __( 'Edit', 'translatesense' )}</span>
                 <span className="dashicons dashicons-external" style={{ marginRight: '0px' }} />
               </a>
             )}
@@ -164,10 +169,10 @@ export function ErrorModal({
             </div>
             <div className="ts-no-lang-banner-text-col">
               <h4 className="ts-no-lang-banner-title">
-                {heading || `This item doesn't have a language assigned in Polylang.`}
+                {heading || __( 'This item doesn\'t have a language assigned in Polylang.', 'translatesense' )}
               </h4>
               <p className="ts-no-lang-banner-message">
-                {message || 'Assign a language before translating it. Open the editor to select the default language or choose another language.'}
+                {message || __( 'Assign a language before translating it. Open the editor to select the default language or choose another language.', 'translatesense' )}
               </p>
               {stepTip && (
                 <div className="ts-no-lang-banner-step">

@@ -6,7 +6,9 @@ import { Modal, ModalHeader, ModalFooter } from '../../components/Modal';
 import { Button } from '../../components/Button';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import { getBulkItemLabels } from '../utils/bulkFormatters';
+import { __, sprintf } from '@wordpress/i18n';
 
+import { createInterpolateElement } from '@wordpress/element';
 export function LanguageSelection({
   isOpen = true,
   onClose,
@@ -37,8 +39,8 @@ export function LanguageSelection({
       dataStep={1}
       header={
         <ModalHeader
-          title="Bulk Translation"
-          subtitle="Fast & Accurate Multi-Language Content Localizer"
+          title={ __( 'Bulk Translation', 'translatesense' ) }
+          subtitle={ __( 'Fast & Accurate Multi-Language Content Localizer', 'translatesense' ) }
           onClose={onClose}
           closeClass="ts-bulk-close"
         />
@@ -51,7 +53,7 @@ export function LanguageSelection({
             title="Select at least one target language"
             onClick={onNext}
           >
-            Next: Choose Provider &rarr;
+            { __( 'Next: Choose Provider →', 'translatesense' ) }
           </Button>
         </ModalFooter>
       }
@@ -63,11 +65,11 @@ export function LanguageSelection({
               ⚡
             </span>
             <div className="ts-notice-text">
-              <strong className="ts-notice-title">Background translations are running</strong>
+              <strong className="ts-notice-title">{ __( 'Background translations are running', 'translatesense' ) }</strong>
               <span className="ts-notice-desc">
                 {activeBatches.length === 1
-                  ? 'There is 1 active translation batch in progress.'
-                  : `There are ${activeBatches.length} active translation batches in progress.`}
+                  ? __( 'There is 1 active translation batch in progress.', 'translatesense' )
+                  : sprintf( /* translators: %s: Number of items. */ __( 'There are %s active translation batches in progress.', 'translatesense' ), activeBatches.length )}
               </span>
             </div>
           </div>
@@ -77,7 +79,7 @@ export function LanguageSelection({
               className="button button-secondary ts-show-running-btn"
               onClick={onShowRunning}
             >
-              View Progress
+              { __( 'View Progress', 'translatesense' ) }
             </button>
           )}
         </div>
@@ -103,7 +105,7 @@ export function LanguageSelection({
         >
           <span style={{ fontSize: '14px', flexShrink: 0 }}>ℹ️</span>
           <span>
-            <strong>Polylang Synchronization active:</strong> Custom fields are synced automatically and will not be translated.
+            <strong>{ __( 'Polylang Synchronization active:', 'translatesense' ) }</strong> { __( 'Custom fields are synced automatically and will not be translated.', 'translatesense' ) }
           </span>
         </div>
       )}
@@ -111,7 +113,14 @@ export function LanguageSelection({
       <div className="ts-lang-info-banner">
         <span className="ts-info-icon" aria-hidden="true">ℹ️</span>
         <span>
-          Targeting <strong className="ts-highlight-tag">{postsCount} {postsCount === 1 ? itemSingular : itemPlural}</strong>. Choose target language(s) to translate into:
+          {createInterpolateElement(
+            sprintf(
+              /* translators: %s: Number of items followed by the item type. */
+              __( 'Targeting <strong>%s</strong>. Choose target language(s) to translate into:', 'translatesense' ),
+              `${postsCount} ${postsCount === 1 ? itemSingular : itemPlural}`
+            ),
+            { strong: <strong className="ts-highlight-tag" /> }
+          )}
         </span>
       </div>
 

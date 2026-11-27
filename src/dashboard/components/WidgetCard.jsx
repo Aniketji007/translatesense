@@ -3,6 +3,7 @@
  */
 
 import { DashboardIcons } from './DashboardIcons';
+import { __, _n, sprintf } from '@wordpress/i18n';
 
 export function WidgetCard({ widget, activeTab, onEdit, onGenerate }) {
   const isSupported = widget.status !== 'unsupported';
@@ -15,19 +16,27 @@ export function WidgetCard({ widget, activeTab, onEdit, onGenerate }) {
           <div className="ts-card-slug">{widget.id}</div>
         </div>
         <span className={`ts-table-status ${widget.status}`}>
-          {widget.status === 'supported' ? 'Supported' : widget.status === 'custom' ? 'Custom' : 'Unsupported'}
+          {widget.status === 'supported' ? __( 'Supported', 'translatesense' ) : widget.status === 'custom' ? __( 'Custom', 'translatesense' ) : __( 'Unsupported', 'translatesense' )}
         </span>
       </div>
 
       <div className="ts-card-meta">
-        <span>{`Category: ${widget.category || 'Standard'}`}</span>
+        <span>{sprintf(
+          /* translators: %s: Widget category name. */
+          __( 'Category: %s', 'translatesense' ),
+          widget.category || __( 'Standard', 'translatesense' )
+        )}</span>
         <span>•</span>
         <span className={`ts-badge ts-badge-translate ${widget.field_count > 0 ? '' : 'empty'}`}>
-          {`${widget.field_count || 0} Translate ${widget.field_count === 1 ? 'Field' : 'Fields'}`}
+          {sprintf(
+            /* translators: %s: Number of fields to translate. */
+            _n( '%s Translate Field', '%s Translate Fields', widget.field_count || 0, 'translatesense' ),
+            widget.field_count || 0
+          )}
         </span>
         {widget.no_translate_count > 0 && (
           <span className="ts-badge ts-badge-no-translate">
-            {`${widget.no_translate_count} No Translate`}
+            {sprintf( /* translators: %s: Number of fields that are not translated. */ __( '%s No Translate', 'translatesense' ), widget.no_translate_count )}
           </span>
         )}
         {((widget.xpaths && widget.xpaths.length > 0) || widget.xpath) && (
@@ -55,7 +64,7 @@ export function WidgetCard({ widget, activeTab, onEdit, onGenerate }) {
             <span style={{ display: 'inline-flex', marginRight: '5px' }}>
               {DashboardIcons.pencil({ size: 12 })}
             </span>
-            Edit Config
+            { __( 'Edit Config', 'translatesense' ) }
           </button>
         ) : (
           <button
@@ -64,7 +73,7 @@ export function WidgetCard({ widget, activeTab, onEdit, onGenerate }) {
             style={{ width: '100%' }}
             onClick={() => onGenerate(widget)}
           >
-            Generate
+            { __( 'Generate', 'translatesense' ) }
           </button>
         )}
       </div>

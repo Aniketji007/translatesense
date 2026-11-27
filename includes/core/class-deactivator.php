@@ -1,4 +1,9 @@
 <?php
+/**
+ * Plugin deactivation tasks.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -8,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Plugin deactivation tasks.
+ */
 class Deactivator {
 
 	/**

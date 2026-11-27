@@ -1,4 +1,9 @@
 <?php
+/**
+ * Shared base for the builders that extract translatable strings.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -27,10 +32,10 @@ abstract class Base_Builder {
 	/**
 	 * Parse content and extract translatable strings.
 	 *
-	 * @param mixed  $content Raw content (string, array of blocks, JSON, etc.)
-	 * @param int    $post_id Post ID if applicable
-	 * @param string $lang    Source language code
-	 * @param array  $rules   Optional specific builder XML rules
+	 * @param mixed  $content Raw content (string, array of blocks, JSON, etc.).
+	 * @param int    $post_id Post ID if applicable.
+	 * @param string $lang Source language code.
+	 * @param array  $rules Optional specific builder XML rules.
 	 * @return array Array of extracted string items with hash, name, key, source, and value
 	 */
 	abstract public function parse( $content, int $post_id = 0, string $lang = '', array $rules = array() ): array;
@@ -38,13 +43,13 @@ abstract class Base_Builder {
 	/**
 	 * Helper method to record an extracted string in the database and append it to the result set.
 	 *
-	 * @param int    $post_id   Post ID
-	 * @param string $lang      Language code
-	 * @param string $name      Context / component name (e.g. block name, widget type, module name)
-	 * @param string $key       Key / attribute path (e.g. 'title', 'settings>text', 'innerHTML')
-	 * @param string $value     String value to record
-	 * @param array  $extracted Extracted strings reference array
-	 * @param string $builder   Optional builder slug override
+	 * @param int    $post_id Post ID.
+	 * @param string $lang Language code.
+	 * @param string $name Context / component name (e.g. block name, widget type, module name).
+	 * @param string $key Key / attribute path (e.g. 'title', 'settings>text', 'innerHTML').
+	 * @param string $value String value to record.
+	 * @param array  $extracted Extracted strings reference array.
+	 * @param string $builder Optional builder slug override.
 	 * @return array Formatted item, or empty array if skipped
 	 */
 	protected function record_extracted_string( int $post_id, string $lang, string $name, string $key, string $value, array &$extracted, string $builder = '' ): array {
@@ -54,7 +59,7 @@ abstract class Base_Builder {
 			return array();
 		}
 
-		// Skip email addresses, URLs, and file path references
+		// Skip email addresses, URLs, and file path references.
 		if ( $this->is_email_or_url( (string) $filtered_value ) || $this->is_email_or_url( $value ) ) {
 			return array();
 		}
@@ -82,7 +87,7 @@ abstract class Base_Builder {
 	/**
 	 * Check if a string is an email address, URL, or URL-related value.
 	 *
-	 * @param string $str
+	 * @param string $str String.
 	 * @return bool
 	 */
 	public function is_email_or_url( string $str ): bool {
@@ -92,7 +97,7 @@ abstract class Base_Builder {
 	/**
 	 * Decode unicode escape sequences (e.g. \u003C, \u003E) and backslash-escaped characters into readable HTML.
 	 *
-	 * @param string $str
+	 * @param string $str String.
 	 * @return string
 	 */
 	protected function decode_html_string( string $str ): string {
@@ -104,14 +109,14 @@ abstract class Base_Builder {
 		if ( false !== strpos( $str, '\u' ) || false !== strpos( $str, '\U' ) ) {
 			$str = preg_replace_callback(
 				'/\\\\u([0-9a-fA-F]{4})/i',
-				function ( $match ) {
-					return mb_convert_encoding( pack( 'H*', $match[1] ), 'UTF-8', 'UCS-2BE' );
+				function ( $unicode_match ) {
+					return mb_convert_encoding( pack( 'H*', $unicode_match[1] ), 'UTF-8', 'UCS-2BE' );
 				},
 				$str
 			);
 		}
 
-		// Unescape standard backslash-escaped characters like \" or \'
+		// Unescape standard backslash-escaped characters like \" or \'.
 		$str = stripslashes( $str );
 
 		return $str;
@@ -120,7 +125,7 @@ abstract class Base_Builder {
 	/**
 	 * Check if a string contains actual readable text characters (not just tags, whitespace, or empty entities).
 	 *
-	 * @param string $text
+	 * @param string $text Text value.
 	 * @return bool
 	 */
 	protected function has_text_content( string $text ): bool {
@@ -129,9 +134,9 @@ abstract class Base_Builder {
 			return false;
 		}
 
-		// Decode HTML entities (including &nbsp;, &#160;, etc.)
+		// Decode HTML entities (including &nbsp;, &#160;, etc.).
 		$decoded = html_entity_decode( wp_strip_all_tags( $text ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-		// Strip all whitespace including unicode non-breaking spaces and zero-width spaces
+		// Strip all whitespace including unicode non-breaking spaces and zero-width spaces.
 		$clean = preg_replace( '/[\s\x{00a0}\x{200b}\x{200e}\x{200f}]+/u', '', $decoded );
 
 		return '' !== $clean;
@@ -140,7 +145,7 @@ abstract class Base_Builder {
 	/**
 	 * Filter HTML content using DOMDocument to unwrap single-child non-text wrapper nodes.
 	 *
-	 * @param string $value
+	 * @param string $value Value.
 	 * @return string|false
 	 */
 	protected function filter_dom_content( string $value ) {
@@ -150,13 +155,13 @@ abstract class Base_Builder {
 	/**
 	 * Recursively extract translatable strings from children nodes of a block.
 	 *
-	 * @param array  $rules            Array of rules for this builder (children nodes rules)
-	 * @param array  $childrens      Array of children nodes
-	 * @param int    $post_id          Post ID for hashing and recording
-	 * @param string $lang             Source language code
-	 * @param array  &$extracted       Reference to extracted strings array
-	 * @param string $name             Parent/current block/widget name
-	 * @param string $path_key         Path to current key to identify the string in context
+	 * @param array  $rules Array of rules for this builder (children nodes rules).
+	 * @param array  $childrens Array of children nodes.
+	 * @param int    $post_id Post ID for hashing and recording.
+	 * @param string $lang Source language code.
+	 * @param array  &$extracted Reference to extracted strings array.
+	 * @param string $name Parent/current block/widget name.
+	 * @param string $path_key Path to current key to identify the string in context.
 	 */
 	protected function extract_strings_from_node_childrens( array $rules, array $childrens, int $post_id, string $lang, array &$extracted, string $name = '', string $path_key = '' ): void {
 		if ( empty( $childrens ) || empty( $rules ) ) {

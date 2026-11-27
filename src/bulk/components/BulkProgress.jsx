@@ -1,8 +1,9 @@
+import { __, sprintf } from '@wordpress/i18n';
 /**
  * BulkProgress Component (Step 3 Progress Bar Card)
  */
 export function BulkProgress({
-  statusText = 'Translating content...',
+  statusText = __( 'Translating content...', 'translatesense' ),
   percent = 0,
   completedPosts = 0,
   totalPosts = 0,
@@ -20,7 +21,7 @@ export function BulkProgress({
       {activeBatches && activeBatches.length > 1 && (
         <div className="ts-batch-switcher-container">
           <label htmlFor="ts-batch-select" className="ts-batch-select-label">
-            Background Batch:
+            { __( 'Background Batch:', 'translatesense' ) }
           </label>
           <select
             id="ts-batch-select"
@@ -32,7 +33,14 @@ export function BulkProgress({
               const done = (b.completed_jobs || 0) + (b.already_exists_jobs || 0) + (b.skipped_jobs || 0);
               return (
                 <option key={b.batch_id} value={b.batch_id}>
-                  Batch {b.batch_id.substring(0, 8)}... ({done}/{b.total_jobs} done, {b.overall_status})
+                  {sprintf(
+                    /* translators: 1: Short batch ID, 2: Finished jobs, 3: Total jobs, 4: Batch status. */
+                    __( 'Batch %1$s... (%2$s/%3$s done, %4$s)', 'translatesense' ),
+                    b.batch_id.substring(0, 8),
+                    done,
+                    b.total_jobs,
+                    b.overall_status
+                  )}
                 </option>
               );
             })}
@@ -48,12 +56,12 @@ export function BulkProgress({
           </span>
           <div className="ts-notice-text">
             <strong className="ts-notice-title">
-              {isChromeAi ? 'Keep Window Open ' : 'Server-Side Translation Active '}
+              {isChromeAi ? __( 'Keep Window Open ', 'translatesense' ) : __( 'Server-Side Translation Active ', 'translatesense' )}
             </strong>
             <span className="ts-notice-desc">
               {isChromeAi
-                ? 'Translation is running in your browser session. Navigating away will cancel remaining jobs.'
-                : 'Your translations are processing in the background on the server. You can safely close this window or navigate away at any time.'}
+                ? __( 'Translation is running in your browser session. Navigating away will cancel remaining jobs.', 'translatesense' )
+                : __( 'Your translations are processing in the background on the server. You can safely close this window or navigate away at any time.', 'translatesense' )}
             </span>
           </div>
         </div>

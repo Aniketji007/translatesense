@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useRef } from '@wordpress/element';
 import { BulkWizard } from './components/BulkWizard';
 import { useBulkTranslation } from './hooks/useBulkTranslation';
 import { getActiveBatches } from './services/batchService';
+import { __, sprintf } from '@wordpress/i18n';
 
 export function BulkApp() {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,7 +108,7 @@ export function BulkApp() {
       const pulseDot = document.createElement('span');
       pulseDot.className = 'ts-active-pulse-dot';
       pulseDot.style.display = 'none';
-      pulseDot.title = 'Background translations running';
+      pulseDot.title = __( 'Background translations running', 'translatesense' );
 
       btn.appendChild(icon);
       btn.appendChild(labelText);
@@ -215,7 +216,7 @@ export function BulkApp() {
           return;
         }
 
-        alert(`Please select ${itemPlural} first.`);
+        alert(sprintf( /* translators: %s: Item plural. */ __( 'Please select %s first.', 'translatesense' ), itemPlural ));
         return;
       }
 

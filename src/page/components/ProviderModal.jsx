@@ -5,6 +5,7 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../components/Modal';
 import { ProviderCard } from '../../components/ProviderCard';
 import { Button } from '../../components/Button';
+import { __ } from '@wordpress/i18n';
 
 export function ProviderModal({
   isOpen,
@@ -27,22 +28,22 @@ export function ProviderModal({
       maxWidth="530px"
       header={
         <ModalHeader
-          title="Choose Translation Provider"
-          subtitle="Choose a translation provider"
+          title={ __( 'Choose Translation Provider', 'translatesense' ) }
+          subtitle={ __( 'Choose a translation provider', 'translatesense' ) }
           onClose={onClose}
         />
       }
       footer={
         <ModalFooter align="right">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            { __( 'Cancel', 'translatesense' ) }
           </Button>
           <Button
             variant={hasAvailable ? 'primary' : 'disabled'}
             disabled={!hasAvailable || !selectedProvider}
             onClick={onStartTranslation}
           >
-            Start Translation
+            { __( 'Start Translation', 'translatesense' ) }
           </Button>
         </ModalFooter>
       }

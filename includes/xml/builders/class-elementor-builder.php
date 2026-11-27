@@ -1,4 +1,9 @@
 <?php
+/**
+ * Builds the Elementor section of the XML translation configuration.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -12,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Builds the Elementor section of the XML translation configuration.
+ */
 class Elementor_Builder extends Base_Builder {
 
 	/**
@@ -40,8 +48,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Extract widget snippet.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
 	 * @return string|null
 	 */
 	public function extract_widget_snippet( SimpleXMLElement $xml, string $name ) {
@@ -58,7 +66,7 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Convert flat path list into nested tree.
 	 *
-	 * @param array $field_details
+	 * @param array $field_details Field details.
 	 * @return array
 	 */
 	public function build_fields_tree( array $field_details ): array {
@@ -92,9 +100,9 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively append tree nodes into DOMElement.
 	 *
-	 * @param DOMDocument $dom
-	 * @param DOMElement  $parent_element
-	 * @param array       $tree
+	 * @param DOMDocument $dom DOM document.
+	 * @param DOMElement  $parent_element Parent element.
+	 * @param array       $tree Tree.
 	 */
 	private function append_tree_to_dom( DOMDocument $dom, DOMElement $parent_element, array $tree ): void {
 		foreach ( $tree as $key => $sub_tree ) {
@@ -136,8 +144,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively append tree nodes into SimpleXMLElement.
 	 *
-	 * @param SimpleXMLElement $parent_node
-	 * @param array            $tree
+	 * @param SimpleXMLElement $parent_node Parent node.
+	 * @param array            $tree Tree.
 	 */
 	private function append_tree_to_simplexml( SimpleXMLElement $parent_node, array $tree ): void {
 		foreach ( $tree as $key => $sub_tree ) {
@@ -191,8 +199,8 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Generate snippet XML.
 	 *
-	 * @param string $name
-	 * @param array  $field_details
+	 * @param string $name Name.
+	 * @param array  $field_details Field details.
 	 * @return string
 	 */
 	public function generate_snippet( string $name, array $field_details ): string {
@@ -219,14 +227,14 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Sync node.
 	 *
-	 * @param DOMElement       $existing_widget
-	 * @param SimpleXMLElement $new_widget
+	 * @param DOMElement       $existing_widget Existing widget.
+	 * @param SimpleXMLElement $new_widget New widget.
 	 * @return void
 	 */
 	public function sync_node( DOMElement $existing_widget, SimpleXMLElement $new_widget ): void {
 		$owner_doc = $existing_widget->ownerDocument;
 
-		// Find or create <fields> element
+		// Find or create <fields> element.
 		$fields_elem = null;
 		$child_nodes = $existing_widget->childNodes;
 		for ( $i = 0; $i < $child_nodes->length; $i++ ) {
@@ -240,7 +248,7 @@ class Elementor_Builder extends Base_Builder {
 			$fields_elem = $existing_widget->appendChild( $owner_doc->createElement( 'fields' ) );
 		}
 
-		// Parse existing fields
+		// Parse existing fields.
 		$existing_fields_map       = array();
 		$existing_no_translate_map = array();
 		$existing_fields_xml       = simplexml_import_dom( $fields_elem );
@@ -250,7 +258,7 @@ class Elementor_Builder extends Base_Builder {
 			}
 		}
 
-		// Extract fields map from new_widget
+		// Extract fields map from new_widget.
 		$new_fields_map       = array();
 		$new_no_translate_map = array();
 		if ( isset( $new_widget->fields->field ) ) {
@@ -264,10 +272,10 @@ class Elementor_Builder extends Base_Builder {
 		// 1. Existing active fields
 		foreach ( $existing_fields_map as $path => $info ) {
 			if ( isset( $new_fields_map[ $path ] ) ) {
-				// Kept active with new settings
+				// Kept active with new settings.
 				$final_specs[ $path ] = $new_fields_map[ $path ];
 			} elseif ( isset( $new_no_translate_map[ $path ] ) ) {
-				// Explicitly marked noTranslate
+				// Explicitly marked noTranslate.
 				$spec                 = is_array( $new_no_translate_map[ $path ] ) ? $new_no_translate_map[ $path ] : ( is_array( $info ) ? $info : array(
 					'path'        => $path,
 					'type'        => 'title',
@@ -275,7 +283,7 @@ class Elementor_Builder extends Base_Builder {
 				) );
 				$final_specs[ $path ] = array_merge( $spec, array( 'noTranslate' => true ) );
 			} else {
-				// First removal: mark as noTranslate="true" to preserve for auto-updating prevention
+				// First removal: mark as noTranslate="true" to preserve for auto-updating prevention.
 				$spec                 = is_array( $info ) ? $info : array(
 					'path'        => $path,
 					'type'        => 'title',
@@ -288,19 +296,18 @@ class Elementor_Builder extends Base_Builder {
 		// 2. Existing noTranslate fields
 		foreach ( $existing_no_translate_map as $path => $info ) {
 			if ( isset( $new_fields_map[ $path ] ) ) {
-				// Restored to active
+				// Restored to active.
 				$final_specs[ $path ] = $new_fields_map[ $path ];
 			} elseif ( isset( $new_no_translate_map[ $path ] ) ) {
-				// Kept as noTranslate
+				// Kept as noTranslate.
 				$spec                 = is_array( $new_no_translate_map[ $path ] ) ? $new_no_translate_map[ $path ] : ( is_array( $info ) ? $info : array(
 					'path'        => $path,
 					'type'        => 'title',
 					'editor_type' => 'LINE',
 				) );
 				$final_specs[ $path ] = array_merge( $spec, array( 'noTranslate' => true ) );
-			} else {
-				// Second removal: already had noTranslate, user removed it again -> permanently delete it!
 			}
+			// Otherwise the path already had noTranslate and the user removed it again, so it is dropped permanently.
 		}
 
 		// 3. New active fields added
@@ -322,7 +329,7 @@ class Elementor_Builder extends Base_Builder {
 			}
 		}
 
-		// Rebuild fields DOM from final specs
+		// Rebuild fields DOM from final specs.
 		while ( $fields_elem->firstChild ) {
 			$fields_elem->removeChild( $fields_elem->firstChild );
 		}
@@ -332,7 +339,7 @@ class Elementor_Builder extends Base_Builder {
 			$this->append_tree_to_dom( $owner_doc, $fields_elem, $tree );
 		}
 
-		// Sync conditions if present in new_widget
+		// Sync conditions if present in new_widget.
 		if ( isset( $new_widget->conditions ) ) {
 			for ( $i = 0; $i < $child_nodes->length; $i++ ) {
 				$child = $child_nodes->item( $i );
@@ -349,10 +356,10 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Append rule.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param string           $name
-	 * @param array            $field_details
-	 * @param array            $conditions
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param string           $name Name.
+	 * @param array            $field_details Field details.
+	 * @param array            $conditions Conditions.
 	 * @return void
 	 */
 	public function append_rule( SimpleXMLElement $xml, string $name, array $field_details, array $conditions = array() ): void {
@@ -382,10 +389,10 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Recursively parse <field> XML nodes into path-mapped rule arrays.
 	 *
-	 * @param SimpleXMLElement $field_node
-	 * @param string           $prefix
-	 * @param array            $fields_out
-	 * @param array            $no_translate_out
+	 * @param SimpleXMLElement $field_node Field node.
+	 * @param string           $prefix Prefix.
+	 * @param array            $fields_out Fields out.
+	 * @param array            $no_translate_out No translate out.
 	 */
 	public function parse_field_node_recursive( SimpleXMLElement $field_node, string $prefix, array &$fields_out, array &$no_translate_out ): void {
 		$key = '';
@@ -430,9 +437,9 @@ class Elementor_Builder extends Base_Builder {
 	/**
 	 * Parse rules.
 	 *
-	 * @param SimpleXMLElement $xml
-	 * @param array            $rules
-	 * @param string           $source
+	 * @param SimpleXMLElement $xml XML string.
+	 * @param array            $rules List of rules.
+	 * @param string           $source Source string.
 	 * @return void
 	 */
 	public function parse_rules( SimpleXMLElement $xml, array &$rules, string $source = 'core' ): void {

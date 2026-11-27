@@ -1,4 +1,9 @@
 <?php
+/**
+ * Integrates TranslateSense into the Gutenberg, Elementor and Classic editors.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -12,30 +17,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Integrates TranslateSense into the Gutenberg, Elementor and Classic editors.
+ */
 class Editor_Integration {
 
 	/**
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		// Save _translatesense_source_id when new translation post is created via Polylang '+' icon
+		// Save _translatesense_source_id when new translation post is created via Polylang '+' icon.
 		add_action( 'save_post', array( __CLASS__, 'save_source_post_id_on_create' ), 10, 3 );
 
-		// Gutenberg Block Editor
+		// Gutenberg Block Editor.
 		add_action( 'enqueue_block_editor_assets', array( __CLASS__, 'enqueue_block_editor_assets' ) );
 
-		// Classic Editor & Admin Edit Screens
+		// Classic Editor & Admin Edit Screens.
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_editor_assets' ) );
 
-		// Meta Box for Gutenberg & Classic Editor
+		// Meta Box for Gutenberg & Classic Editor.
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_translatesense_meta_box' ) );
 
-		// Classic Editor Media Buttons (After Add Media)
+		// Classic Editor Media Buttons (After Add Media).
 		add_action( 'media_buttons', array( __CLASS__, 'render_media_translate_button' ), 25 );
 		add_action( 'admin_footer', array( __CLASS__, 'render_editor_portal_container' ) );
 		add_action( 'elementor/editor/footer', array( __CLASS__, 'render_editor_portal_container' ) );
 
-		// Elementor Editor Hooks
+		// Elementor Editor Hooks.
 		add_action( 'elementor/editor/after_enqueue_scripts', array( __CLASS__, 'enqueue_elementor_editor_assets' ) );
 	}
 
@@ -46,7 +54,7 @@ class Editor_Integration {
 	 * @param \WP_Post|null $post    Post object.
 	 * @param bool          $update  Whether this is an existing post being updated.
 	 */
-	public static function save_source_post_id_on_create( $post_id, $post = null, $update = false ) {
+	public static function save_source_post_id_on_create( $post_id, $post = null, $update = false ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Required by the callback signature or kept for API compatibility.
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
@@ -59,7 +67,7 @@ class Editor_Integration {
 			return;
 		}
 
-		// Do not overwrite existing source ID
+		// Do not overwrite existing source ID.
 		$existing_source_id = get_post_meta( $post_id, '_translatesense_source_id', true );
 		if ( ! empty( $existing_source_id ) ) {
 			return;
@@ -111,7 +119,7 @@ class Editor_Integration {
 	/**
 	 * Detect editor type for a given post ID.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return string 'elementor' | 'gutenberg' | 'classic'
 	 */
 	public static function get_post_editor_type( $post_id ) {
@@ -148,7 +156,7 @@ class Editor_Integration {
 	/**
 	 * Get appropriate edit link based on post editor type (Elementor, Gutenberg, Classic).
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return string
 	 */
 	public static function get_post_edit_link( $post_id ): string {
@@ -175,7 +183,7 @@ class Editor_Integration {
 	/**
 	 * Check if post is already translated.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return bool
 	 */
 	public static function is_post_already_translated( int $post_id ): bool {
@@ -216,17 +224,17 @@ class Editor_Integration {
 	 *
 	 * Skips loading heavy universal page editor translation assets.
 	 *
-	 * @param int    $post_id
-	 * @param int    $source_post_id
-	 * @param string $editor_type
-	 * @param array  $localize_data
+	 * @param int    $post_id Post ID.
+	 * @param int    $source_post_id Source post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
+	 * @param array  $localize_data Localize data.
 	 */
 	public static function enqueue_editor_mismatch_modal_assets( int $post_id, int $source_post_id, string $editor_type = 'gutenberg', array $localize_data = array() ): void {
 		if ( ! $post_id || ! $source_post_id ) {
 			return;
 		}
 
-		// Enqueue minimal CSS for modal rendering
+		// Enqueue minimal CSS for modal rendering.
 		wp_enqueue_style(
 			'translatesense-common',
 			esc_url( TRANSLATESENSE_PLUGIN_URL . 'assets/css/common' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.css' ),
@@ -250,10 +258,11 @@ class Editor_Integration {
 		wp_enqueue_script(
 			'translatesense-editor-modal',
 			esc_url( $script_url ),
-			array(),
+			array( 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-editor-modal', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		$show_initial_prompt_modal = get_post_meta( $post_id, '_show_initial_prompt_modal', true );
 		$source_language           = Polylang_Bridge::get_post_language( $source_post_id );
@@ -286,6 +295,10 @@ class Editor_Integration {
 
 	/**
 	 * Enqueue Universal Editor Assets (Helper).
+	 *
+	 * @param mixed  $post_id Post ID.
+	 * @param string $editor_type Editor type, such as gutenberg, elementor or classic.
+	 * @param array  $localize_data Localize data.
 	 */
 	public static function enqueue_page_editor_assets( $post_id, $editor_type = 'gutenberg', $localize_data = array() ) {
 		$post_id = absint( $post_id );
@@ -375,6 +388,7 @@ class Editor_Integration {
 			$asset['version'],
 			true
 		);
+		wp_set_script_translations( 'translatesense-editor', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 3. Chrome Built-in Translate Provider & Languages
 		wp_enqueue_script(
@@ -388,19 +402,21 @@ class Editor_Integration {
 		wp_enqueue_script(
 			'translatesense-chrome-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/chrome-ai/chrome-built-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-chrome-languages' ),
+			array( 'translatesense-chrome-languages', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-chrome-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 4. AI Translate Provider (OpenAI & Gemini)
 		wp_enqueue_script(
 			'translatesense-ai',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/translation/providers/ai-services/ai-translate' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-editor' ),
+			array( 'translatesense-editor', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-ai', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		// 5. Providers Aggregator / Register
 		wp_enqueue_script(
@@ -415,17 +431,19 @@ class Editor_Integration {
 		wp_enqueue_script(
 			'translatesense-live-meta-fields',
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/editor/meta-fields' . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array(),
+			array( 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-live-meta-fields', 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 		wp_enqueue_script(
 			'translatesense-live-' . esc_attr( $editor_type ),
 			TRANSLATESENSE_PLUGIN_URL . 'assets/js/editor/' . esc_attr( $editor_type ) . sanitize_text_field( TRANSLATESENSE_ASSETS_EXT ) . '.js',
-			array( 'translatesense-live-meta-fields' ),
+			array( 'translatesense-live-meta-fields', 'wp-i18n' ),
 			TRANSLATESENSE_VERSION,
 			true
 		);
+		wp_set_script_translations( 'translatesense-live-' . esc_attr( $editor_type ), 'translatesense', TRANSLATESENSE_PLUGIN_DIR . 'languages' );
 
 		wp_enqueue_script(
 			'translatesense-page-editor',
@@ -526,7 +544,7 @@ class Editor_Integration {
 		$is_translated          = get_post_meta( $post_id, '_translatesense_translated', true );
 		$is_block_state_pending = Block_Processor::is_block_state_pending( $post_id );
 
-		// Strictly check that BOTH conditions are fulfilled
+		// Strictly check that BOTH conditions are fulfilled.
 		if ( empty( $is_translated ) || '0' === (string) $is_translated || ! $is_block_state_pending ) {
 			return;
 		}
@@ -571,6 +589,8 @@ class Editor_Integration {
 
 	/**
 	 * Enqueue Classic Editor & Post Edit Admin Assets (only for Polylang translated post types).
+	 *
+	 * @param mixed $hook Hook name.
 	 */
 	public static function enqueue_admin_editor_assets( $hook ) {
 		if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
@@ -611,7 +631,7 @@ class Editor_Integration {
 	 * Get the source post ID for translation.
 	 * Read-only resolution — never modifies the database during read/GET requests.
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @return int
 	 */
 	public static function get_source_post_id( $post_id ): int {
@@ -659,6 +679,9 @@ class Editor_Integration {
 		return 0;
 	}
 
+	/**
+	 * Check whether is translate current post.
+	 */
 	private static function is_translate_current_post() {
 		global $post;
 
@@ -724,6 +747,8 @@ class Editor_Integration {
 
 	/**
 	 * Render Meta Box HTML for Gutenberg and Classic Editor.
+	 *
+	 * @param mixed $post Post object.
 	 */
 	public static function render_editor_meta_box( $post ) {
 		$post_id = (int) $post->ID;
@@ -772,6 +797,8 @@ class Editor_Integration {
 
 	/**
 	 * Render Translate button in Classic Editor after the "Add Media" button (only for Polylang translated post types).
+	 *
+	 * @param mixed $editor_id Editor identifier.
 	 */
 	public static function render_media_translate_button( $editor_id ) {
 		if ( 'content' !== $editor_id && ! empty( $editor_id ) ) {

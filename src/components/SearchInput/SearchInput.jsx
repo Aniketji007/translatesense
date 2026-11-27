@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 /**
  * Reusable SearchInput Component
  */
@@ -52,8 +53,8 @@ export function SearchInput({
           type="button"
           className="ts-search-clear-btn"
           onClick={handleClear}
-          title="Clear search"
-          aria-label="Clear search"
+          title={ __( 'Clear search', 'translatesense' ) }
+          aria-label={ __( 'Clear search', 'translatesense' ) }
         >
           &times;
         </button>

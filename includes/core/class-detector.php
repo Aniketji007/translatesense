@@ -1,4 +1,9 @@
 <?php
+/**
+ * Detects the active editor, builder and environment capabilities.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -10,10 +15,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Detects the active editor, builder and environment capabilities.
+ */
 class Detector {
 
 	/**
 	 * Target placeholder dummy text to detect.
+	 *
+	 * @var string
 	 */
 	public static $dummy_text = 'Translate This Content';
 
@@ -26,13 +36,13 @@ class Detector {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		// Register internal config post type
+		// Register internal config post type.
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
 
-		// Hook Gutenberg / Classic Post Saves (Step 2.1)
+		// Hook Gutenberg / Classic Post Saves (Step 2.1).
 		add_action( 'save_post', array( __CLASS__, 'handle_save_post' ), 20, 2 );
 
-		// Hook Elementor Document Saves (Step 2.1)
+		// Hook Elementor Document Saves (Step 2.1).
 		add_action( 'elementor/document/before_save', array( __CLASS__, 'handle_elementor_save' ), 20, 2 );
 		add_filter( 'option_elementor_cpt_support', array( __CLASS__, 'filter_elementor_cpt_support' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'protect_frontend_access' ) );
@@ -71,6 +81,8 @@ class Detector {
 
 	/**
 	 * Ensure Elementor recognizes the config post type as supported.
+	 *
+	 * @param mixed $cpt Custom post type.
 	 */
 	public static function filter_elementor_cpt_support( $cpt ) {
 		if ( ! is_array( $cpt ) ) {
@@ -94,6 +106,8 @@ class Detector {
 
 	/**
 	 * Check if Config Mapping Mode is active for a given post.
+	 *
+	 * @param int $post_id Post ID.
 	 */
 	public static function is_translatesense_config_post( int $post_id = 0 ) {
 		if ( $post_id ) {
@@ -116,6 +130,11 @@ class Detector {
 		return false;
 	}
 
+	/**
+	 * Get config post id.
+	 *
+	 * @param string $builder Builder name.
+	 */
 	final public static function get_config_post_id( string $builder ) {
 		$builder_ids = get_option( 'translatesense_config_posts', array() );
 		if ( ! empty( $builder_ids[ $builder ] ) ) {
@@ -124,7 +143,12 @@ class Detector {
 			if ( $post && self::POST_TYPE === $post->post_type && 'trash' !== $post->post_status ) {
 
 				if ( 'elementor' === $builder && 'publish' !== $post->post_status ) {
-					wp_update_post( array( 'ID' => $post->ID, 'post_status' => 'publish' ) );
+					wp_update_post(
+						array(
+							'ID'          => $post->ID,
+							'post_status' => 'publish',
+						)
+					);
 				}
 				return (int) $post->ID;
 			}
@@ -136,25 +160,30 @@ class Detector {
 	/**
 	 * Get or create a config sandbox post ID for the specified builder.
 	 *
-	 * @param string $builder Builder identifier ('gutenberg', 'elementor', 'classic')
+	 * @param string $builder Builder identifier ('gutenberg', 'elementor', 'classic').
 	 * @return int Post ID of the config sandbox post
 	 */
 	public static function get_or_create_config_post( string $builder = 'gutenberg' ): int {
 		$builder = sanitize_key( $builder );
 
-		// Check cached option first
+		// Check cached option first.
 		$builder_ids = get_option( 'translatesense_config_posts', array() );
 		if ( ! empty( $builder_ids[ $builder ] ) ) {
 			$post = get_post( (int) $builder_ids[ $builder ] );
 			if ( $post && self::POST_TYPE === $post->post_type && 'trash' !== $post->post_status ) {
 				if ( 'elementor' === $builder && 'publish' !== $post->post_status ) {
-					wp_update_post( array( 'ID' => $post->ID, 'post_status' => 'publish' ) );
+					wp_update_post(
+						array(
+							'ID'          => $post->ID,
+							'post_status' => 'publish',
+						)
+					);
 				}
 				return (int) $post->ID;
 			}
 		}
 
-		// Find existing draft sandbox post via query
+		// Find existing draft sandbox post via query.
 		$existing_sandbox = get_posts(
 			array(
 				'post_type'      => self::POST_TYPE,
@@ -168,7 +197,12 @@ class Detector {
 		if ( ! empty( $existing_sandbox ) ) {
 			$sandbox_id = (int) $existing_sandbox[0]->ID;
 			if ( 'elementor' === $builder && 'publish' !== $existing_sandbox[0]->post_status ) {
-				wp_update_post( array( 'ID' => $sandbox_id, 'post_status' => 'publish' ) );
+				wp_update_post(
+					array(
+						'ID'          => $sandbox_id,
+						'post_status' => 'publish',
+					)
+				);
 			}
 		} else {
 			$inserted_id = wp_insert_post(
@@ -198,6 +232,9 @@ class Detector {
 
 	/**
 	 * Handle standard WP post save (Gutenberg / Classic).
+	 *
+	 * @param mixed $post_id Post ID.
+	 * @param mixed $post Post object.
 	 */
 	public static function handle_save_post( $post_id, $post ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -214,7 +251,7 @@ class Detector {
 			return;
 		}
 
-		// Parse Gutenberg content
+		// Parse Gutenberg content.
 		$content = $post->post_content;
 		if ( function_exists( 'has_blocks' ) && has_blocks( $content ) ) {
 			$blocks = parse_blocks( $content );
@@ -225,8 +262,8 @@ class Detector {
 	/**
 	 * Recursively scan Gutenberg blocks for unmapped text or dummy markers.
 	 *
-	 * @param array $blocks
-	 * @param int   $depth
+	 * @param array $blocks List of parsed blocks.
+	 * @param int   $depth Nesting depth.
 	 */
 	public static function scan_blocks_for_mapping( $blocks, $depth = 0 ) {
 		if ( ! is_array( $blocks ) || empty( $blocks ) || $depth > 25 ) {
@@ -252,15 +289,15 @@ class Detector {
 			$attrs        = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
 			$no_translate = isset( $gutenberg_rules[ $block_name ]['no_translate'] ) ? array_keys( $gutenberg_rules[ $block_name ]['no_translate'] ) : array();
 
-			// Scan attributes recursively supporting nested array items (with key="*") and objects
+			// Scan attributes recursively supporting nested array items (with key="*") and objects.
 			$new_fields = self::extract_translatable_gutenberg_attrs( $attrs, true, $no_translate );
 
-			// If new fields found, register into custom XML
+			// If new fields found, register into custom XML.
 			if ( ! empty( $new_fields ) ) {
 				Xml_Engine::append_custom_rule( 'gutenberg', $block_name, $new_fields );
 			}
 
-			// Recurse inner blocks with depth limit
+			// Recurse inner blocks with depth limit.
 			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
 				self::scan_blocks_for_mapping( $block['innerBlocks'], $depth + 1 );
 			}
@@ -269,6 +306,9 @@ class Detector {
 
 	/**
 	 * Handle Elementor document save data.
+	 *
+	 * @param mixed $document DOM document.
+	 * @param mixed $data Data array.
 	 */
 	public static function handle_elementor_save( $document, $data ) {
 		$post_id = $document->get_id();
@@ -287,8 +327,8 @@ class Detector {
 	/**
 	 * Recursively scan Elementor elements tree for unmapped settings with depth protection.
 	 *
-	 * @param array $elements
-	 * @param int   $depth
+	 * @param array $elements Elements.
+	 * @param int   $depth Nesting depth.
 	 */
 	public static function scan_elementor_elements( $elements, $depth = 0 ) {
 		if ( ! is_array( $elements ) || empty( $elements ) || $depth > 25 ) {
@@ -325,7 +365,7 @@ class Detector {
 				}
 			}
 
-			// Recurse inner elements with depth limit
+			// Recurse inner elements with depth limit.
 			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
 				self::scan_elementor_elements( $element['elements'], $depth + 1 );
 			}
@@ -336,7 +376,7 @@ class Detector {
 	 * Detect unmapped fields / dummy text from Gutenberg blocks in memory and generate XML snippet.
 	 * Enforces depth and node limits to prevent resource exhaustion.
 	 *
-	 * @param mixed $blocks
+	 * @param mixed $blocks List of parsed blocks.
 	 * @return array|null
 	 */
 	public static function detect_from_gutenberg_blocks( $blocks ) {
@@ -368,7 +408,7 @@ class Detector {
 					continue;
 				}
 
-				$attrs = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
+				$attrs     = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
 				$extracted = self::extract_translatable_gutenberg_attrs( $attrs, false );
 				if ( ! empty( $extracted ) ) {
 					if ( ! isset( $found_items[ $block_name ] ) ) {
@@ -411,10 +451,10 @@ class Detector {
 	 * - If attribute value is a sequential array (list of items): wraps unique item keys in key="*".
 	 * - If attribute value is an associative array (object): saves direct nested keys inside key.
 	 *
-	 * @param array $attrs
-	 * @param bool  $require_dummy
-	 * @param array $no_translate
-	 * @param int   $depth
+	 * @param array $attrs Block attributes.
+	 * @param bool  $require_dummy Require dummy.
+	 * @param array $no_translate No translate.
+	 * @param int   $depth Nesting depth.
 	 * @return array
 	 */
 	public static function extract_translatable_gutenberg_attrs( array $attrs, bool $require_dummy = false, array $no_translate = array(), int $depth = 0 ): array {
@@ -443,13 +483,12 @@ class Detector {
 						'editor_type' => ( strlen( $val ) > 60 || false !== strpos( $val, '<' ) ) ? 'VISUAL' : 'LINE',
 					);
 				}
-			}
-			// 2. Array value (sequential list of items OR associative object)
-			elseif ( is_array( $val ) && ! empty( $val ) ) {
+			} elseif ( is_array( $val ) && ! empty( $val ) ) {
+				// 2. Array value (sequential list of items OR associative object).
 				$is_sequential = ( array_keys( $val ) === range( 0, count( $val ) - 1 ) );
 
 				if ( $is_sequential ) {
-					// Sequential list of items: collect unique item keys across all items and wrap in key="*"
+					// Sequential list of items: collect unique item keys across all items and wrap in key="*".
 					$item_fields = array();
 					foreach ( $val as $item ) {
 						if ( is_array( $item ) ) {
@@ -487,7 +526,7 @@ class Detector {
 						);
 					}
 				} else {
-					// Associative array (direct object): save direct nested keys inside key
+					// Associative array (direct object): save direct nested keys inside key.
 					$nested_fields = self::extract_translatable_gutenberg_attrs( $val, $require_dummy, array(), $depth + 1 );
 					if ( ! empty( $nested_fields ) ) {
 						$fields[ $str_key ] = array(
@@ -505,8 +544,8 @@ class Detector {
 	/**
 	 * Helper: Format hierarchical keys into clean Gutenberg XML indentation.
 	 *
-	 * @param array  $fields
-	 * @param string $indent
+	 * @param array  $fields List of fields.
+	 * @param string $indent Indentation string.
 	 * @return string
 	 */
 	public static function format_gutenberg_keys_xml( array $fields, string $indent = '            ' ): string {
@@ -530,7 +569,7 @@ class Detector {
 	 * Detect unmapped fields / dummy text from Elementor data in memory and generate XML snippet.
 	 * Enforces depth and node limits to prevent resource exhaustion.
 	 *
-	 * @param mixed $elements
+	 * @param mixed $elements Elements.
 	 * @return array|null
 	 */
 	public static function detect_from_elementor_data( $elements ) {
@@ -604,11 +643,11 @@ class Detector {
 	/**
 	 * Helper to recursively identify translatable text settings in Elementor widget.
 	 *
-	 * @param array  $settings
-	 * @param string $prefix
-	 * @param array  $existing_fields
-	 * @param array  $new_fields
-	 * @param int    $depth
+	 * @param array  $settings Settings array.
+	 * @param string $prefix Prefix.
+	 * @param array  $existing_fields Existing fields.
+	 * @param array  $new_fields New fields.
+	 * @param int    $depth Nesting depth.
 	 */
 	private static function find_elementor_text_settings( $settings, $prefix, $existing_fields, &$new_fields, $depth = 0 ) {
 		if ( ! is_array( $settings ) || empty( $settings ) || $depth > 15 ) {

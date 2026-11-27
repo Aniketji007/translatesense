@@ -1,4 +1,9 @@
 <?php
+/**
+ * Applies translated strings to Elementor page data.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -191,7 +196,7 @@ class Elementor_Builder extends Base_Builder {
 		}
 
 		$current_key = (string) $segments[ $index ];
-		$is_last     = ( $index === count( $segments ) - 1 );
+		$is_last     = ( count( $segments ) - 1 === $index );
 
 		// A path may point into each item of a repeater collection.
 		if ( self::is_sequential_array( $data ) ) {
@@ -233,7 +238,7 @@ class Elementor_Builder extends Base_Builder {
 			if ( is_array( $result ) && isset( $result['translated'] ) && is_string( $result['translated'] ) && '' !== trim( $result['translated'] ) ) {
 				$value = $result['translated'];
 			}
-		} catch ( \Throwable $exception ) {
+		} catch ( \Throwable $exception ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Intentionally ignored.
 			// Keep the original value when an individual string translation fails.
 		}
 	}
@@ -317,7 +322,7 @@ class Elementor_Builder extends Base_Builder {
 						$plugin->files_manager->clear_cache();
 					}
 				}
-			} catch ( \Throwable $exception ) {
+			} catch ( \Throwable $exception ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Intentionally ignored.
 				// The translated _elementor_data meta has already been saved.
 			}
 		}

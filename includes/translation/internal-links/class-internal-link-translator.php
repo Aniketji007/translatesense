@@ -1,4 +1,9 @@
 <?php
+/**
+ * Rewrites internal links to point at translated content.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
