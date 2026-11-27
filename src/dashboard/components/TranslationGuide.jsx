@@ -5,7 +5,7 @@
 import { useState } from '@wordpress/element';
 import { GuideMethodSelector } from './GuideMethodSelector';
 import { GuideStep } from './GuideStep';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 
 export const GUIDES_DATA = {
   gutenberg: {
@@ -33,9 +33,9 @@ export const GUIDES_DATA = {
       },
       {
         number: 4,
-        title: __( 'Locate TranslateSense Metabox', 'translatesense' ),
-        description: __( 'Locate the TranslateSense metabox in the right sidebar, above the Polylang language metabox.', 'translatesense' ),
-        screenshot: __( 'Right editor sidebar with TranslateSense metabox above Polylang', 'translatesense' ),
+        title: sprintf( /* translators: %s: plugin name. */ __( 'Locate %s Metabox', 'translatesense' ), 'TranslateSense' ),
+        description: sprintf( /* translators: %s: plugin name. */ __( 'Locate the %s metabox in the right sidebar, above the Polylang language metabox.', 'translatesense' ), 'TranslateSense' ),
+        screenshot: sprintf( /* translators: %s: plugin name. */ __( 'Right editor sidebar with %s metabox above Polylang', 'translatesense' ), 'TranslateSense' ),
       },
       {
         number: 5,
@@ -86,7 +86,7 @@ export const GUIDES_DATA = {
       {
         number: 4,
         title: __( 'Locate Auto Translate Button', 'translatesense' ),
-        description: __( 'Find the TranslateSense Auto Translate button above the Add Media button in the WYSIWYG editor.', 'translatesense' ),
+        description: sprintf( /* translators: %s: plugin name. */ __( 'Find the %s Auto Translate button above the Add Media button in the WYSIWYG editor.', 'translatesense' ), 'TranslateSense'),
         screenshot: __( 'Classic Editor showing the Auto Translate button above Add Media', 'translatesense' ),
       },
       {
@@ -137,7 +137,7 @@ export const GUIDES_DATA = {
         number: 4,
         title: __( 'Locate Header Button', 'translatesense' ),
         description: __( 'Locate Auto Translate in the Elementor editor header.', 'translatesense' ),
-        screenshot: __( 'Elementor header panel with TranslateSense Auto Translate button', 'translatesense' ),
+        screenshot: sprintf( /* translators: %s: plugin name. */ __( 'Elementor header panel with %s Auto Translate button', 'translatesense' ), 'TranslateSense'),
       },
       {
         number: 5,
