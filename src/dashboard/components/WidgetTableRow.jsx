@@ -44,10 +44,10 @@ export function WidgetTableRow({ widget, onEdit, onGenerate }) {
               title={
                 widget.xpaths && widget.xpaths.length > 0
                   ? widget.xpaths.map((x) => (x.type ? `[${x.type}] ${x.value}` : x.value)).join('\n')
-                  : sprintf( /* translators: %s: XPath expression. */ __( 'XPath: %s', 'translatesense' ), widget.xpath )
+                  : `XPath: ${widget.xpath}`
               }
             >
-              {widget.xpaths && widget.xpaths.length > 0 && sprintf( /* translators: %s: Number of items. */ __( '%s XPaths', 'translatesense' ), widget.xpaths.length )}
+              {widget.xpaths && widget.xpaths.length > 0 && `${widget.xpaths.length} XPaths`}
             </span>
           )}
         </div>
@@ -71,7 +71,7 @@ export function WidgetTableRow({ widget, onEdit, onGenerate }) {
             type="button"
             className="ts-table-btn edit"
             onClick={() => onEdit(widget)}
-            title={ __( 'Edit XML rule directly', 'translatesense' ) }
+            title={ sprintf( /* translators: %s: XML text. */ __( 'Edit %s rule directly', 'translatesense' ), 'XML' ) }
           >
             <span style={{ display: 'inline-flex', marginRight: '5px' }}>
               {DashboardIcons.pencil({ size: 12 })}
@@ -83,7 +83,7 @@ export function WidgetTableRow({ widget, onEdit, onGenerate }) {
             type="button"
             className="ts-table-btn generate"
             onClick={() => onGenerate(widget)}
-            title={ __( 'Generate XML configuration rule', 'translatesense' ) }
+            title={ sprintf( /* translators: %s: XML text. */ __( 'Generate %s configuration rule', 'translatesense' ), 'XML' ) }
           >
             { __( 'Generate', 'translatesense' ) }
           </button>
