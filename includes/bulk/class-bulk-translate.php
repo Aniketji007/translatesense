@@ -116,6 +116,8 @@ class Bulk_Translate {
 	/**
 	 * Enqueue assets on edit.php (Polylang translated post types), edit-tags.php (Polylang translated taxonomies),
 	 * and upload.php (WordPress Media Library when Polylang Media translation is enabled).
+	 *
+	 * @param mixed $hook Hook.
 	 */
 	public static function enqueue_bulk_assets( $hook ) {
 		$post_type       = '';

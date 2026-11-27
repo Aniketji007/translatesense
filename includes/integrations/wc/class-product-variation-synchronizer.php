@@ -1,4 +1,9 @@
 <?php
+/**
+ * Synchronizes WooCommerce product variations.
+ *
+ * @package TranslateSense
+ */
 
 declare(strict_types=1);
 
@@ -28,10 +33,23 @@ class Product_Variation_Synchronizer extends WC_Base {
 	 */
 	private static bool $synchronizing = false;
 
+	/**
+	 * Register the hooks.
+	 */
 	public function __construct() {
 		parent::__construct( 15 );
 	}
 
+	/**
+	 * Synchronize product variations.
+	 *
+	 * @param int    $source_post_id Source post ID.
+	 * @param int    $target_post_id Target post ID.
+	 * @param string $target_lang    Target language.
+	 * @param bool   $is_existing    Whether the translation already existed.
+	 * @param array  $sync_result    Sync result.
+	 * @param array  $context        Translation context.
+	 */
 	public function translate( int $source_post_id, int $target_post_id, string $target_lang, bool $is_existing = false, array $sync_result = array(), array $context = array() ): void {
 		self::synchronize_variations( $source_post_id, $target_post_id, $target_lang, $is_existing, $sync_result, $context );
 	}
@@ -76,7 +94,7 @@ class Product_Variation_Synchronizer extends WC_Base {
 			$source_lang = sanitize_key( (string) Polylang_Bridge::get_default_language() );
 		}
 
-		// Fallback to static context if context parameter was not provided by caller
+		// Fallback to static context if context parameter was not provided by caller.
 		if ( empty( $context ) && class_exists( Product_Attribute_Translator::class ) ) {
 			$context = Product_Attribute_Translator::get_current_context();
 		}
@@ -109,7 +127,7 @@ class Product_Variation_Synchronizer extends WC_Base {
 
 		$target_post_id = (int) $target_product->get_id();
 
-		// Ensure target product has variable product type
+		// Ensure target product has variable product type.
 		if ( ! $target_product->is_type( 'variable' ) ) {
 			wp_set_object_terms( $target_post_id, 'variable', 'product_type' );
 			clean_post_cache( $target_post_id );
@@ -117,10 +135,10 @@ class Product_Variation_Synchronizer extends WC_Base {
 			$target_product = new \WC_Product_Variable( $target_post_id );
 		}
 
-		// Build attribute mapping using translated attributes from target product
+		// Build attribute mapping using translated attributes from target product.
 		$attribute_map = Product_Attribute_Translator::build_attribute_map( $source_product, $target_product, $target_lang );
 
-		// Map existing variations on target product by _translatesense_source_id to prevent duplicates
+		// Map existing variations on target product by _translatesense_source_id to prevent duplicates.
 		$existing_target_variation_ids = $target_product->get_children();
 		$existing_by_source_id         = array();
 
@@ -170,13 +188,13 @@ class Product_Variation_Synchronizer extends WC_Base {
 			)
 			: array();
 
-		// Temporarily allow translated variations to share source SKU across translations
+		// Temporarily allow translated variations to share source SKU across translations.
 		add_filter( 'wc_product_pre_has_unique_sku', '__return_true' );
 		add_filter( 'wc_product_has_unique_sku', '__return_false' );
 
 		add_filter(
 			'woocommerce_delete_variations_on_product_type_change',
-			function ( $delete, $product, $from, $to ) use ( $target_post_id ) {
+			function ( $delete, $product ) use ( $target_post_id ) {
 
 				if ( $product instanceof WC_Product && $product->get_id() === $target_post_id ) {
 					return false;
@@ -185,11 +203,11 @@ class Product_Variation_Synchronizer extends WC_Base {
 				return $delete;
 			},
 			10,
-			4
+			2
 		);
 
 		try {
-			// Process each source variation in order, preserving variation ordering
+			// Process each source variation in order, preserving variation ordering.
 			foreach ( $source_variation_ids as $source_var_id ) {
 				$source_var_id = absint( $source_var_id );
 				if ( $source_var_id <= 0 ) {
@@ -201,7 +219,7 @@ class Product_Variation_Synchronizer extends WC_Base {
 					continue;
 				}
 
-				// Reuse existing translated variation or create missing one
+				// Reuse existing translated variation or create missing one.
 				$target_var_id = $existing_by_source_id[ $source_var_id ] ?? 0;
 				$target_var    = ( $target_var_id > 0 ) ? wc_get_product( $target_var_id ) : null;
 				$is_existing   = ( $target_var instanceof WC_Product_Variation );
@@ -211,7 +229,7 @@ class Product_Variation_Synchronizer extends WC_Base {
 					$target_var->set_parent_id( $target_post_id );
 				}
 
-				// Map variation attributes to translated attribute values or terms
+				// Map variation attributes to translated attribute values or terms.
 				$source_var_attributes = (array) $source_var->get_attributes();
 				$target_var_attributes = array();
 
@@ -233,7 +251,7 @@ class Product_Variation_Synchronizer extends WC_Base {
 							$target_var_attributes[ $target_key ] = $val_map[ $attr_val ] ?? $attr_val;
 						}
 					} else {
-						// Fallback for global pa_* attribute taxonomy terms
+						// Fallback for global pa_* attribute taxonomy terms.
 						if ( 0 === strpos( $attr_name, 'pa_' ) && taxonomy_exists( $attr_name ) ) {
 							$source_term = get_term_by( 'slug', $attr_val, $attr_name );
 							if ( $source_term instanceof WP_Term ) {
@@ -257,33 +275,33 @@ class Product_Variation_Synchronizer extends WC_Base {
 				$target_var->set_attributes( $target_var_attributes );
 
 				// Copy required WooCommerce variation settings and data using CRUD APIs
-				// Pricing:
+				// Pricing.
 				$target_var->set_regular_price( $source_var->get_regular_price() );
 				$target_var->set_sale_price( $source_var->get_sale_price() );
 				$target_var->set_price( $source_var->get_price() );
 				$target_var->set_date_on_sale_from( $source_var->get_date_on_sale_from() );
 				$target_var->set_date_on_sale_to( $source_var->get_date_on_sale_to() );
 
-				// SKU:
+				// SKU.
 				try {
 					$target_var->set_sku( $source_var->get_sku() );
-				} catch ( \Throwable $sku_error ) {
-					// Fallback if WooCommerce rejects duplicate SKU
+				} catch ( \Throwable $sku_error ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Keep the variation without a SKU.
+					// Fallback if WooCommerce rejects duplicate SKU.
 				}
 
-				// Stock settings:
+				// Stock settings.
 				$target_var->set_manage_stock( $source_var->get_manage_stock() );
 				$target_var->set_stock_quantity( $source_var->get_stock_quantity() );
 				$target_var->set_stock_status( $source_var->get_stock_status() );
 				$target_var->set_backorders( $source_var->get_backorders() );
 
-				// Dimensions and weight:
+				// Dimensions and weight.
 				$target_var->set_weight( $source_var->get_weight() );
 				$target_var->set_length( $source_var->get_length() );
 				$target_var->set_width( $source_var->get_width() );
 				$target_var->set_height( $source_var->get_height() );
 
-				// Shipping class:
+				// Shipping class.
 				$source_shipping_id = $source_var->get_shipping_class_id();
 				if ( $source_shipping_id > 0 ) {
 					$target_shipping_id = Taxonomy_Parser::get_translation_id( $source_shipping_id, $target_lang );
@@ -292,22 +310,22 @@ class Product_Variation_Synchronizer extends WC_Base {
 					$target_var->set_shipping_class_id( 0 );
 				}
 
-				// Downloadable and virtual settings:
+				// Downloadable and virtual settings.
 				$target_var->set_virtual( $source_var->get_virtual() );
 				$target_var->set_downloadable( $source_var->get_downloadable() );
 				$target_var->set_downloads( $source_var->get_downloads() );
 				$target_var->set_download_limit( $source_var->get_download_limit() );
 				$target_var->set_download_expiry( $source_var->get_download_expiry() );
 
-				// Tax settings:
+				// Tax settings.
 				$target_var->set_tax_status( $source_var->get_tax_status() );
 				$target_var->set_tax_class( $source_var->get_tax_class() );
 
-				// Preserve variation ordering and status:
+				// Preserve variation ordering and status.
 				$target_var->set_menu_order( (int) $source_var->get_menu_order() );
 				$target_var->set_status( $source_var->get_status() );
 
-				// Thumbnail / image:
+				// Thumbnail / image.
 				$source_img_id = (int) $source_var->get_image_id();
 				if ( $source_img_id > 0 ) {
 					$target_img_id = Polylang_Bridge::get_existing_translation_post_id( $source_img_id, $target_lang );
@@ -316,11 +334,11 @@ class Product_Variation_Synchronizer extends WC_Base {
 					$target_var->set_image_id( 0 );
 				}
 
-				// Translated description:
+				// Translated description.
 				$source_desc = trim( (string) $source_var->get_description() );
 				$target_var->set_description( $translated_descriptions[ (string) $source_var_id ] ?? $source_desc );
 
-				// Save variation via WooCommerce CRUD
+				// Save variation via WooCommerce CRUD.
 				$saved_target_var_id = $target_var->save();
 
 				if ( $saved_target_var_id > 0 ) {
@@ -341,7 +359,7 @@ class Product_Variation_Synchronizer extends WC_Base {
 			remove_filter( 'wc_product_has_unique_sku', '__return_false' );
 		}
 
-		// Preserve default attributes on target product
+		// Preserve default attributes on target product.
 		$source_default_attributes = (array) $source_product->get_default_attributes();
 		$target_default_attributes = array();
 
@@ -369,7 +387,7 @@ class Product_Variation_Synchronizer extends WC_Base {
 
 		$target_product->set_default_attributes( $target_default_attributes );
 
-		// Update translated parent product
+		// Update translated parent product.
 		$target_product->save();
 
 		if ( class_exists( WC_Product_Variable::class ) ) {

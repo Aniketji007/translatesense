@@ -215,7 +215,7 @@ class Xml_Engine {
 			}
 
 			if ( file_exists( $xml_file ) && is_readable( $xml_file ) ) {
-				$content = file_get_contents( $xml_file );
+				$content = file_get_contents( $xml_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local plugin file.
 				if ( ! empty( $content ) ) {
 					$configs[ $plugin_file ] = $content;
 				}
@@ -225,7 +225,7 @@ class Xml_Engine {
 		// Check active theme/child theme.
 		$theme_xml = get_stylesheet_directory() . '/wpml-config.xml';
 		if ( file_exists( $theme_xml ) && is_readable( $theme_xml ) ) {
-			$content = file_get_contents( $theme_xml );
+			$content = file_get_contents( $theme_xml ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local theme file.
 			if ( ! empty( $content ) ) {
 				$configs[ 'theme:' . $active_info['theme'] ] = $content;
 			}
@@ -235,7 +235,7 @@ class Xml_Engine {
 		if ( get_template_directory() !== get_stylesheet_directory() ) {
 			$parent_xml = get_template_directory() . '/wpml-config.xml';
 			if ( file_exists( $parent_xml ) && is_readable( $parent_xml ) ) {
-				$content = file_get_contents( $parent_xml );
+				$content = file_get_contents( $parent_xml ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local theme file.
 				if ( ! empty( $content ) ) {
 					$configs['parent-theme'] = $content;
 				}
@@ -450,7 +450,7 @@ class Xml_Engine {
 		$core_xml  = '';
 		$core_path = self::get_master_xml_path();
 		if ( file_exists( $core_path ) ) {
-			$core_xml = (string) file_get_contents( $core_path );
+			$core_xml = (string) file_get_contents( $core_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reads a local plugin file.
 		}
 
 		// 2. Active plugins & theme WPML configs
@@ -482,6 +482,7 @@ class Xml_Engine {
 		$dom                     = new DOMDocument( '1.0' );
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Malformed XML must not raise warnings.
 		if ( false === stripos( $merged_xml, '<!DOCTYPE' ) && @$dom->loadXML( $merged_xml, LIBXML_NONET ) ) {
 			$formatted_xml = $dom->saveXML();
 		} else {
@@ -646,6 +647,7 @@ class Xml_Engine {
 		$dom                     = new DOMDocument( '1.0' );
 		$dom->preserveWhiteSpace = false;
 		$dom->formatOutput       = true;
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Malformed XML must not raise warnings.
 		if ( false === stripos( $xml_string, '<!DOCTYPE' ) && @$dom->loadXML( $xml_string, LIBXML_NONET ) ) {
 			$formatted_xml = $dom->saveXML();
 		} else {

@@ -45,7 +45,7 @@ class Bulk_Process {
 	 * Initialize hooks.
 	 */
 	public static function init() {
-		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_intervals' ) );
+		add_filter( 'cron_schedules', array( __CLASS__, 'add_cron_intervals' ) ); // phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- The bulk queue is intentionally polled every minute.
 		add_action( self::CRON_HOOK, array( __CLASS__, 'process_cron_tick' ) );
 		add_action( self::IMMEDIATE_CRON_HOOK, array( __CLASS__, 'process_cron_tick' ) );
 	}
@@ -1221,7 +1221,7 @@ class Bulk_Process {
 				}
 			}
 
-			// Extract pure strings indexed by array index
+			// Extract pure strings indexed by array index.
 			$slug_translation = Utils::get_slug_translation();
 			$strings_to_send  = array();
 			$total_chars      = 0;
@@ -1358,7 +1358,7 @@ class Bulk_Process {
 				}
 			}
 
-			// Update receive_data in queue table immediately upon receiving AI response
+			// Update receive_data in queue table immediately upon receiving AI response.
 			self::update_job(
 				$job_id,
 				array(
@@ -1367,7 +1367,7 @@ class Bulk_Process {
 				)
 			);
 
-			// Final pre-save check: ensure cancellation was not requested immediately before DB write
+			// Final pre-save check: ensure cancellation was not requested immediately before DB write.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 			$pre_save_status = $wpdb->get_var(
 				$wpdb->prepare( "SELECT status FROM {$table} WHERE id = %d", $job_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared

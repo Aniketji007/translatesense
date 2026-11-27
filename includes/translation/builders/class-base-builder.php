@@ -160,7 +160,7 @@ abstract class Base_Builder {
 		$translated_title   = $this->translate_title( $source_post->post_title, $source_lang, $target_lang, $custom_opts );
 		$translated_excerpt = $this->translate_excerpt( $source_post->post_excerpt, $source_lang, $target_lang, $custom_opts );
 
-		// Allow style CSS properities temporarily
+		// Allow style CSS properities temporarily.
 		add_filter( 'safe_style_css', array( $this, 'allowed_css_properties' ), 10, 1 );
 
 		// 2. Translate Builder Content

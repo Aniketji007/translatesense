@@ -4706,7 +4706,7 @@ class Rest_Api {
 					'total_strings'    => $total_strings,
 					'provider'         => $provider,
 					'time_take'        => $time_take,
-					'request_id'       => 'mark_translated_' . $post_id . '_' . $provider . '_' . current_time( 'timestamp' ),
+					'request_id'       => 'mark_translated_' . $post_id . '_' . $provider . '_' . time(),
 				)
 			);
 		}
