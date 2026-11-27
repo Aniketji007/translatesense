@@ -45,10 +45,10 @@ export function WidgetCard({ widget, activeTab, onEdit, onGenerate }) {
             title={
               widget.xpaths && widget.xpaths.length > 0
                 ? widget.xpaths.map((x) => (x.type ? `[${x.type}] ${x.value}` : x.value)).join('\n')
-                : sprintf( /* translators: %s: XPath expression. */ __( 'XPath: %s', 'translatesense' ), widget.xpath )
+                : `XPath: ${widget.xpath}`
             }
           >
-            {widget.xpaths && widget.xpaths.length > 0 && sprintf( /* translators: %s: Number of items. */ __( '%s XPaths', 'translatesense' ), widget.xpaths.length )}
+            {widget.xpaths && widget.xpaths.length > 0 && `${widget.xpaths.length} XPaths`}
           </span>
         )}
       </div>
