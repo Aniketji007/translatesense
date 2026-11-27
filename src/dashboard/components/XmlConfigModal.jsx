@@ -99,8 +99,8 @@ export function XmlConfigModal({ widget, builder = 'gutenberg', xmlCode = '', on
         <div className="ts-modal-header">
           <h3>
             {widget
-              ? sprintf( /* translators: %1$s: Name, %2$s: Dynamic value. */ __( 'Configure XML: %1$s (%2$s)', 'translatesense' ), widget.name, builder.toUpperCase() )
-              : sprintf( /* translators: %s: Dynamic value. */ __( 'Edit %s Custom XML Configuration', 'translatesense' ), builder.toUpperCase() )}
+              ? sprintf( /* translators: %1$s: Name, %2$s: Dynamic value. */ __( 'Configure %1$s (%2$s)', 'translatesense' ), 'XML: '+widget.name, builder.toUpperCase() )
+              : sprintf( /* translators: %s: Dynamic value. */ __( 'Edit %1$s Custom %2$s Configuration', 'translatesense' ), builder.toUpperCase(), 'XML' )}
           </h3>
           <button className="ts-modal-close" onClick={onClose} aria-label={ __( 'Close', 'translatesense' ) }>
             {DashboardIcons.close({ size: 16 })}
