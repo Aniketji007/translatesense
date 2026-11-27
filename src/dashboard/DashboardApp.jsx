@@ -144,11 +144,11 @@ export function DashboardApp() {
   const handleSaveXml = async (newXml) => {
     try {
       const res = await dashboardService.saveXmlConfig(xmlModal.builder, newXml);
-      showNotice(res.message || __( 'XML configuration saved successfully!', 'translatesense' ));
+      showNotice(res.message || sprintf( /* translators: %s: XML text. */ __( '%s configuration saved successfully!', 'translatesense' ), 'XML' ) );
       handleCloseXmlModal();
       loadData();
     } catch (err) {
-      showNotice(sprintf( /* translators: %s: Error message. */ __( 'Error saving XML: %s', 'translatesense' ), err.message || __( 'Validation error', 'translatesense' ) ), 'error');
+      showNotice(sprintf( /* translators: %1$s: XML text, %2$s: Error message. */ __( 'Error saving %1$s: %2$s', 'translatesense' ), 'XML', err.message || __( 'Validation error', 'translatesense' ) ), 'error');
     }
   };
 
@@ -210,7 +210,7 @@ export function DashboardApp() {
         />
         <div className="ts-loading-placeholder">
           <div className="ts-spinner" />
-          <p>{ __( 'Loading TranslateSense Dashboard...', 'translatesense' ) }</p>
+          <p>{ sprintf( /* translators: %s: plugin name. */ __( 'Loading %s Dashboard...', 'translatesense' ), 'TranslateSense' ) }</p>
         </div>
       </div>
     );
@@ -236,7 +236,7 @@ export function DashboardApp() {
         <div
           className="ts-review-notice ts-dashboard-review-notice"
           role="region"
-          aria-label={ __( 'TranslateSense Review Notice', 'translatesense' ) }
+          aria-label={ sprintf( /* translators: %s: plugin name. */ __( '%s Review Notice', 'translatesense' ), 'TranslateSense' ) }
         >
           <p className="ts-review-notice-text">
             <span dangerouslySetInnerHTML={{ __html: REVIEW_NOTICE_BODY }} />{' '}
